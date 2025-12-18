@@ -1,0 +1,40 @@
+from src.user.models import Role
+from django.core.management.base import BaseCommand
+
+class Command(BaseCommand):
+    def handle(self, *args, **kwargs):
+        self.roles(*args, **kwargs)
+
+    def roles(self, *args, **kwargs):
+        if Role.objects.exists():
+            self.stdout.write(self.style.WARNING('Roles already initialized.'))
+            return
+        roles = [
+            {
+                'title': 'Директор',
+
+            },
+            {
+                'title': 'Управляющий',
+                'has_roles': True,
+
+            },
+            {
+                'title': 'Бухгалтер',
+
+            },
+            {
+                'title': 'Электрик',
+
+            },
+            {
+                'title': 'Сантехник',
+
+            },
+        ]
+        for role_data in roles:
+            role, created = Role.objects.get_or_create(title=role_data['title'], defaults=role_data)
+            if created:
+                self.stdout.write(self.style.SUCCESS(f'Role "{role.title}" created.'))
+            else:
+                self.stdout.write(self.style.WARNING(f'Role "{role.title}" already exists.'))
