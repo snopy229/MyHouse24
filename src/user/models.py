@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from phonenumber_field.modelfields import PhoneNumberField
 
+
 # Create your models here.
 class Role(models.Model):
     title = models.CharField(max_length=100)
@@ -23,15 +24,16 @@ class Role(models.Model):
 
     def __str__(self):
         return self.title
-    
+
+
 class User(AbstractUser):
     username = None
     id_user = models.IntegerField(blank=True, null=True)
     name = models.CharField(max_length=50, blank=True, null=True)
-    surname = models.CharField( max_length=50, blank=True, null=True)
-    last_name = models.CharField( max_length=50, blank=True, null=True)
+    surname = models.CharField(max_length=50, blank=True, null=True)
+    last_name = models.CharField(max_length=50, blank=True, null=True)
     birth_date = models.DateField(auto_now=False, blank=True, null=True)
     about_owner = models.TextField(blank=True, null=True)
-    phone_number = PhoneNumberField(blank=True, blank=True, null=True)
-    viber = PhoneNumberField(blank=True, blank=True, null=True)
+    phone_number = PhoneNumberField(blank=True, null=True)
+    viber = PhoneNumberField(blank=True, null=True)
     telegram = models.CharField(max_length=50)
