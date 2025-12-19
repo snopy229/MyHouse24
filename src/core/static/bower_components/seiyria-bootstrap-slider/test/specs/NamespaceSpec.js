@@ -6,7 +6,7 @@ describe("Namespace Tests", function() {
   it("should always set the plugin namespace to 'bootstrapSlider'", function(done) {
     $.getScript(sourceJS, function() {
       expect($.fn.bootstrapSlider).toBeDefined();
-      done();   
+      done();
     });
   });
 

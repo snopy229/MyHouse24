@@ -28,9 +28,9 @@ describe("Orientation Tests", function() {
     it("slides up when handle moves upwards", function() {
       var mousemove = document.createEvent('MouseEvents');
       var mousemoveX = sliderHandleLeftPos;
-      var mousemoveY = sliderHandleTopPos - 100;      
+      var mousemoveY = sliderHandleTopPos - 100;
       var newSliderValue;
-      
+
       mousemove.initMouseEvent(
         "mousedown",
         true /* bubble */,
@@ -53,7 +53,7 @@ describe("Orientation Tests", function() {
       var mousemoveX = sliderHandleLeftPos;
       var mousemoveY = sliderHandleTopPos + 100;
       var newSliderValue;
-      
+
       mousemove.initMouseEvent(
         "mousedown",
         true /* bubble */,

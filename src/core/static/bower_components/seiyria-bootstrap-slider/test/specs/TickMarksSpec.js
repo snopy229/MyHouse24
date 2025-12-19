@@ -147,7 +147,7 @@ describe("Slider with ticks tests", function() {
 			.sort(function(tickLabelElemA, tickLabelElemB) {
 				var leftOffsetA = $(tickLabelElemA).position().left;
 				var leftOffsetB = $(tickLabelElemB).position().left;
-				
+
 				return leftOffsetA - leftOffsetB;
 			})
 			.map(function() { return $(this).text(); })
@@ -168,7 +168,7 @@ describe("Slider with ticks tests", function() {
 			ticks: ticks,
 			ticks_positions: [0, 30, 70, 90, 100, 130]
 		});
-		
+
 		// Assert that the ticks are children of the container element
 		var numTicks = $sliderDOMRef.siblings('div.slider').find('.slider-tick-container > .slider-tick').length;
 		expect(numTicks).toBe(ticks.length);

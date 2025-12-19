@@ -58,7 +58,7 @@
                 var $input = $(this);
                 if (e.ctrlKey && e.keyCode === Inputmask.keyCode.RIGHT) {
                     var today = new Date();
-                    $input.val(today.getDate().toString() + (today.getMonth() + 1).toString() + today.getFullYear().toString()), 
+                    $input.val(today.getDate().toString() + (today.getMonth() + 1).toString() + today.getFullYear().toString()),
                     $input.trigger("setvalue");
                 }
             },
@@ -71,14 +71,14 @@
             },
             postValidation: function(buffer, currentResult, opts) {
                 var dayMonthValue, year, bufferStr = buffer.join("");
-                return 0 === opts.mask.indexOf("y") ? (year = bufferStr.substr(0, 4), dayMonthValue = bufferStr.substring(4, 10)) : (year = bufferStr.substring(6, 10), 
+                return 0 === opts.mask.indexOf("y") ? (year = bufferStr.substr(0, 4), dayMonthValue = bufferStr.substring(4, 10)) : (year = bufferStr.substring(6, 10),
                 dayMonthValue = bufferStr.substr(0, 6)), currentResult && (dayMonthValue !== opts.leapday || isLeapYear(year));
             },
             definitions: {
                 "1": {
                     validator: function(chrs, maskset, pos, strict, opts) {
                         var isValid = opts.regex.val1.test(chrs);
-                        return strict || isValid || chrs.charAt(1) !== opts.separator && -1 === "-./".indexOf(chrs.charAt(1)) || !(isValid = opts.regex.val1.test("0" + chrs.charAt(0))) ? isValid : (maskset.buffer[pos - 1] = "0", 
+                        return strict || isValid || chrs.charAt(1) !== opts.separator && -1 === "-./".indexOf(chrs.charAt(1)) || !(isValid = opts.regex.val1.test("0" + chrs.charAt(0))) ? isValid : (maskset.buffer[pos - 1] = "0",
                         {
                             refreshFromBuffer: {
                                 start: pos - 1,
@@ -94,14 +94,14 @@
                             var pchrs = chrs;
                             isNaN(maskset.buffer[pos + 1]) || (pchrs += maskset.buffer[pos + 1]);
                             var isValid = 1 === pchrs.length ? opts.regex.val1pre.test(pchrs) : opts.regex.val1.test(pchrs);
-                            if (isValid && maskset.validPositions[pos] && (opts.regex.val2(opts.separator).test(chrs + maskset.validPositions[pos].input) || (maskset.validPositions[pos].input = "0" === chrs ? "1" : "0")), 
+                            if (isValid && maskset.validPositions[pos] && (opts.regex.val2(opts.separator).test(chrs + maskset.validPositions[pos].input) || (maskset.validPositions[pos].input = "0" === chrs ? "1" : "0")),
                             !strict && !isValid) {
-                                if (isValid = opts.regex.val1.test(chrs + "0")) return maskset.buffer[pos] = chrs, 
+                                if (isValid = opts.regex.val1.test(chrs + "0")) return maskset.buffer[pos] = chrs,
                                 maskset.buffer[++pos] = "0", {
                                     pos: pos,
                                     c: "0"
                                 };
-                                if (isValid = opts.regex.val1.test("0" + chrs)) return maskset.buffer[pos] = "0", 
+                                if (isValid = opts.regex.val1.test("0" + chrs)) return maskset.buffer[pos] = "0",
                                 pos++, {
                                     pos: pos
                                 };
@@ -116,7 +116,7 @@
                         var frontValue = opts.getFrontValue(maskset.mask, maskset.buffer, opts);
                         -1 !== frontValue.indexOf(opts.placeholder[0]) && (frontValue = "01" + opts.separator);
                         var isValid = opts.regex.val2(opts.separator).test(frontValue + chrs);
-                        return strict || isValid || chrs.charAt(1) !== opts.separator && -1 === "-./".indexOf(chrs.charAt(1)) || !(isValid = opts.regex.val2(opts.separator).test(frontValue + "0" + chrs.charAt(0))) ? isValid : (maskset.buffer[pos - 1] = "0", 
+                        return strict || isValid || chrs.charAt(1) !== opts.separator && -1 === "-./".indexOf(chrs.charAt(1)) || !(isValid = opts.regex.val2(opts.separator).test(frontValue + "0" + chrs.charAt(0))) ? isValid : (maskset.buffer[pos - 1] = "0",
                         {
                             refreshFromBuffer: {
                                 start: pos - 1,
@@ -133,8 +133,8 @@
                             var frontValue = opts.getFrontValue(maskset.mask, maskset.buffer, opts);
                             -1 !== frontValue.indexOf(opts.placeholder[0]) && (frontValue = "01" + opts.separator);
                             var isValid = 1 === chrs.length ? opts.regex.val2pre(opts.separator).test(frontValue + chrs) : opts.regex.val2(opts.separator).test(frontValue + chrs);
-                            return isValid && maskset.validPositions[pos] && (opts.regex.val2(opts.separator).test(chrs + maskset.validPositions[pos].input) || (maskset.validPositions[pos].input = "0" === chrs ? "1" : "0")), 
-                            strict || isValid || !(isValid = opts.regex.val2(opts.separator).test(frontValue + "0" + chrs)) ? isValid : (maskset.buffer[pos] = "0", 
+                            return isValid && maskset.validPositions[pos] && (opts.regex.val2(opts.separator).test(chrs + maskset.validPositions[pos].input) || (maskset.validPositions[pos].input = "0" === chrs ? "1" : "0")),
+                            strict || isValid || !(isValid = opts.regex.val2(opts.separator).test(frontValue + "0" + chrs)) ? isValid : (maskset.buffer[pos] = "0",
                             pos++, {
                                 pos: pos
                             });
@@ -152,12 +152,12 @@
                             var isValid = opts.isInYearRange(chrs, opts.yearrange.minyear, opts.yearrange.maxyear);
                             if (!strict && !isValid) {
                                 var yearPrefix = opts.determinebaseyear(opts.yearrange.minyear, opts.yearrange.maxyear, chrs + "0").toString().slice(0, 1);
-                                if (isValid = opts.isInYearRange(yearPrefix + chrs, opts.yearrange.minyear, opts.yearrange.maxyear)) return maskset.buffer[pos++] = yearPrefix.charAt(0), 
+                                if (isValid = opts.isInYearRange(yearPrefix + chrs, opts.yearrange.minyear, opts.yearrange.maxyear)) return maskset.buffer[pos++] = yearPrefix.charAt(0),
                                 {
                                     pos: pos
                                 };
-                                if (yearPrefix = opts.determinebaseyear(opts.yearrange.minyear, opts.yearrange.maxyear, chrs + "0").toString().slice(0, 2), 
-                                isValid = opts.isInYearRange(yearPrefix + chrs, opts.yearrange.minyear, opts.yearrange.maxyear)) return maskset.buffer[pos++] = yearPrefix.charAt(0), 
+                                if (yearPrefix = opts.determinebaseyear(opts.yearrange.minyear, opts.yearrange.maxyear, chrs + "0").toString().slice(0, 2),
+                                isValid = opts.isInYearRange(yearPrefix + chrs, opts.yearrange.minyear, opts.yearrange.maxyear)) return maskset.buffer[pos++] = yearPrefix.charAt(0),
                                 maskset.buffer[pos++] = yearPrefix.charAt(1), {
                                     pos: pos
                                 };
@@ -170,13 +170,13 @@
                             var isValid = opts.isInYearRange(chrs, opts.yearrange.minyear, opts.yearrange.maxyear);
                             if (!strict && !isValid) {
                                 var yearPrefix = opts.determinebaseyear(opts.yearrange.minyear, opts.yearrange.maxyear, chrs).toString().slice(0, 2);
-                                if (isValid = opts.isInYearRange(chrs[0] + yearPrefix[1] + chrs[1], opts.yearrange.minyear, opts.yearrange.maxyear)) return maskset.buffer[pos++] = yearPrefix.charAt(1), 
+                                if (isValid = opts.isInYearRange(chrs[0] + yearPrefix[1] + chrs[1], opts.yearrange.minyear, opts.yearrange.maxyear)) return maskset.buffer[pos++] = yearPrefix.charAt(1),
                                 {
                                     pos: pos
                                 };
-                                if (yearPrefix = opts.determinebaseyear(opts.yearrange.minyear, opts.yearrange.maxyear, chrs).toString().slice(0, 2), 
-                                isValid = opts.isInYearRange(yearPrefix + chrs, opts.yearrange.minyear, opts.yearrange.maxyear)) return maskset.buffer[pos - 1] = yearPrefix.charAt(0), 
-                                maskset.buffer[pos++] = yearPrefix.charAt(1), maskset.buffer[pos++] = chrs.charAt(0), 
+                                if (yearPrefix = opts.determinebaseyear(opts.yearrange.minyear, opts.yearrange.maxyear, chrs).toString().slice(0, 2),
+                                isValid = opts.isInYearRange(yearPrefix + chrs, opts.yearrange.minyear, opts.yearrange.maxyear)) return maskset.buffer[pos - 1] = yearPrefix.charAt(0),
+                                maskset.buffer[pos++] = yearPrefix.charAt(1), maskset.buffer[pos++] = chrs.charAt(0),
                                 {
                                     refreshFromBuffer: {
                                         start: pos - 3,
@@ -219,7 +219,7 @@
                 var $input = $(this);
                 if (e.ctrlKey && e.keyCode === Inputmask.keyCode.RIGHT) {
                     var today = new Date();
-                    $input.val((today.getMonth() + 1).toString() + today.getDate().toString() + today.getFullYear().toString()), 
+                    $input.val((today.getMonth() + 1).toString() + today.getDate().toString() + today.getFullYear().toString()),
                     $input.trigger("setvalue");
                 }
             }
@@ -233,7 +233,7 @@
                 var $input = $(this);
                 if (e.ctrlKey && e.keyCode === Inputmask.keyCode.RIGHT) {
                     var today = new Date();
-                    $input.val(today.getFullYear().toString() + (today.getMonth() + 1).toString() + today.getDate().toString()), 
+                    $input.val(today.getFullYear().toString() + (today.getMonth() + 1).toString() + today.getDate().toString()),
                     $input.trigger("setvalue");
                 }
             }
@@ -297,7 +297,7 @@
             definitions: {
                 h: {
                     validator: function(chrs, maskset, pos, strict, opts) {
-                        if ("24" === opts.hourFormat && 24 === parseInt(chrs, 10)) return maskset.buffer[pos - 1] = "0", 
+                        if ("24" === opts.hourFormat && 24 === parseInt(chrs, 10)) return maskset.buffer[pos - 1] = "0",
                         maskset.buffer[pos] = "0", {
                             refreshFromBuffer: {
                                 start: pos - 1,
@@ -306,7 +306,7 @@
                             c: "0"
                         };
                         var isValid = opts.regex.hrs.test(chrs);
-                        if (!strict && !isValid && (chrs.charAt(1) === opts.timeseparator || -1 !== "-.:".indexOf(chrs.charAt(1))) && (isValid = opts.regex.hrs.test("0" + chrs.charAt(0)))) return maskset.buffer[pos - 1] = "0", 
+                        if (!strict && !isValid && (chrs.charAt(1) === opts.timeseparator || -1 !== "-.:".indexOf(chrs.charAt(1))) && (isValid = opts.regex.hrs.test("0" + chrs.charAt(0)))) return maskset.buffer[pos - 1] = "0",
                         maskset.buffer[pos] = chrs.charAt(0), pos++, {
                             refreshFromBuffer: {
                                 start: pos - 2,
@@ -317,9 +317,9 @@
                         };
                         if (isValid && "24" !== opts.hourFormat && opts.regex.hrs24.test(chrs)) {
                             var tmp = parseInt(chrs, 10);
-                            return 24 === tmp ? (maskset.buffer[pos + 5] = "a", maskset.buffer[pos + 6] = "m") : (maskset.buffer[pos + 5] = "p", 
-                            maskset.buffer[pos + 6] = "m"), (tmp -= 12) < 10 ? (maskset.buffer[pos] = tmp.toString(), 
-                            maskset.buffer[pos - 1] = "0") : (maskset.buffer[pos] = tmp.toString().charAt(1), 
+                            return 24 === tmp ? (maskset.buffer[pos + 5] = "a", maskset.buffer[pos + 6] = "m") : (maskset.buffer[pos + 5] = "p",
+                            maskset.buffer[pos + 6] = "m"), (tmp -= 12) < 10 ? (maskset.buffer[pos] = tmp.toString(),
+                            maskset.buffer[pos - 1] = "0") : (maskset.buffer[pos] = tmp.toString().charAt(1),
                             maskset.buffer[pos - 1] = tmp.toString().charAt(0)), {
                                 refreshFromBuffer: {
                                     start: pos - 1,
@@ -334,7 +334,7 @@
                     prevalidator: [ {
                         validator: function(chrs, maskset, pos, strict, opts) {
                             var isValid = opts.regex.hrspre.test(chrs);
-                            return strict || isValid || !(isValid = opts.regex.hrs.test("0" + chrs)) ? isValid : (maskset.buffer[pos] = "0", 
+                            return strict || isValid || !(isValid = opts.regex.hrs.test("0" + chrs)) ? isValid : (maskset.buffer[pos] = "0",
                             pos++, {
                                 pos: pos
                             });
@@ -348,7 +348,7 @@
                     prevalidator: [ {
                         validator: function(chrs, maskset, pos, strict, opts) {
                             var isValid = opts.regex.mspre.test(chrs);
-                            return strict || isValid || !(isValid = opts.regex.ms.test("0" + chrs)) ? isValid : (maskset.buffer[pos] = "0", 
+                            return strict || isValid || !(isValid = opts.regex.ms.test("0" + chrs)) ? isValid : (maskset.buffer[pos] = "0",
                             pos++, {
                                 pos: pos
                             });
@@ -394,7 +394,7 @@
                 var $input = $(this);
                 if (e.ctrlKey && e.keyCode === Inputmask.keyCode.RIGHT) {
                     var today = new Date();
-                    $input.val((today.getMonth() + 1).toString() + today.getDate().toString() + today.getFullYear().toString()), 
+                    $input.val((today.getMonth() + 1).toString() + today.getDate().toString() + today.getFullYear().toString()),
                     $input.trigger("setvalue");
                 }
             }

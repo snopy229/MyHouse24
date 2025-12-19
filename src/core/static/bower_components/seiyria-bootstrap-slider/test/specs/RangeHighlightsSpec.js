@@ -25,7 +25,7 @@ describe("RangeHighlights Render Tests", function() {
             { "start": 7, "end": -4 },  //out of range - not visible
             { "start": 23, "end": 15 }  //out of range - not visible
         ];
-        
+
         testSlider1 = $('#testSlider1').slider({
             id: 'slider1',
             min: 0,

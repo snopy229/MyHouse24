@@ -25,7 +25,7 @@
                 r: {
                     validator: function(chrs, maskset, pos, strict, opts) {
                         function RegexToken(isGroup, isQuantifier) {
-                            this.matches = [], this.isGroup = isGroup || !1, this.isQuantifier = isQuantifier || !1, 
+                            this.matches = [], this.isGroup = isGroup || !1, this.isQuantifier = isQuantifier || !1,
                             this.quantifier = {
                                 min: 1,
                                 max: 1
@@ -40,7 +40,7 @@
                                     var crrntndx = $.inArray(matchToken, token.matches), matchGroup = token.matches[crrntndx - 1], regexPartBak = regexPart;
                                     if (isNaN(matchToken.quantifier.max)) {
                                         for (;matchToken.repeaterPart && matchToken.repeaterPart !== regexPart && matchToken.repeaterPart.length > regexPart.length && !(isvalid = validateRegexToken(matchGroup, !0)); ) ;
-                                        (isvalid = isvalid || validateRegexToken(matchGroup, !0)) && (matchToken.repeaterPart = regexPart), 
+                                        (isvalid = isvalid || validateRegexToken(matchGroup, !0)) && (matchToken.repeaterPart = regexPart),
                                         regexPart = regexPartBak + matchToken.quantifier.max;
                                     } else {
                                         for (var i = 0, qm = matchToken.quantifier.max - 1; i < qm && !(isvalid = validateRegexToken(matchGroup, !0)); i++) ;
@@ -85,9 +85,9 @@
                                     max: mq1
                                 }, opengroups.length > 0) {
                                     var matches = opengroups[opengroups.length - 1].matches;
-                                    (match = matches.pop()).isGroup || ((groupToken = new RegexToken(!0)).matches.push(match), 
+                                    (match = matches.pop()).isGroup || ((groupToken = new RegexToken(!0)).matches.push(match),
                                     match = groupToken), matches.push(match), matches.push(quantifierToken);
-                                } else (match = currentToken.matches.pop()).isGroup || ((groupToken = new RegexToken(!0)).matches.push(match), 
+                                } else (match = currentToken.matches.pop()).isGroup || ((groupToken = new RegexToken(!0)).matches.push(match),
                                 match = groupToken), currentToken.matches.push(match), currentToken.matches.push(quantifierToken);
                                 break;
 

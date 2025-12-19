@@ -1,4 +1,4 @@
-<!-- 
+<!--
 
 THIS TEMPLATE IS MANDATORY!!
 

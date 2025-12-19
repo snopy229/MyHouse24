@@ -200,7 +200,7 @@ describe("Event Tests", function() {
 
       function calcTouchEventCoords(element) {
         var elementBB = element.getBoundingClientRect();
-    
+
         return {
           clientX: elementBB.left,
           clientY: elementBB.top

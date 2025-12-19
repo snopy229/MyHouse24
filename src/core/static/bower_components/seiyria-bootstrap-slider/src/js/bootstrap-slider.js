@@ -837,7 +837,7 @@ const windowIsDefined = (typeof window === "object");
 				this.handle1.addEventListener("focus", this.showTooltip, false);
 				this.handle1.addEventListener("blur", this.hideTooltip, false);
 
-				
+
 				this.handle2.addEventListener("focus", this.showTooltip, false);
 				this.handle2.addEventListener("blur", this.hideTooltip, false);
 

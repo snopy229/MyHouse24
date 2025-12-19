@@ -1,6 +1,6 @@
 describe("'destroy()' Method tests", function() {
   var testSlider;
-  
+
   function createSliderFn() {
     testSlider = new Slider("#testSlider1", {
       id: "destroyMethodTestSlider"
@@ -41,7 +41,7 @@ describe("'destroy()' Method tests", function() {
       afterEach(function(done) {
         $.fn.bootstrapSlider = undefined;
         $.fn.slider = undefined;
-    
+
         $.getScript(sourceJS, function() {
           done();
         });
@@ -134,7 +134,7 @@ describe("'destroy()' Method tests", function() {
 
       // Re-create Slider and try to re-bind event
       var throwsRuntimeError = false;
-      
+
       try {
         createSliderAndBindEvent();
       }
@@ -355,7 +355,7 @@ describe("'destroy()' Method tests", function() {
         // Assert
         expect(testSlider.handle1.removeEventListener).not.toHaveBeenCalledWith("focus", undefined, false);
       });
-      
+
       it("does not try to remove 'focus' event listener from handle2", function() {
         // Set up spy on 'removeEventListener'
         spyOn(testSlider.handle2, "removeEventListener");
@@ -377,7 +377,7 @@ describe("'destroy()' Method tests", function() {
         // Assert
         expect(testSlider.handle1.removeEventListener).not.toHaveBeenCalledWith("blur", undefined, false);
       });
-      
+
        it("does not try to remove 'blur' event listener from handle1 and handle2", function() {
         // Set up spy on 'removeEventListener'
         spyOn(testSlider.handle2, "removeEventListener");

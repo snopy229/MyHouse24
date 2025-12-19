@@ -16,4 +16,3 @@
     clear: "Pastro"
 	};
 }(jQuery));
-

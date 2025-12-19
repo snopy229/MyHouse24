@@ -11,7 +11,7 @@ describe("Auto register data-provide Tests", function() {
 
   it("checks that the autoregistered Slider can be accessed", function() {
     var $el = $("#autoregisterSlider");
-    
+
     expect($el.slider('getValue')).toBe(1);
 
     $el.slider('setValue', 2);

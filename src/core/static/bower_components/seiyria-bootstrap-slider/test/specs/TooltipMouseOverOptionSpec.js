@@ -81,7 +81,7 @@ describe("'ticks_tooltip' Option tests", function() {
 
 			var mouseenter = document.createEvent('MouseEvent');
 			mouseEventArguments[0] = 'mouseenter';
-			mouseEventArguments[7] = 
+			mouseEventArguments[7] =
 				testSlider.ticks[1].offsetLeft + testSlider.sliderElem.offsetLeft; // clientX
 			mouseenter.initMouseEvent.apply(mouseenter, mouseEventArguments);
 

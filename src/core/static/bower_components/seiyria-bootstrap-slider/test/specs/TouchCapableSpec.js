@@ -1,9 +1,9 @@
 /* The following functions are taken and slightly modified from mock-phantom-touch-events.
- * 
+ *
  * The original mock-phantom-touch-events can be found at https://github.com/gardr/mock-phantom-touch-events
- * 
+ *
  * mock-phantom-touch-events is licensed under:
- * 
+ *
  * The MIT License (MIT)
  * Copyright (c) 2013 FINN.no AS
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -20,7 +20,7 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*
@@ -399,11 +399,11 @@ describe("Touch Capable Tests", function() {
          * maintains its own list of event handlers and you may get unexpected results
          * when you add event handlers using $.on() versus DOM.addEventListener()
          * as they are called in a different order.
-         * 
+         *
          * The browser will call the event handlers registered with addEventListener()
          * in the order in which they are registered. For example, you'll get the following
          * execution order when listening for "touchstart" events.
-         * 
+         *
          * 1) _touchstart()
          * 2) _showTooltip()
          * 3) your event handler here
