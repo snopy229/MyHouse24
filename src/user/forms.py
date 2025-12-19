@@ -1,8 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import UserCreationForm
-
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 
 User = get_user_model()
 
@@ -36,3 +35,17 @@ class UserRegistrationForm(UserCreationForm):
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError("Эта почта уже зарегистрирована.")
         return email
+
+class AuthenticationOwnerForm(AuthenticationForm):
+    username = forms.CharField(
+        label="Email или ID пользователя",
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'E-mail или ID'})
+    )
+    password = forms.CharField(
+        label="Пароль",
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control custom-password',
+            'placeholder': 'Введите ваш пароль',
+            'data-toggle': 'password'
+        })
+    )

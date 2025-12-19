@@ -1,0 +1,54 @@
+{% extends "base_static.html" %}
+{% block content %}
+    <body class="hold-transition login-page">
+        <div class="login-box">
+            <div class="login-logo" style="width:360px;">
+                <a href="https://myhouse24.demodev.cc/">
+                    <img src="https://myhouse24.demodev.cc/logo.svg"
+                         alt="logo"
+                         style="width: 100%;
+                                height: auto">
+                </a>
+            </div>
+            <div class="nav-tabs-custom">
+                <ul class="nav nav-tabs">
+            <li class="active"><a href="#tab_1" data-toggle="tab" aria-expanded="true">Для жильца</a></li>
+            <li><a href="https://myhouse24.demodev.cc/admin/site/login">Для администрации</a></li>
+        </ul>
+                <div class="tab-content">
+                    <div class="tab-pane active" id="tab_1">
+                        <div class="login-box-body">
+                            <div id="preloader"></div>
+                            <p class="login-box-msg">Вход</p>
+                            <form id="login-form" action="" method="post">
+                                {% csrf_token %}
+                                <div class="form-group has-feedback">
+                                    {{ form.username}} <span class="fa fa-envelope form-control-feedback"></span>
+                                    {{ form.username.errors }}
+                                </div>
+                                <div class="form-group has-feedback">
+                                    {{ form.password }}
+                                    {{ form.password.errors }}
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-block">Вход</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>jQuery(function ($) {
+jQuery('#login-form').yiiActiveForm([], []);
+   $(function ($) {
+        $('.login-box-body input[type="checkbox"]').iCheck({
+            checkboxClass: 'icheckbox_flat-blue',
+            radioClass: 'icheckbox_flat-blue'
+        });
+
+        $('#preloader').fadeOut('slow',function(){
+            $(this).remove();
+        });
+    });
+});
+        </script>
+    {% endblock content %}
