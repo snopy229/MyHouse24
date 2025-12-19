@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from phonenumber_field.modelfields import PhoneNumberField
 
@@ -28,6 +29,10 @@ class Role(models.Model):
 
 class User(AbstractUser):
     username = None
+    email = models.EmailField(verbose_name='email address',
+        max_length=255,
+        unique=True,
+    )
     id_user = models.IntegerField(blank=True, null=True)
     name = models.CharField(max_length=50, blank=True, null=True)
     surname = models.CharField(max_length=50, blank=True, null=True)
@@ -36,4 +41,7 @@ class User(AbstractUser):
     about_owner = models.TextField(blank=True, null=True)
     phone_number = PhoneNumberField(blank=True, null=True)
     viber = PhoneNumberField(blank=True, null=True)
-    telegram = models.CharField(max_length=50)
+    telegram = models.CharField(blank=True, null=True, max_length=50)
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
