@@ -1,0 +1,54 @@
+{% extends "base_static.html" %}
+{% block structure %}
+    <div class="hold-transition login-page">
+        <div class="login-box">
+            <div class="login-logo">
+                <a href="/">
+                    <img src="https://myhouse24.demodev.cc/logo.svg"
+                         alt="logo"
+                         style="width: 100%;
+                                height: auto;
+                                max-width: 360px">
+                </a>
+            </div>
+            <div class="nav-tabs-custom">
+                <ul class="nav nav-tabs nav-justified">
+                    <li class="{% if '/owner/' in request.path %}active{% endif %}">
+                        <a href="{% url 'user:login-owner' %}">Для жильца</a>
+                    </li>
+                    <li class="active">
+                        <a href="{% url 'user:login-staff' %}">Для администрации</a>
+                    </li>
+                </ul>
+                <div class="login-box-body">
+                    <p class="login-box-msg">Вход в личный кабинет</p>
+                    {{ form.media }}
+                    <form id="login-form" method="post">
+                        {% csrf_token %}
+                        <div class="form-group has-feedback">
+                            {{ form.username }}
+                            <span class="fa fa-envelope form-control-feedback"></span>
+                            <div class="text-danger">{{ form.username.errors }}</div>
+                        </div>
+                        <div class="form-group has-feedback">
+                            {{ form.password }}
+                            <span class="fa fa-lock form-control-feedback"></span>
+                            <div class="text-danger">{{ form.password.errors }}</div>
+                        </div>
+                        {% if form.hcaptcha %}
+                            <div class="form-group has-feedback text-center">
+                                {{ form.hcaptcha }}
+                                <div class="text-danger">{{ form.hcaptcha.errors }}</div>
+                            </div>
+                        {% endif %}
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <button type="submit" class="btn btn-primary btn-block btn-flat">Вход</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

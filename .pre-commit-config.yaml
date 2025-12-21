@@ -1,5 +1,5 @@
 exclude: '^docs/|/migrations/|devcontainer.json'
-default_stages: [pre-commit]
+default_stages: [ pre-commit ]
 
 default_language_version:
   python: python3
@@ -34,14 +34,14 @@ repos:
     rev: '1.16.0'
     hooks:
       - id: django-upgrade
-        args: ['--target-version', '4.2']
+        args: [ '--target-version', '4.2' ]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.4.4
     hooks:
       # Linter
       - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
+        args: [ --fix, --exit-non-zero-on-fix ]
       # Formatter
       - id: ruff-format
 
@@ -50,3 +50,9 @@ repos:
     hooks:
       - id: djlint-reformat-django
       - id: djlint-django
+
+  - repo: https://github.com/djlint/djLint
+    rev: v1.34.1
+    hooks:
+      - id: djlint-reformat-django
+        exclude: "(^static/|^src/core/static/)"

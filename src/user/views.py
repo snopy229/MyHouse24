@@ -1,6 +1,11 @@
+from django.urls import reverse_lazy
 from django.views.generic import CreateView
 from django.contrib.auth import get_user_model
-from .forms import UserRegistrationForm, AuthenticationOwnerForm
+from .forms import (
+    UserRegistrationForm,
+    AuthenticationOwnerForm,
+    AuthenticationStaffForm,
+)
 from django.contrib.auth.views import LoginView
 
 # Create your views here.
@@ -14,6 +19,7 @@ class RegisterOwner(CreateView):
     def get_context_data(self, **kwargs):
         return super().get_context_data(**kwargs)
 
+
 class LogInOwner(LoginView):
     form_class = AuthenticationOwnerForm
     template_name = "LogInOwner.html"
@@ -22,3 +28,12 @@ class LogInOwner(LoginView):
         return super().get_context_data(**kwargs)
 
 
+class LogInStaff(LoginView):
+    form_class = AuthenticationStaffForm
+    template_name = "LogInStuff.html"
+
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(**kwargs)
+
+    def get_success_url(self):
+        return reverse_lazy("managements:statistic")

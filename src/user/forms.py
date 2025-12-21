@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from hcaptcha_field import hCaptchaField
 
 User = get_user_model()
 
@@ -13,6 +14,7 @@ class UserRegistrationForm(UserCreationForm):
             attrs={"class": "form-control", "placeholder": "Почта"}
         ),
     )
+    hcaptcha = hCaptchaField()
 
     class Meta:
         model = User
@@ -36,16 +38,56 @@ class UserRegistrationForm(UserCreationForm):
             raise forms.ValidationError("Эта почта уже зарегистрирована.")
         return email
 
+
 class AuthenticationOwnerForm(AuthenticationForm):
+    hcaptcha = hCaptchaField()
     username = forms.CharField(
         label="Email или ID пользователя",
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'E-mail или ID'})
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "E-mail или ID"}
+        ),
     )
     password = forms.CharField(
         label="Пароль",
-        widget=forms.PasswordInput(attrs={
-            'class': 'form-control custom-password',
-            'placeholder': 'Введите ваш пароль',
-            'data-toggle': 'password'
-        })
+        widget=forms.PasswordInput(
+            attrs={
+                "class": "form-control custom-password",
+                "placeholder": "Введите ваш пароль",
+                "data-toggle": "password",
+            }
+        ),
     )
+
+    def confirm_login_allowed(self, user):
+        if user.is_staff:
+            raise forms.ValidationError(
+                "Эта учетная запись не принадлежит персоналу.",
+                code="not_staff",
+            )
+        super().confirm_login_allowed(user)
+
+
+class AuthenticationStaffForm(AuthenticationForm):
+    hcaptcha = hCaptchaField()
+    username = forms.EmailField(
+        widget=forms.EmailInput(
+            attrs={"class": "form-control", "placeholder": "E-mail"}
+        )
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Пароль",
+                "data-toggle": "password",
+            }
+        )
+    )
+
+    def confirm_login_allowed(self, user):
+        if not user.is_staff:
+            raise forms.ValidationError(
+                "Эта учетная запись принадлежит персоналу.",
+                code="not_staff",
+            )
+        super().confirm_login_allowed(user)

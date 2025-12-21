@@ -33,7 +33,6 @@ DEBUG = env("DEBUG")
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -44,6 +43,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "phonenumber_field",
+    "hcaptcha_field",
+    "src.managements",
+    "ckeditor",
 ]
 
 MIDDLEWARE = [
@@ -61,7 +63,11 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "src/core/templates"],
+        "DIRS": [
+            BASE_DIR / "src/core/templates",
+            BASE_DIR / "templates",
+            BASE_DIR / "static",
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -74,7 +80,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "config.wsgi.application"
-
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
@@ -89,7 +94,6 @@ DATABASES = {
         "PORT": env("DB_PORT"),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -110,8 +114,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'user.backends.EmailOrIdUserBackend',
-    'django.contrib.auth.backends.ModelBackend',
+    "user.backends.EmailOrIdUserBackend",
+    "django.contrib.auth.backends.ModelBackend",
 ]
 
 AUTH_USER_MODEL = "user.User"
@@ -127,12 +131,11 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 STATIC_URL = "/static/"
-
-STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 MEDIA_URL = "/media/"
 
@@ -141,3 +144,51 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 STATICFILES_DIRS = [
     BASE_DIR / "src/core/static",
 ]
+
+HCAPTCHA_SITEKEY = "74c2ba34-7276-48ee-ad0c-62a2b79aa058"
+HCAPTCHA_SECRET = "ES_b154944253ad4121b963f48e8ae17e1b"
+
+HCAPTCHA_DEFAULT_CONFIG = {
+    "onload": "name_of_js_function",
+    "render": "explicit",
+    "theme": "light",
+    "size": "normal",
+}
+
+HCAPTCHA_PROXIES = {
+    "http": "http://127.0.0.1:8000",
+}
+
+HCAPTCHA_TIMEOUT = 5
+
+CKEDITOR_CONFIGS = {
+    "default": {
+        "skin": "moono-lisa",
+        "toolbar": "Custom",
+        "toolbar_Custom": [
+            ["Format"],
+            ["Bold", "Italic", "Underline", "Strike"],
+            [
+                "NumberedList",
+                "BulletedList",
+                "-",
+                "Outdent",
+                "Indent",
+                "-",
+                "JustifyLeft",
+                "JustifyCenter",
+                "JustifyRight",
+                "JustifyBlock",
+            ],
+            ["Link", "Unlink"],
+            ["RemoveFormat", "Source"],
+        ],
+        # Фиксируем размеры
+        "height": 150,  # Высота самого текстового поля в пикселях
+        "width": "100%",  # Ширина на весь блок
+        "resize_enabled": False,  # Запрещаем растягивать редактор мышкой
+        # Убираем лишние элементы снизу (путь к тегам)
+        "removePlugins": "elementspath",
+        "language": "ru",
+    },
+}
