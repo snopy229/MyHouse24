@@ -1,10 +1,11 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-        <title>Flot Examples: Navigation</title>
-        <link href="../examples.css" rel="stylesheet" type="text/css">
-        <style type="text/css">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Flot Examples: Navigation</title>
+	<link href="../examples.css" rel="stylesheet" type="text/css">
+	<style type="text/css">
+
 	#placeholder .button {
 		position: absolute;
 		cursor: pointer;
@@ -21,17 +22,13 @@
 		font-size: smaller;
 	}
 
+	</style>
+	<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="../../excanvas.min.js"></script><![endif]-->
+	<script language="javascript" type="text/javascript" src="../../jquery.js"></script>
+	<script language="javascript" type="text/javascript" src="../../jquery.flot.js"></script>
+	<script language="javascript" type="text/javascript" src="../../jquery.flot.navigate.js"></script>
+	<script type="text/javascript">
 
-        </style>
-        <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="../../excanvas.min.js"></script><![endif]-->
-        <script language="javascript" type="text/javascript" src="../../jquery.js"></script>
-        <script language="javascript"
-                type="text/javascript"
-                src="../../jquery.flot.js"></script>
-        <script language="javascript"
-                type="text/javascript"
-                src="../../jquery.flot.navigate.js"></script>
-        <script type="text/javascript">
 	$(function() {
 
 		// generate data set from a parametric function with a fractal look
@@ -75,7 +72,7 @@
 			}
 		});
 
-		// show pan/zoom messages to illustrate events
+		// show pan/zoom messages to illustrate events 
 
 		placeholder.bind("plotpan", function (event, plot) {
 			var axes = plot.getAxes();
@@ -93,7 +90,7 @@
 			+ " &ndash; " + axes.yaxis.max.toFixed(2));
 		});
 
-		// add zoom out button
+		// add zoom out button 
 
 		$("<div class='button' style='right:20px;top:20px'>zoom out</div>")
 			.appendTo(placeholder)
@@ -126,25 +123,31 @@
 		$("#footer").prepend("Flot " + $.plot.version + " &ndash; ");
 	});
 
+	</script>
+</head>
+<body>
 
-        </script>
-    </head>
-    <body>
-        <div id="header">
-            <h2>Navigation</h2>
-        </div>
-        <div id="content">
-            <div class="demo-container">
-                <div id="placeholder" class="demo-placeholder"></div>
-            </div>
-            <p class="message"></p>
-            <p>
-                With the navigate plugin it is easy to add panning and zooming. Drag to pan, double click to zoom (or use the mouse scrollwheel).
-            </p>
-            <p>
-                The plugin fires events (useful for synchronizing several plots) and adds a couple of public methods so you can easily build a little user interface around it, like the little buttons at the top right in the plot.
-            </p>
-        </div>
-        <div id="footer">Copyright &copy; 2007 - 2014 IOLA and Ole Laursen</div>
-    </body>
+	<div id="header">
+		<h2>Navigation</h2>
+	</div>
+
+	<div id="content">
+
+		<div class="demo-container">
+			<div id="placeholder" class="demo-placeholder"></div>
+		</div>
+
+		<p class="message"></p>
+
+		<p>With the navigate plugin it is easy to add panning and zooming. Drag to pan, double click to zoom (or use the mouse scrollwheel).</p>
+
+		<p>The plugin fires events (useful for synchronizing several plots) and adds a couple of public methods so you can easily build a little user interface around it, like the little buttons at the top right in the plot.</p>
+
+	</div>
+
+	<div id="footer">
+		Copyright &copy; 2007 - 2014 IOLA and Ole Laursen
+	</div>
+
+</body>
 </html>

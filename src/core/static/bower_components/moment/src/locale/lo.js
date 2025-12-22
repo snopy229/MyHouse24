@@ -59,3 +59,4 @@ export default moment.defineLocale('lo', {
         return 'ທີ່' + number;
     }
 });
+

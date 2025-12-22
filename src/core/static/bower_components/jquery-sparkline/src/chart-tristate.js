@@ -95,3 +95,4 @@
             return target.drawRect(x, y, this.barWidth - 1, height - 1, color, color);
         }
     });
+

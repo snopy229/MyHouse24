@@ -1,8 +1,167 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Title</title>
-    </head>
-    <body></body>
-</html>
+{% extends 'base_main.html' %}
+{% block meta %}
+    <meta name="title" content="{{ main_page.seo_block.title }}">
+    <meta name="description" content="{{ main_page.seo_block.description }}">
+    <meta name="keywords" content="{{ main_page.seo_block.keywords }}">
+{% endblock %}
+{% block title %}Главная страница{% endblock %}
+{% block content %}
+    <div class="slider">
+        <div>
+            <div class="slideTitle hidden-xs">{{ main_page.title }}</div>
+            {% if main_page.slide1 %}<img src="{{ main_page.slide1.url }}" class="img-responsive" alt="">{% endif %}
+        </div>
+        <div>
+            <div class="slideTitle hidden-xs">{{ main_page.title }}</div>
+            {% if main_page.slide2 %}<img src="{{ main_page.slide2.url }}" class="img-responsive" alt="">{% endif %}
+        </div>
+        <div>
+            <div class="slideTitle hidden-xs">{{ main_page.title }}</div>
+            {% if main_page.slide3 %}<img src="{{ main_page.slide3.url }}" class="img-responsive" alt="">{% endif %}
+        </div>
+    </div>
+    <div class="info">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12 col-sm-7 col-md-8">
+                    <div class="page-header">
+                        <h1>{{ main_page.title }}</h1>
+                    </div>
+                    <div class="box">
+                        <b></b>
+                        <h3></h3>
+                        <p>
+                            <b><i></i></b>
+                        </p>
+                        <b></b>
+                        <blockquote>
+                            <blockquote>
+                                <blockquote>
+                                    <blockquote>
+                                        <blockquote>
+                                            <blockquote>
+                                                <blockquote>
+                                                    <blockquote>
+                                                        <p></p>
+                                                    </blockquote>
+                                                </blockquote>
+                                            </blockquote>
+                                        </blockquote>
+                                    </blockquote>
+                                </blockquote>
+                            </blockquote>
+                        </blockquote>
+                        {{ main_page.short_text | safe }}
+                        <p>
+                            <a target="_blank"
+                               rel="nofollow"
+                               href="https://myhouse24.avada-media.ua/"><b></b>https://myhouse24.avada-media.ua/</a>&nbsp;<b></b><i><b></b><b></b></i><b><i></i></b><b></b><b></b><b></b>
+                        </p>
+                        <p></p>
+                        <p></p>
+                        <div class="row">
+                            <div class="col-xs-4">
+                                <a href="/about" class="btn btn-primary">Подробнее</a>
+                            </div>
+                            <div class="col-xs-8">
+                                <a href="https://itunes.apple.com/us/app/%D0%BC%D0%BE%D0%B9%D0%B4%D0%BE%D0%BC24/id1308075440?l=ru&ls=1&mt=8">
+                                    <img src="/img/appstore.png" class="img-responsive imgStore" alt="">
+                                </a>
+                                <a href="https://play.google.com/store/apps/details?id=com.avadamedia.program.myhouse24&hl=uk">
+                                    <img src="/img/googleplay.png" class="img-responsive imgStore" alt="">
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xs-12 col-sm-5 col-md-4">
+                    <div class="page-header">
+                        <h3>Контакты</h3>
+                    </div>
+                    <div class="box">
+                        <p>
+                            <i class="fas fa-user-circle"></i> AVADA-MEDIА
+                        </p>
+                        <p>
+                            <i class="fas fa-compass"></i> Україна
+                        </p>
+                        <p>
+                            <i class="fas fa-map-marker"></i> г. Киев Малиновский р-н, ул. Космонавтов, 32
+                        </p>
+                        <p>
+                            <i class="fas fa-phone"></i> <a href="tel:+380441234567">+38 044 123 45 67</a>
+                        </p>
+                        <p>
+                            <i class="fas fa-envelope"></i> <a href="mailto:info@avada-media.com.ua">info@avada-media.com.ua</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="advantages">
+        <div class="container">
+            <div class="row row-eq-height">
+                <div class="col-xs-12">
+                    <div class="page-header">
+                        <h3>Рядом с нами</h3>
+                    </div>
+                </div>
+                <div class="col-xs-12 col-sm-6 col-md-4 advantage-item">
+                    <div class="thumbnail">
+                        {% if main_page.block_image_1 %}<img src="{{ main_page.block_image_1.url }}" class="img-responsive" alt="">{% endif %}
+                        <div class="caption">
+                            <h3>{{ main_page.title_1 }}</h3>
+                            <p>{{ main_page.description_1 | safe }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xs-12 col-sm-6 col-md-4 advantage-item">
+                    <div class="thumbnail">
+                        {% if main_page.block_image_2 %}<img src="{{ main_page.block_image_2.url }}" class="img-responsive" alt="">{% endif %}
+                        <div class="caption">
+                            <h3>{{ main_page.title_2 }}</h3>
+                            <p>{{ main_page.description_2 | safe }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xs-12 col-sm-6 col-md-4 advantage-item">
+                    <div class="thumbnail">
+                        {% if main_page.block_image_3 %}<img src="{{ main_page.block_image_3.url }}" class="img-responsive" alt="">{% endif %}
+                        <div class="caption">
+                            <h3>{{ main_page.title_3 }}</h3>
+                            <p>{{ main_page.description_3 | safe }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xs-12 col-sm-6 col-md-4 advantage-item">
+                    <div class="thumbnail">
+                        {% if main_page.block_image_4 %}<img src="{{ main_page.block_image_4.url }}" class="img-responsive" alt="">{% endif %}
+                        <div class="caption">
+                            <h3>{{ main_page.title_4 }}</h3>
+                            <p>{{ main_page.description_4 | safe }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xs-12 col-sm-6 col-md-4 advantage-item">
+                    <div class="thumbnail">
+                        {% if main_page.block_image_5 %}<img src="{{ main_page.block_image_5.url }}" class="img-responsive" alt="">{% endif %}
+                        <div class="caption">
+                            <h3>{{ main_page.title_5 }}</h3>
+                            <p>{{ main_page.description_5 | safe }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xs-12 col-sm-6 col-md-4 advantage-item">
+                    <div class="thumbnail">
+                        {% if main_page.block_image_6 %}<img src="{{ main_page.block_image_6.url }}" class="img-responsive" alt="">{% endif %}
+                        <div class="caption">
+                            <h3>{{ main_page.title_6 }}</h3>
+                            <p>{{ main_page.description_6 | safe }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base_main.html" %}
+{% block title %}Контакты{% endblock %}
+{% block content %}
+    <div class="breadcrumbs">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12">
+                    <ol class="breadcrumb">
+                        <li>
+                            <a href="/">Главная</a>
+                        </li>
+                        <li class="active">Контакты</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{ contacts.map_fragment | safe }}
+    <div class="contacts">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12 col-sm-7 col-md-8">
+                    <div class="page-header">
+                        <h1>{{ contacts.title }}</h1>
+                    </div>
+                    <div class="box">{{ contacts.short_text }}</div>
+                </div>
+                <div class="col-xs-12 col-sm-5 col-md-4">
+                    <div class="page-header">
+                        <h3>Контакты</h3>
+                    </div>
+                    <div class="box">
+                        <p>
+                            <i class="fas fa-user-circle"></i> {{ name }}
+                        </p>
+                        <p>
+                            <i class="fas fa-compass"></i> {{ location }}
+                        </p>
+                        <p>
+                            <i class="fas fa-map-marker"></i> {{ address }}
+                        </p>
+                        <p>
+                            <i class="fas fa-phone"></i> <a href="tel:{{ number }}">{{ number }}</a>
+                        </p>
+                        <p>
+                            <i class="fas fa-envelope"></i> <a href="mailto:{{ email }}">{{ email }}</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

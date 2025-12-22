@@ -1,0 +1,141 @@
+{% extends "base_admin.html" %}
+{% block title %}Редактировать контакты{% endblock %}
+{% block content %}
+    {% block content_header %}Редактировать контакты{% endblock %}
+    <section class="content">
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Редактирование страницы "Контакты"</h3>
+                    </div>
+                    <div class="box-body">
+                        <form method="post">
+                            <input type="hidden"
+                                   name="_csrf-backend"
+                                   value="PbE-SOWAHwcpq6ANycQn8MJcVkCEYMFdztujyUZYs1NzhVEOpLRVMlHRwmyd90zIuw8wLMA5oDeRq9qZPA_SHg==">
+                            <div class="row">
+                                <div class="col-xs-12 col-md-8">
+                                    <h3 class="page-header">Контактная информация</h3>
+                                    <div class="form-group field-websitecontactform-contacttitle">
+                                        <label class="control-label" for="websitecontactform-contacttitle">Заголовок</label>
+                                        {{ form.title }}
+                                        <div class="help-block"></div>
+                                    </div>
+                                    <div class="form-group field-websitecontactform-contactdescription">
+                                        <label class="control-label" for="websitecontactform-contactdescription">
+                                            Краткий
+                                            текст
+                                        </label>
+                                        {{ form.short_text }}
+                                        <div class="help-block"></div>
+                                    </div>
+                                    <div class="form-group field-websitecontactform-contacturlsite">
+                                        <label class="control-label" for="websitecontactform-contacturlsite">
+                                            Ссылка
+                                            на коммерческий сайт
+                                        </label>
+                                        {{ form.link_site }}
+                                        <div class="help-block"></div>
+                                    </div>
+                                </div>
+                                <div class="col-xs-12 col-md-4">
+                                    <h3 class="page-header">Контакты</h3>
+                                    <div class="form-group field-websitecontactform-contactfullname">
+                                        <label class="control-label" for="websitecontactform-contactfullname">ФИО</label>
+                                        {{ form.name }}
+                                        <div class="help-block"></div>
+                                    </div>
+                                    <div class="form-group field-websitecontactform-contactlocation">
+                                        <label class="control-label" for="websitecontactform-contactlocation">Локация</label>
+                                        {{ form.location }}
+                                        <div class="help-block"></div>
+                                    </div>
+                                    <div class="form-group field-websitecontactform-contactaddress">
+                                        <label class="control-label" for="websitecontactform-contactaddress">Адрес</label>
+                                        {{ form.address }}
+                                        <div class="help-block"></div>
+                                    </div>
+                                    <div class="form-group field-websitecontactform-contactphone">
+                                        <label class="control-label" for="websitecontactform-contactphone">Телефон</label>
+                                        {{ form.phone_number }}
+                                        <div class="help-block"></div>
+                                    </div>
+                                    <div class="form-group field-websitecontactform-contactemail">
+                                        <label class="control-label" for="websitecontactform-contactemail">E-mail</label>
+                                        {{ form.email }}
+                                        <div class="help-block"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-12">
+                                    <h3 class="page-header">Карта</h3>
+                                    <div class="form-group field-websitecontactform-contactmapembedcode">
+                                        <label class="control-label" for="websitecontactform-contactmapembedcode">
+                                            Код
+                                            карты
+                                        </label>
+                                        {{ form.map_fragment }}
+                                        <div class="help-block"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <h3 class="page-header">Настройки SEO</h3>
+                                    <div class="form-group field-websitecontactform-contactmetatitle">
+                                        <label class="control-label" for="websitecontactform-contactmetatitle">Title</label>
+                                        {{ seo_form.title }}
+                                        <div class="help-block"></div>
+                                    </div>
+                                    <div class="form-group field-websitecontactform-contactmetadescription">
+                                        <label class="control-label" for="websitecontactform-contactmetadescription">Description</label>
+                                        {{ seo_form.description }}
+                                        <div class="help-block"></div>
+                                    </div>
+                                    <div class="form-group field-websitecontactform-contactmetakeywords">
+                                        <label class="control-label" for="websitecontactform-contactmetakeywords">Keywords</label>
+                                        {{ seo_form.keywords }}
+                                        <div class="help-block"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-12 text-center">
+                                    <div class="form-group">
+                                        <button type="reset" class="btn btn-success">Отменить</button>
+                                        <button type="submit" class="btn btn-success">Сохранить</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <script src="https://cdn.ckeditor.com/4.16.0/standard/ckeditor.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var editors = ['id_short_text',];
+
+            editors.forEach(function (id) {
+                if (document.getElementById(id)) {
+                    CKEDITOR.replace(id, {
+                        toolbar: [
+                            ['Format'],
+                            ['Bold', 'Italic', 'Underline', 'Strike'],
+                            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent']
+                        ],
+                        height: 150,
+                        width: '100%',
+                        resize_enabled: false,
+                        removePlugins: 'elementspath',
+                        language: 'ru'
+                    });
+                }
+            });
+        });
+    </script>
+{% endblock %}

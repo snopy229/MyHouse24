@@ -123,3 +123,5 @@ describe 'Morris.Bar', ->
       it 'should set width to @options.barSize if possible', ->
         chart = Morris.Bar $.extend {}, defaults
         $('#graph').find("rect[width='#{defaults.barSize}']").size().should.equal 11
+
+

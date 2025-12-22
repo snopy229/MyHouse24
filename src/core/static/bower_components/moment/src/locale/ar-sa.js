@@ -93,3 +93,4 @@ export default moment.defineLocale('ar-sa', {
         doy : 6  // The week that contains Jan 6th is the first week of the year.
     }
 });
+

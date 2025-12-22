@@ -81,3 +81,4 @@ export default moment.defineLocale('ja', {
         yy : '%d年'
     }
 });
+

@@ -1,9 +1,9 @@
 {% extends "base_static.html" %}
 {% block structure %}
-    <body class="hold-transition login-page">
+    <body class="hold-transition skin-black-light sidebar-mini login-page">
         <div class="login-box">
             <div class="login-logo" style="width:360px;">
-                <a href="https://myhouse24.demodev.cc/">
+                <a href="{% url 'managements:main-page' %}">
                     <img src="https://myhouse24.demodev.cc/logo.svg"
                          alt="logo"
                          style="width: 100%;
@@ -42,17 +42,17 @@
             </div>
         </div>
         <script>jQuery(function ($) {
-jQuery('#login-form').yiiActiveForm([], []);
-   $(function ($) {
-        $('.login-box-body input[type="checkbox"]').iCheck({
-            checkboxClass: 'icheckbox_flat-blue',
-            radioClass: 'icheckbox_flat-blue'
-        });
+        jQuery('#login-form').yiiActiveForm([], []);
+        $(function ($) {
+            $('.login-box-body input[type="checkbox"]').iCheck({
+                checkboxClass: 'icheckbox_flat-blue',
+                radioClass: 'icheckbox_flat-blue'
+            });
 
-        $('#preloader').fadeOut('slow',function(){
-            $(this).remove();
+            $('#preloader').fadeOut('slow', function () {
+                $(this).remove();
+            });
         });
     });
-});
         </script>
     {% endblock %}

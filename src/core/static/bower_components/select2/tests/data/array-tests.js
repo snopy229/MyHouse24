@@ -193,10 +193,7 @@ test('multiple sets the value', function (assert) {
 
   var data = new ArrayData($select, arrayOptions);
 
-  assert.ok(
-    $select.val() == null || $select.val().length == 0,
-    'nothing should be selected'
-  );
+  assert.equal($select.val(), null);
 
   data.select({
     id: 'default',

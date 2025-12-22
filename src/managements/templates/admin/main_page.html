@@ -1,6 +1,7 @@
 {% extends 'base_admin.html' %}
-{% block title %}{% endblock %}
+{% block title %}Редактировать главную страницу{% endblock %}
 {% block content %}
+    {% block content_header %}Редактировать главную страницу{% endblock %}
     <section class="content">
         <div class="row">
             <div class="col-xs-12">
@@ -348,7 +349,6 @@
         <script src="https://cdn.ckeditor.com/4.16.0/standard/ckeditor.js"></script>
         <script>
         document.addEventListener("DOMContentLoaded", function () {
-            // Список всех твоих ID
             var editors = [
                 'id_short_text',
                 'id_block_description_1',
@@ -359,7 +359,6 @@
                 'id_block_description_6'
             ];
 
-            // Проходим циклом по списку и включаем редактор для каждого
             editors.forEach(function (id) {
                 if (document.getElementById(id)) {
                     CKEDITOR.replace(id, {
@@ -369,7 +368,7 @@
                             ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent']
                         ],
                         height: 150,
-                        width: '100%', // Теперь 100% точно сработает, так как ID уникальны
+                        width: '100%',
                         resize_enabled: false,
                         removePlugins: 'elementspath',
                         language: 'ru'

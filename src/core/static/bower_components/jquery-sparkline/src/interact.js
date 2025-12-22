@@ -244,3 +244,4 @@
             $(window).unbind('resize.jqs scroll.jqs');
         }
     });
+

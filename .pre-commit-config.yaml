@@ -50,9 +50,3 @@ repos:
     hooks:
       - id: djlint-reformat-django
       - id: djlint-django
-
-  - repo: https://github.com/djlint/djLint
-    rev: v1.34.1
-    hooks:
-      - id: djlint-reformat-django
-        exclude: "(^static/|^src/core/static/)"

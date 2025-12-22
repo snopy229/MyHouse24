@@ -36,3 +36,4 @@
     $.range_map = function(map) {
         return new RangeMap(map);
     };
+

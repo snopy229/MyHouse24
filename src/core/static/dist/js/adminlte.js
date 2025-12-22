@@ -6,7 +6,7 @@
 *
 * @author Colorlib
 * @support <https://github.com/ColorlibHQ/AdminLTE/issues>
-* @version v2.4.18
+* @version 2.4.13
 * @repository git://github.com/ColorlibHQ/AdminLTE.git
 * @license MIT <http://opensource.org/licenses/MIT>
 */
@@ -178,7 +178,7 @@ throw new Error('AdminLTE requires jQuery')
         expanding: 'expanding.boxwidget',
         expanded: 'expanded.boxwidget',
         removing: 'removing.boxwidget',
-        removed: 'removed.boxwidget'
+        removed: 'removed.boxwidget'        
     };
 
   // BoxWidget Class Definition
@@ -329,7 +329,7 @@ throw new Error('AdminLTE requires jQuery')
   var DataKey = 'lte.controlsidebar';
 
   var Default = {
-    controlsidebarSlide: true
+    slide: true
   };
 
   var Selector = {
@@ -343,8 +343,7 @@ throw new Error('AdminLTE requires jQuery')
   };
 
   var ClassName = {
-    open: 'control-sidebar-open',
-    transition: 'control-sidebar-hold-transition',
+    open : 'control-sidebar-open',
     fixed: 'fixed'
   };
 
@@ -390,11 +389,8 @@ throw new Error('AdminLTE requires jQuery')
 
   ControlSidebar.prototype.expand = function () {
     $(Selector.sidebar).show();
-    if (!this.options.controlsidebarSlide) {
-      $('body').addClass(ClassName.transition).addClass(ClassName.open).delay(50).queue(function(){
-        $('body').removeClass(ClassName.transition);
-        $(this).dequeue()
-      })
+    if (!this.options.slide) {
+      $('body').addClass(ClassName.open);
     } else {
       $(Selector.sidebar).addClass(ClassName.open);
     }
@@ -404,14 +400,7 @@ throw new Error('AdminLTE requires jQuery')
   };
 
   ControlSidebar.prototype.collapse = function () {
-    if (!this.options.controlsidebarSlide) {
-      $('body').addClass(ClassName.transition).removeClass(ClassName.open).delay(50).queue(function(){
-        $('body').removeClass(ClassName.transition);
-        $(this).dequeue()
-      })
-    } else {
-      $(Selector.sidebar).removeClass(ClassName.open);
-    }
+    $('body, ' + Selector.sidebar).removeClass(ClassName.open);
     $(Selector.sidebar).fadeOut();
     $(this.element).trigger($.Event(Event.collapsed));
   };
@@ -909,7 +898,7 @@ throw new Error('AdminLTE requires jQuery')
     }
 
     parent.addClass(ClassName.open);
-    tree.stop().slideDown(this.options.animationSpeed, function () {
+    tree.slideDown(this.options.animationSpeed, function () {
       $(this.element).trigger(expandedEvent);
       parent.height('auto');
     }.bind(this));
@@ -920,7 +909,7 @@ throw new Error('AdminLTE requires jQuery')
 
     //tree.find(Selector.open).removeClass(ClassName.open);
     parentLi.removeClass(ClassName.open);
-    tree.stop().slideUp(this.options.animationSpeed, function () {
+    tree.slideUp(this.options.animationSpeed, function () {
       //tree.find(Selector.open + ' > ' + Selector.treeview).slideUp();
       $(this.element).trigger(collapsedEvent);
 
@@ -1064,11 +1053,11 @@ throw new Error('AdminLTE requires jQuery')
     $(Selector.layoutBoxed + ' > ' + Selector.wrapper).css('overflow', 'hidden');
 
     // Get window height and the wrapper height
-    var footerHeight  = $(Selector.mainFooter).outerHeight() || 0;
+    var footerHeight = $(Selector.mainFooter).outerHeight() || 0;
     var headerHeight  = $(Selector.mainHeader).outerHeight() || 0;
     var neg           = headerHeight + footerHeight;
     var windowHeight  = $(window).height();
-    var sidebarHeight = $(Selector.sidebar).outerHeight() || 0;
+    var sidebarHeight = $(Selector.sidebar).height() || 0;
 
     // Set the min-height of the content and sidebar based on
     // the height of the document.

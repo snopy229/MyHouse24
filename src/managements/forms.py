@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import SeoBlock, MainPage
+from .models import SeoBlock, MainPage, Contacts
 
 
 class SeoBlockForm(forms.ModelForm):
@@ -101,4 +101,32 @@ class MainPageForm(forms.ModelForm):
             "block_title_4": forms.TextInput(attrs={"class": "form-control"}),
             "block_title_5": forms.TextInput(attrs={"class": "form-control"}),
             "block_title_6": forms.TextInput(attrs={"class": "form-control"}),
+        }
+
+
+class ContactsForm(forms.ModelForm):
+    short_text = forms.CharField(
+        widget=forms.Textarea(
+            attrs={
+                "id": "id_short_text",
+                "class": "form-control",
+                "rows": 5,
+                "style": "width: 100%; min-width: 100%;",
+            }
+        )
+    )
+
+    class Meta:
+        model = Contacts
+        fields = "__all__"
+        exclude = ("seo_block",)
+        widgets = {
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+            "link_site": forms.TextInput(attrs={"class": "form-control"}),
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "email": forms.EmailInput(attrs={"class": "form-control"}),
+            "location": forms.TextInput(attrs={"class": "form-control"}),
+            "phone_number": forms.TextInput(attrs={"class": "form-control"}),
+            "map_fragment": forms.Textarea(attrs={"class": "form-control"}),
+            "address": forms.TextInput(attrs={"class": "form-control"}),
         }

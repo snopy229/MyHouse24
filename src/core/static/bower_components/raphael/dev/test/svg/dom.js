@@ -1,111 +1,111 @@
-(function (assert) {
+(function() {
 
-  let paper,
+var paper,
     url = 'http://raphaeljs.com';
 
-  QUnit.module('DOM', {
-    beforeEach: function () {
-      paper = new Raphael(document.getElementById('qunit-fixture'), 1000, 1000);
-    },
-    afterEach: function () {
-      paper.remove();
-    }
-  });
+module('DOM', {
+  setup: function() {
+    paper = new Raphael(document.getElementById('qunit-fixture'), 1000, 1000);
+  },
+  teardown: function() {
+    paper.remove();
+  }
+});
 
-  const equalNodePosition = function (assert, node, expectedParent, expectedPreviousSibling, expectedNextSibling) {
-    assert.equal(node.parentNode, expectedParent);
-    assert.equal(node.previousSibling, expectedPreviousSibling);
-    assert.equal(node.nextSibling, expectedNextSibling);
-  };
+var equalNodePosition = function(node, expectedParent, expectedPreviousSibling, expectedNextSibling) {
+  equal(node.parentNode, expectedParent);
+  equal(node.previousSibling, expectedPreviousSibling);
+  equal(node.nextSibling, expectedNextSibling);
+};
 
-  const equalNodePositionWrapped = function (assert, node, anchor, expectedParent, expectedPreviousSibling, expectedNextSibling) {
-    assert.equal(node.parentNode, anchor);
-    equalNodePosition(assert, anchor, expectedParent, expectedPreviousSibling, expectedNextSibling);
-  };
+var equalNodePositionWrapped = function(node, anchor, expectedParent, expectedPreviousSibling, expectedNextSibling) {
+  equal(node.parentNode, anchor);
+  equalNodePosition(anchor, expectedParent, expectedPreviousSibling, expectedNextSibling);
+};
 
 // Element#insertBefore
 // --------------------
 
-  QUnit.test('insertBefore: no element', function (assert) {
-    const el = paper.rect();
+test('insertBefore: no element', function() {
+  var el = paper.rect();
 
-    el.insertBefore(null);
+  el.insertBefore(null);
 
-    equalNodePosition(assert, el.node, paper.canvas, paper.defs, null);
-  });
+  equalNodePosition(el.node, paper.canvas, paper.defs, null);
+});
 
-  QUnit.test('insertBefore: first element', function (assert) {
-    const x = paper.rect();
-    const el = paper.rect();
+test('insertBefore: first element', function() {
+  var x = paper.rect();
+  var el = paper.rect();
 
-    el.insertBefore(x);
+  el.insertBefore(x);
 
-    equalNodePosition(assert, el.node, paper.canvas, paper.defs, x.node);
-  });
+  equalNodePosition(el.node, paper.canvas, paper.defs, x.node);
+});
 
-  QUnit.test('insertBefore: middle element', function (assert) {
-    const x = paper.rect();
-    const y = paper.rect();
-    const el = paper.rect();
+test('insertBefore: middle element', function() {
+  var x = paper.rect();
+  var y = paper.rect();
+  var el = paper.rect();
 
-    el.insertBefore(y);
+  el.insertBefore(y);
 
-    equalNodePosition(assert, el.node, paper.canvas, x.node, y.node);
-  });
+  equalNodePosition(el.node, paper.canvas, x.node, y.node);
+});
 
-  QUnit.test('insertBefore: no element when wrapped in <a>', function (assert) {
-    const el = paper.rect().attr('href', url),
+test('insertBefore: no element when wrapped in <a>', function() {
+  var el = paper.rect().attr('href', url),
       anchor = el.node.parentNode;
 
-    el.insertBefore(null);
+  el.insertBefore(null);
 
-    equalNodePositionWrapped(assert, el.node, anchor, paper.canvas, paper.defs, null);
-  });
+  equalNodePositionWrapped(el.node, anchor, paper.canvas, paper.defs, null);
+});
 
-  QUnit.test('insertBefore: first element when wrapped in <a>', function (assert) {
-    const x = paper.rect();
-    const el = paper.rect().attr('href', url),
+test('insertBefore: first element when wrapped in <a>', function() {
+  var x = paper.rect();
+  var el = paper.rect().attr('href', url),
       anchor = el.node.parentNode;
 
-    el.insertBefore(x);
+  el.insertBefore(x);
 
-    equalNodePositionWrapped(assert, el.node, anchor, paper.canvas, paper.defs, x.node);
-  });
+  equalNodePositionWrapped(el.node, anchor, paper.canvas, paper.defs, x.node);
+});
 
-  QUnit.test('insertBefore: first element wrapped in <a> and wrapped in <a>', function (assert) {
-    const x = paper.rect().attr('href', url),
+test('insertBefore: first element wrapped in <a> and wrapped in <a>', function() {
+  var x = paper.rect().attr('href', url),
       xAnchor = x.node.parentNode;
-    const el = paper.rect().attr('href', url),
+  var el = paper.rect().attr('href', url),
       anchor = el.node.parentNode;
 
-    el.insertBefore(x);
+  el.insertBefore(x);
 
-    equalNodePositionWrapped(assert, el.node, anchor, paper.canvas, paper.defs, xAnchor);
-  });
+  equalNodePositionWrapped(el.node, anchor, paper.canvas, paper.defs, xAnchor);
+});
 
-  QUnit.test('insertBefore: middle element when wrapped in <a>', function (assert) {
-    const x = paper.rect();
-    const y = paper.rect();
-    const el = paper.rect().attr('href', url),
+test('insertBefore: middle element when wrapped in <a>', function() {
+  var x = paper.rect();
+  var y = paper.rect();
+  var el = paper.rect().attr('href', url),
       anchor = el.node.parentNode;
 
-    el.insertBefore(y);
+  el.insertBefore(y);
 
-    equalNodePositionWrapped(assert, el.node, anchor, paper.canvas, x.node, y.node);
-  });
+  equalNodePositionWrapped(el.node, anchor, paper.canvas, x.node, y.node);
+});
 
-  QUnit.test('insertBefore: middle element wrapped in <a> and wrapped in <a>', function (assert) {
-    const x = paper.rect().attr('href', url),
+test('insertBefore: middle element wrapped in <a> and wrapped in <a>', function() {
+  var x = paper.rect().attr('href', url),
       xAnchor = x.node.parentNode;
-    const y = paper.rect().attr('href', url),
+  var y = paper.rect().attr('href', url),
       yAnchor = y.node.parentNode;
-    const el = paper.rect().attr('href', url),
+  var el = paper.rect().attr('href', url),
       anchor = el.node.parentNode;
 
-    el.insertBefore(y);
+  el.insertBefore(y);
 
-    equalNodePositionWrapped(assert, el.node, anchor, paper.canvas, xAnchor, yAnchor);
-  });
+  equalNodePositionWrapped(el.node, anchor, paper.canvas, xAnchor, yAnchor);
+});
 
 // TODO...
 // insertBefore: with set
@@ -114,86 +114,86 @@
 // Element#insertAfter
 // -------------------
 
-  QUnit.test('insertAfter: no element', function (assert) {
-    const el = paper.rect();
+test('insertAfter: no element', function() {
+  var el = paper.rect();
 
-    el.insertAfter(null);
+  el.insertAfter(null);
 
-    equalNodePosition(assert, el.node, paper.canvas, paper.defs, null);
-  });
+  equalNodePosition(el.node, paper.canvas, paper.defs, null);
+});
 
-  QUnit.test('insertAfter: last element', function (assert) {
-    const x = paper.rect();
-    const el = paper.rect();
+test('insertAfter: last element', function() {
+  var x = paper.rect();
+  var el = paper.rect();
 
-    el.insertAfter(x);
+  el.insertAfter(x);
 
-    equalNodePosition(assert, el.node, paper.canvas, x.node, null);
-  });
+  equalNodePosition(el.node, paper.canvas, x.node, null);
+});
 
-  QUnit.test('insertAfter: middle element', function (assert) {
-    const x = paper.rect();
-    const y = paper.rect();
-    const el = paper.rect();
+test('insertAfter: middle element', function() {
+  var x = paper.rect();
+  var y = paper.rect();
+  var el = paper.rect();
 
-    el.insertAfter(x);
+  el.insertAfter(x);
 
-    equalNodePosition(assert, el.node, paper.canvas, x.node, y.node);
-  });
+  equalNodePosition(el.node, paper.canvas, x.node, y.node);
+});
 
-  QUnit.test('insertAfter: no element when wrapped in <a>', function (assert) {
-    const el = paper.rect().attr('href', url),
+test('insertAfter: no element when wrapped in <a>', function() {
+  var el = paper.rect().attr('href', url),
       anchor = el.node.parentNode;
 
-    el.insertAfter(null);
+  el.insertAfter(null);
 
-    equalNodePositionWrapped(assert, el.node, anchor, paper.canvas, paper.defs, null);
-  });
+  equalNodePositionWrapped(el.node, anchor, paper.canvas, paper.defs, null);
+});
 
-  QUnit.test('insertAfter: last element when wrapped in <a>', function (assert) {
-    const x = paper.rect();
-    const el = paper.rect().attr('href', url),
+test('insertAfter: last element when wrapped in <a>', function() {
+  var x = paper.rect();
+  var el = paper.rect().attr('href', url),
       anchor = el.node.parentNode;
 
-    el.insertAfter(x);
+  el.insertAfter(x);
 
-    equalNodePositionWrapped(assert, el.node, anchor, paper.canvas, x.node, null);
-  });
+  equalNodePositionWrapped(el.node, anchor, paper.canvas, x.node, null);
+});
 
-  QUnit.test('insertAfter: last element wrapped in <a> and wrapped in <a>', function (assert) {
-    const x = paper.rect().attr('href', url),
+test('insertAfter: last element wrapped in <a> and wrapped in <a>', function() {
+  var x = paper.rect().attr('href', url),
       xAnchor = x.node.parentNode;
-    const el = paper.rect().attr('href', url),
+  var el = paper.rect().attr('href', url),
       anchor = el.node.parentNode;
 
-    el.insertAfter(x);
+  el.insertAfter(x);
 
-    equalNodePositionWrapped(assert, el.node, anchor, paper.canvas, xAnchor, null);
-  });
+  equalNodePositionWrapped(el.node, anchor, paper.canvas, xAnchor, null);
+});
 
-  QUnit.test('insertAfter: middle element when wrapped in <a>', function (assert) {
-    const x = paper.rect();
-    const y = paper.rect();
-    const el = paper.rect().attr('href', url),
+test('insertAfter: middle element when wrapped in <a>', function() {
+  var x = paper.rect();
+  var y = paper.rect();
+  var el = paper.rect().attr('href', url),
       anchor = el.node.parentNode;
 
-    el.insertAfter(x);
+  el.insertAfter(x);
 
-    equalNodePositionWrapped(assert, el.node, anchor, paper.canvas, x.node, y.node);
-  });
+  equalNodePositionWrapped(el.node, anchor, paper.canvas, x.node, y.node);
+});
 
-  QUnit.test('insertAfter: middle element wrapped in <a> and wrapped in <a>', function (assert) {
-    const x = paper.rect().attr('href', url),
+test('insertAfter: middle element wrapped in <a> and wrapped in <a>', function() {
+  var x = paper.rect().attr('href', url),
       xAnchor = x.node.parentNode;
-    const y = paper.rect().attr('href', url),
+  var y = paper.rect().attr('href', url),
       yAnchor = y.node.parentNode;
-    const el = paper.rect().attr('href', url),
+  var el = paper.rect().attr('href', url),
       anchor = el.node.parentNode;
 
-    el.insertAfter(x);
+  el.insertAfter(x);
 
-    equalNodePositionWrapped(assert, el.node, anchor, paper.canvas, xAnchor, yAnchor);
-  });
+  equalNodePositionWrapped(el.node, anchor, paper.canvas, xAnchor, yAnchor);
+});
 
 // TODO...
 // insertAfter: with set
@@ -202,95 +202,95 @@
 // Element#remove
 // --------------
 
-  QUnit.test('remove: after added', function (assert) {
-    const el = paper.rect(),
+test('remove: after added', function() {
+  var el = paper.rect(),
       node = el.node;
 
-    el.remove();
+  el.remove();
 
-    assert.equal(el.node, null);
-    assert.equal(node.parentNode, null);
-  });
+  equal(el.node, null);
+  equal(node.parentNode, null);
+});
 
-  QUnit.test('remove: when wrapped in <a>', function (assert) {
-    const el = paper.rect().attr('href', url),
+test('remove: when wrapped in <a>', function() {
+  var el = paper.rect().attr('href', url),
       node = el.node,
       anchor = node.parentNode;
 
-    el.remove();
+  el.remove();
 
-    assert.equal(el.node, null);
-    assert.equal(node.parentNode, anchor);
-    assert.equal(anchor.parentNode, null);
-  });
+  equal(el.node, null);
+  equal(node.parentNode, anchor);
+  equal(anchor.parentNode, null);
+});
 
-  QUnit.test('remove: when already removed', function (assert) {
-    const el = paper.rect(),
+test('remove: when already removed', function() {
+  var el = paper.rect(),
       node = el.node;
 
-    el.remove();
-    el.remove();
+  el.remove();
+  el.remove();
 
-    assert.equal(el.node, null);
-    assert.equal(node.parentNode, null);
-  });
+  equal(el.node, null);
+  equal(node.parentNode, null);
+});
 
-  QUnit.test('remove: when the canvas is removed', function (assert) {
-    const el = paper.rect(),
+test('remove: when the canvas is removed', function() {
+  var el = paper.rect(),
       node = el.node;
 
-    paper.remove();
-    el.remove();
+  paper.remove();
+  el.remove();
 
-    assert.equal(el.node, null);
-    assert.equal(node.parentNode, null);
-  });
+  equal(el.node, null);
+  equal(node.parentNode, null);
+});
 
 // Element#toFront
 // --------------
 
-  QUnit.test('toFront: normal', function (assert) {
-    const el = paper.rect();
-    const x = paper.rect();
+test('toFront: normal', function() {
+  var el = paper.rect();
+  var x = paper.rect();
 
-    el.toFront();
+  el.toFront();
 
-    equalNodePosition(assert, el.node, paper.canvas, x.node, null);
-  });
+  equalNodePosition(el.node, paper.canvas, x.node, null);
+});
 
-  QUnit.test('toFront: when wrapped in <a>', function (assert) {
-    const el = paper.rect().attr('href', url),
+test('toFront: when wrapped in <a>', function() {
+  var el = paper.rect().attr('href', url),
       anchor = el.node.parentNode;
-    const x = paper.rect();
+  var x = paper.rect();
 
-    el.toFront();
+  el.toFront();
 
-    equalNodePositionWrapped(assert, el.node, anchor, paper.canvas, x.node, null);
-  });
+  equalNodePositionWrapped(el.node, anchor, paper.canvas, x.node, null);
+});
 
 // Element#toBack
 // --------------
 
-  QUnit.test('toBack: normal', function (assert) {
-    const x = paper.rect();
-    const el = paper.rect();
+test('toBack: normal', function() {
+  var x = paper.rect();
+  var el = paper.rect();
 
-    el.toBack();
+  el.toBack();
 
-    equalNodePosition(assert, el.node, paper.canvas, null, paper.desc);
-    equalNodePosition(assert, x.node, paper.canvas, paper.defs, null);
-  });
+  equalNodePosition(el.node, paper.canvas, null, paper.desc);
+  equalNodePosition(x.node, paper.canvas, paper.defs, null);
+});
 
-  QUnit.test('toBack: when wrapped in <a>', function (assert) {
-    const x = paper.rect();
-    const el = paper.rect().attr('href', url),
+test('toBack: when wrapped in <a>', function() {
+  var x = paper.rect();
+  var el = paper.rect().attr('href', url),
       anchor = el.node.parentNode;
 
-    el.toBack();
+  el.toBack();
 
-    equalNodePositionWrapped(assert, el.node, anchor, paper.canvas, null, paper.desc);
-    equalNodePosition(assert, x.node, paper.canvas, paper.defs, null);
-  });
+  equalNodePositionWrapped(el.node, anchor, paper.canvas, null, paper.desc);
+  equalNodePosition(x.node, paper.canvas, paper.defs, null);
+});
 
 
 // Element#attrs
@@ -311,6 +311,7 @@
 // #href
 
 //keep adding and testing!
+
 
 
 })();
