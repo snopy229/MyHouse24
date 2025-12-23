@@ -1,7 +1,15 @@
 from django import forms
 from django.forms import inlineformset_factory
 
-from .models import SeoBlock, MainPage, Contacts, ServicesForSite, ServicesAndSeoBlock
+from .models import (
+    SeoBlock,
+    MainPage,
+    Contacts,
+    ServicesForSite,
+    ServicesAndSeoBlock,
+    TariffsForSite,
+    TariffsAndSeoBlock,
+)
 
 
 class SeoBlockForm(forms.ModelForm):
@@ -164,4 +172,28 @@ ServicesForSiteFormSet = inlineformset_factory(
     ServicesAndSeoBlock,
     ServicesForSite,
     form=ServicesForSiteForm,
+)
+
+
+class TariffsForSiteForm(forms.ModelForm):
+    class Meta:
+        model = TariffsForSite
+        fields = "__all__"
+        exclude = ("seo_block",)
+        widgets = {
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+            "image": forms.FileInput(attrs={"class": "form-control"}),
+        }
+
+
+class TariffsAndSeoBlockForm(forms.ModelForm):
+    class Meta:
+        model = TariffsAndSeoBlock
+        fields = []
+
+
+TariffsForSiteFormSet = inlineformset_factory(
+    TariffsAndSeoBlock,
+    TariffsForSite,
+    form=TariffsForSiteForm,
 )
