@@ -1,0 +1,60 @@
+{% extends 'base_main.html' %}
+{% block title %}Сервисы{% endblock %}
+{% block content %}
+    <div class="breadcrumbs">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12">
+                    <ol class="breadcrumb">
+                        <li>
+                            <a href="/">Главная</a>
+                        </li>
+                        <li class="active">Услуги</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="services">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="page-header">
+                        <h1>Наши услуги</h1>
+                    </div>
+                </div>
+            </div>
+            {% for service in services %}
+                <div class="row">
+                    <div class="col-xs-12 col-md-7">
+                        {% if service.image %}
+                            <img src="{{ service.image.url }}"
+                                 class="img-responsive img-thumbnail"
+                                 alt="">
+                        {% else %}
+                            <img src="https://myhouse24.demodev.cc/site/glide?path=%2Fupload%2Fplaceholder.jpg&w=650&h=300&fit=crop"
+                                 class="img-responsive img-thumbnail"
+                                 alt="">
+                        {% endif %}
+                    </div>
+                    <div class="col-xs-12 col-md-5">
+                        <div class="page-header">
+                            <h3>{{ service.title }}</h3>
+                        </div>
+                        {{ service.description | safe }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="paginations">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12 text-center">
+                    <nav aria-label="Page navigation">
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

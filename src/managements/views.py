@@ -1,8 +1,21 @@
+from django.http import JsonResponse
 from django.urls import reverse
-from django.views.generic import TemplateView, UpdateView, DetailView
+from django.views.generic import (
+    TemplateView,
+    UpdateView,
+    DetailView,
+    DeleteView,
+    ListView,
+)
 
-from .forms import MainPageForm, SeoBlockForm, ContactsForm
-from .models import MainPage, SeoBlock, Contacts
+from .forms import (
+    MainPageForm,
+    SeoBlockForm,
+    ContactsForm,
+    ServicesAndSeoBlockForm,
+    ServicesForSiteFormSet,
+)
+from .models import MainPage, SeoBlock, Contacts, ServicesAndSeoBlock, ServicesForSite
 
 
 # Create your views here.
@@ -30,7 +43,7 @@ class EditMainPage(UpdateView):
 
     def form_valid(self, form):
         context = self.get_context_data()
-        seo_form = context["seo_block_form"]
+        seo_form = context["seo_form"]
 
         if seo_form.is_valid():
             self.object = form.save()
@@ -42,7 +55,7 @@ class EditMainPage(UpdateView):
             return self.render_to_response(self.get_context_data(form=form))
 
     def get_success_url(self):
-        return reverse("management:statistic")
+        return reverse("managements:statistic")
 
 
 class Statistic(TemplateView):
@@ -87,7 +100,7 @@ class EditContactsPage(UpdateView):
 
     def form_valid(self, form):
         context = self.get_context_data()
-        seo_form = context["seo_block_form"]
+        seo_form = context["seo_form"]
 
         if seo_form.is_valid():
             self.object = form.save()
@@ -99,7 +112,7 @@ class EditContactsPage(UpdateView):
             return self.render_to_response(self.get_context_data(form=form))
 
     def get_success_url(self):
-        return reverse("management:statistic")
+        return reverse("managements:statistic")
 
 
 class ContactsDetail(DetailView):
@@ -113,3 +126,62 @@ class ContactsDetail(DetailView):
             seo_block = SeoBlock.objects.create()
             obj = Contacts.objects.create(seo_block=seo_block)
         return obj
+
+
+class EditServicesPage(UpdateView):
+    model = "ServicesAndSeoBlock"
+    form_class = ServicesAndSeoBlockForm
+    template_name = "admin/services.html"
+
+    def get_object(self, queryset=None):
+        obj = ServicesAndSeoBlock.objects.first()
+        if not obj:
+            seo_block = SeoBlock.objects.create()
+            obj = ServicesAndSeoBlock.objects.create(seo_block=seo_block)
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        seo_instance = self.object.seo_block
+        if self.request.POST:
+            context["seo_form"] = SeoBlockForm(self.request.POST, instance=seo_instance)
+            context["services_formset"] = ServicesForSiteFormSet(
+                self.request.POST, instance=self.object
+            )
+        else:
+            context["seo_form"] = SeoBlockForm(instance=seo_instance)
+            context["services_formset"] = ServicesForSiteFormSet(instance=self.object)
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        seo_form = context["seo_form"]
+
+        if seo_form.is_valid():
+            self.object = form.save()
+
+            seo_form.save()
+
+            return super().form_valid(form)
+        else:
+            return self.render_to_response(self.get_context_data(form=form))
+
+    def get_success_url(self):
+        return reverse("managements:statistic")
+
+
+class DeleteServiceView(DeleteView):
+    model = ServicesForSite
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+        return JsonResponse({"success": True})
+
+    post = delete
+
+
+class ServicesView(ListView):
+    model = ServicesForSite
+    template_name = "site/services.html"
+    context_object_name = "services"

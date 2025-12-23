@@ -1,7 +1,8 @@
 {% extends "base_static.html" %}
 {% block structure %}
     <body class="hold-transition skin-black-light">
-        <nav class="navbar navbar-default navbar-fixed-top">
+        <nav class="navbar navbar-default navbar-fixed-top max-height"
+             style='height: 30px'>
             <div class="container">
                 <div class="navbar-header">
                     <button type="button"
@@ -14,7 +15,10 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" href="/">
+                    <a class="navbar-brand"
+                       href="/"
+                       style="padding-top: 5px;
+                              padding-bottom: 5px">
                         <img src="https://myhouse24.demodev.cc/logo.svg"
                              class="img-responsive"
                              style="max-height: 40px"
@@ -30,7 +34,7 @@
                             <a href="/about">О нас</a>
                         </li>
                         <li class="{% if request.path == '/services/' %}active{% endif %}">
-                            <a href="/services">Услуги</a>
+                            <a href="{% url 'managements:services' %}">Услуги</a>
                         </li>
                         <li class="{% if request.path == '/conditions/' %}active{% endif %}">
                             <a href="#">Условия</a>

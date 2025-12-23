@@ -23,7 +23,7 @@
                     <div class="page-header">
                         <h1>{{ contacts.title }}</h1>
                     </div>
-                    <div class="box">{{ contacts.short_text }}</div>
+                    <div class="box">{{ contacts.short_text | safe }}</div>
                 </div>
                 <div class="col-xs-12 col-sm-5 col-md-4">
                     <div class="page-header">
@@ -31,19 +31,19 @@
                     </div>
                     <div class="box">
                         <p>
-                            <i class="fas fa-user-circle"></i> {{ name }}
+                            <i class="fa fa-user-circle"></i> {{ name }}
                         </p>
                         <p>
-                            <i class="fas fa-compass"></i> {{ location }}
+                            <i class="fa fa-compass"></i> {{ location }}
                         </p>
                         <p>
-                            <i class="fas fa-map-marker"></i> {{ address }}
+                            <i class="fa fa-map-marker"></i> {{ address }}
                         </p>
                         <p>
-                            <i class="fas fa-phone"></i> <a href="tel:{{ number }}">{{ number }}</a>
+                            <i class="fa fa-phone"></i> <a href="tel:{{ number }}">{{ number }}</a>
                         </p>
                         <p>
-                            <i class="fas fa-envelope"></i> <a href="mailto:{{ email }}">{{ email }}</a>
+                            <i class="fa fa-envelope"></i> <a href="mailto:{{ email }}">{{ email }}</a>
                         </p>
                     </div>
                 </div>

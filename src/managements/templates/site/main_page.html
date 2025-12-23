@@ -80,19 +80,19 @@
                     </div>
                     <div class="box">
                         <p>
-                            <i class="fas fa-user-circle"></i> AVADA-MEDIА
+                            <i class="fa fa-user-circle"></i> {{ name }}
                         </p>
                         <p>
-                            <i class="fas fa-compass"></i> Україна
+                            <i class="fa fa-compass"></i> {{ location }}
                         </p>
                         <p>
-                            <i class="fas fa-map-marker"></i> г. Киев Малиновский р-н, ул. Космонавтов, 32
+                            <i class="fa fa-map-marker"></i> {{ address }}
                         </p>
                         <p>
-                            <i class="fas fa-phone"></i> <a href="tel:+380441234567">+38 044 123 45 67</a>
+                            <i class="fa fa-phone"></i> <a href="tel:{{ number }}">{{ number }}</a>
                         </p>
                         <p>
-                            <i class="fas fa-envelope"></i> <a href="mailto:info@avada-media.com.ua">info@avada-media.com.ua</a>
+                            <i class="fa fa-envelope"></i> <a href="mailto:{{ email }}">{{ email }}</a>
                         </p>
                     </div>
                 </div>
@@ -112,7 +112,7 @@
                         {% if main_page.block_image_1 %}<img src="{{ main_page.block_image_1.url }}" class="img-responsive" alt="">{% endif %}
                         <div class="caption">
                             <h3>{{ main_page.title_1 }}</h3>
-                            <p>{{ main_page.description_1 | safe }}</p>
+                            {{ main_page.description_1 | safe }}
                         </div>
                     </div>
                 </div>
@@ -121,7 +121,7 @@
                         {% if main_page.block_image_2 %}<img src="{{ main_page.block_image_2.url }}" class="img-responsive" alt="">{% endif %}
                         <div class="caption">
                             <h3>{{ main_page.title_2 }}</h3>
-                            <p>{{ main_page.description_2 | safe }}</p>
+                            {{ main_page.description_2 | safe }}
                         </div>
                     </div>
                 </div>
@@ -130,7 +130,7 @@
                         {% if main_page.block_image_3 %}<img src="{{ main_page.block_image_3.url }}" class="img-responsive" alt="">{% endif %}
                         <div class="caption">
                             <h3>{{ main_page.title_3 }}</h3>
-                            <p>{{ main_page.description_3 | safe }}</p>
+                            {{ main_page.description_3 | safe }}
                         </div>
                     </div>
                 </div>
@@ -139,7 +139,7 @@
                         {% if main_page.block_image_4 %}<img src="{{ main_page.block_image_4.url }}" class="img-responsive" alt="">{% endif %}
                         <div class="caption">
                             <h3>{{ main_page.title_4 }}</h3>
-                            <p>{{ main_page.description_4 | safe }}</p>
+                            {{ main_page.description_4 | safe }}
                         </div>
                     </div>
                 </div>
@@ -148,7 +148,7 @@
                         {% if main_page.block_image_5 %}<img src="{{ main_page.block_image_5.url }}" class="img-responsive" alt="">{% endif %}
                         <div class="caption">
                             <h3>{{ main_page.title_5 }}</h3>
-                            <p>{{ main_page.description_5 | safe }}</p>
+                            {{ main_page.description_5 | safe }}
                         </div>
                     </div>
                 </div>
@@ -157,7 +157,7 @@
                         {% if main_page.block_image_6 %}<img src="{{ main_page.block_image_6.url }}" class="img-responsive" alt="">{% endif %}
                         <div class="caption">
                             <h3>{{ main_page.title_6 }}</h3>
-                            <p>{{ main_page.description_6 | safe }}</p>
+                            {{ main_page.description_6 | safe }}
                         </div>
                     </div>
                 </div>

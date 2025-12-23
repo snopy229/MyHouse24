@@ -84,7 +84,7 @@ define([
       window.setTimeout(function () {
         self.$selection.focus();
       }, 0);
-    
+
       self._detachCloseHandler(container);
     });
 

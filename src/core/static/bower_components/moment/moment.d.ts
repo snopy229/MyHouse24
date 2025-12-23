@@ -197,7 +197,7 @@ declare namespace moment {
 
     toISOString(): string;
     toJSON(): string;
-    
+
     isValid(): boolean;
 
     /**
@@ -718,16 +718,16 @@ declare namespace moment {
 
   export var defaultFormat: string;
   export var defaultFormatUtc: string;
-  
-  export var HTML5_FMT: { 
+
+  export var HTML5_FMT: {
     DATETIME_LOCAL: string,
     DATETIME_LOCAL_SECONDS: string,
     DATETIME_LOCAL_MS: string,
-    DATE: string,                           
-    TIME: string,                                 
-    TIME_SECONDS: string,                      
-    TIME_MS: string,                        
-    WEEK: string,                           
+    DATE: string,
+    TIME: string,
+    TIME_SECONDS: string,
+    TIME_MS: string,
+    WEEK: string,
     MONTH: string
   };
 

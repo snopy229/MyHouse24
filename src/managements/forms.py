@@ -1,6 +1,7 @@
 from django import forms
+from django.forms import inlineformset_factory
 
-from .models import SeoBlock, MainPage, Contacts
+from .models import SeoBlock, MainPage, Contacts, ServicesForSite, ServicesAndSeoBlock
 
 
 class SeoBlockForm(forms.ModelForm):
@@ -130,3 +131,37 @@ class ContactsForm(forms.ModelForm):
             "map_fragment": forms.Textarea(attrs={"class": "form-control"}),
             "address": forms.TextInput(attrs={"class": "form-control"}),
         }
+
+
+class ServicesForSiteForm(forms.ModelForm):
+    block_description = forms.CharField(
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control",
+                "rows": 5,
+                "style": "width: 100%; min-width: 100%;",
+            }
+        )
+    )
+
+    class Meta:
+        model = ServicesForSite
+        fields = "__all__"
+        exclude = ("seo_block",)
+        widgets = {
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+            "image": forms.FileInput(attrs={"class": "form-control"}),
+        }
+
+
+class ServicesAndSeoBlockForm(forms.ModelForm):
+    class Meta:
+        model = ServicesAndSeoBlock
+        fields = []
+
+
+ServicesForSiteFormSet = inlineformset_factory(
+    ServicesAndSeoBlock,
+    ServicesForSite,
+    form=ServicesForSiteForm,
+)

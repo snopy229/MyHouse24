@@ -49,3 +49,16 @@ class Contacts(models.Model):
     phone_number = PhoneNumberField()
     map_fragment = models.TextField()
     seo_block = models.OneToOneField("SeoBlock", on_delete=models.CASCADE)
+
+
+class ServicesAndSeoBlock(models.Model):
+    seo_block = models.OneToOneField(SeoBlock, on_delete=models.CASCADE)
+
+
+class ServicesForSite(models.Model):
+    title = models.CharField(max_length=200)
+    image = models.ImageField(upload_to="services/")
+    description = RichTextField()
+    services_and_seo_block = models.OneToOneField(
+        "ServicesAndSeoBlock", on_delete=models.CASCADE
+    )

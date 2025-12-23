@@ -1,0 +1,253 @@
+{% extends 'base_admin.html' %}
+{% block title %}Редактирование страницы "Услуги"{% endblock %}
+{% block content %}
+    {% block content_header %}Редактирование страницы{% endblock %}
+    <section class="content">
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Редактирование страницы "Услуги"</h3>
+                    </div>
+                    <div class="box-body">
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="hidden"
+                                   name="_csrf-backend"
+                                   value="-ExoWqo44gHuvIg4IP81o84jjC0HiyDhYAiKklHLAkyOJC8WnU-DcKzdzE1O0kfWtFDVZCq7ELkhfsXBaZ1qdQ==">
+                            <div class="row near-img">
+                                <div class="col-xs-12">
+                                    <h3 class="page-header">Услуги</h3>
+                                </div>
+                                {{ services_formset.management_form }}
+                                <div id="form-websiteservice-rows">
+                                    {% for s_form in services_formset %}
+                                        <div class="col-md-4 form-websiteservice">
+                                            <h4>
+                                                Услуга {{ forloop.counter }}
+                                                {% if s_form.instance.pk %}
+                                                    <a href="#"
+                                                       class="pull-right text-red delete-service-btn"
+                                                       data-pk="{{ s_form.instance.pk }}"
+                                                       data-url="{% url 'delete_service' s_form.instance.pk %}"
+                                                       data-confirm="Удалить?">
+                                                        <i class="fa fa-trash"></i>
+                                                    </a>
+                                                {% else %}
+                                                    <a href="#"
+                                                       class="pull-right text-red delete-new-service-btn"
+                                                       data-confirm="Удалить?">
+                                                        <i class="fa fa-trash"></i>
+                                                    </a>
+                                                {% endif %}
+                                            </h4>
+                                            {% if s_form.instance.image %}
+                                                <img src="{{ s_form.instance.image.url }}"
+                                                     alt=""
+                                                     class="img-responsive margin-bottom-15">
+                                            {% else %}
+                                                <img src="https://myhouse24.demodev.cc/site/glide?path=%2Fupload%2Fplaceholder.jpg&w=650&h=300&fit=crop"
+                                                     alt=""
+                                                     class="img-responsive margin-bottom-15">
+                                            {% endif %}
+                                            <input type="hidden" id="websiteservice-0-id" value="174">
+                                            <div class="form-group">
+                                                <label>
+                                                    Рекомендуемый размер:
+                                                    (650x300)
+                                                </label>
+                                                {{ s_form.image }}
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Название услуги</label>
+                                                {{ s_form.title }}
+                                            </div>
+                                            <div class="form-group margin-bottom-30">
+                                                <label>Описание услуги</label>
+                                                {{ s_form.description }}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <div id="empty-form" style="display: none">
+                                    <div class="col-md-4 form-websiteservice">
+                                        <h4>
+                                            Услуга <a href="#"
+    class="pull-right text-red delete-new-service-btn"
+    data-confirm="Удалить?">
+                                            <i class="fa fa-trash"></i>
+                                        </a>
+                                    </h4>
+                                    <img src="https://myhouse24.demodev.cc/site/glide?path=%2Fupload%2Fplaceholder.jpg&w=650&h=300&fit=crop"
+                                         alt=""
+                                         class="img-responsive margin-bottom-15">
+                                    <input type="hidden" value="174">
+                                    <div class="form-group">
+                                        <label>
+                                            Рекомендуемый размер:
+                                            (650x300)
+                                        </label>
+                                        {{ services_formset.empty_form.image }}
+                                        <div class="form-group">
+                                            <label>Название услуги</label>
+                                            {{ services_formset.empty_form.title }}
+                                        </div>
+                                        <div class="form-group margin-bottom-30">
+                                            <label>Описание услуги</label>
+                                            {{ services_formset.empty_form.description }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <h3 class="page-header">Настройки SEO</h3>
+                                    <div class="form-group field-websiteserviceform-servicemetatitle">
+                                        <label class="control-label" for="websiteserviceform-servicemetatitle">Title</label>
+                                        {{ seo_form.title }}
+                                        <div class="help-block"></div>
+                                    </div>
+                                    <div class="form-group field-websiteserviceform-servicemetadescription">
+                                        <label class="control-label" for="websiteserviceform-servicemetadescription">Description</label>
+                                        {{ seo_form.description }}
+                                        <div class="help-block"></div>
+                                    </div>
+                                    <div class="form-group field-websiteserviceform-servicemetakeywords">
+                                        <label class="control-label" for="websiteserviceform-servicemetakeywords">Keywords</label>
+                                        {{ seo_form.keywords }}
+                                        <div class="help-block"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-12 text-center">
+                                    <div class="form-group">
+                                        <a href="/admin/website/services" class="btn btn-default">Отменить</a>
+                                        <button type="button"
+                                                role="button"
+                                                class="btn btn-success bg-green-active form-row-add-websiteservice-btn"
+                                                id="add-form">Добавить услугу</button>
+                                        <button type="submit" class="btn btn-success">Сохранить</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+<script src="https://cdn.ckeditor.com/4.16.0/standard/ckeditor.js"></script>
+<script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const ckeditorConfig = {
+                toolbar: [
+                    ['Format'],
+                    ['Bold', 'Italic', 'Underline', 'Strike'],
+                    ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent']
+                ],
+                height: 150,
+                width: '100%',
+                resize_enabled: false,
+                removePlugins: 'elementspath',
+                language: 'ru'
+            };
+
+            function initCKEditor(elementId) {
+                if (document.getElementById(elementId) && !CKEDITOR.instances[elementId]) {
+                    CKEDITOR.replace(elementId, ckeditorConfig);
+                }
+            }
+
+            // Инициализация существующих
+            document.querySelectorAll('textarea[id*="-description"]').forEach(textarea => {
+                initCKEditor(textarea.id);
+            });
+
+            const addFormBtn = document.getElementById('add-form');
+            const totalForms = document.querySelector('input[name$="-TOTAL_FORMS"]');
+            const container = document.getElementById('form-websiteservice-rows');
+            const emptyFormHtml = document.getElementById('empty-form').innerHTML;
+
+            // Добавление новой услуги
+            if (addFormBtn) {
+                addFormBtn.addEventListener('click', function () {
+                    let formNum = parseInt(totalForms.value);
+                    let newFormHtml = emptyFormHtml.replace(/__prefix__/g, formNum);
+
+                    let wrapper = document.createElement('div');
+                    wrapper.innerHTML = newFormHtml.trim();
+                    let newNode = wrapper.firstChild;
+
+                    container.appendChild(newNode);
+                    totalForms.value = formNum + 1;
+
+                    const newTextarea = newNode.querySelector('textarea');
+                    if (newTextarea) {
+                        initCKEditor(newTextarea.id);
+                    }
+                });
+            }
+
+            // Удаление услуг
+            container.addEventListener('click', function (e) {
+                // Удаление новых услуг
+                if (e.target.closest('.delete-new-service-btn')) {
+                    e.preventDefault();
+                    const btn = e.target.closest('.delete-new-service-btn');
+
+                    if (confirm('Удалить эту услугу?')) {
+                        const serviceBlock = btn.closest('.form-websiteservice');
+                        const textarea = serviceBlock.querySelector('textarea');
+
+                        // Удаляем CKEditor инстанс если есть
+                        if (textarea && CKEDITOR.instances[textarea.id]) {
+                            CKEDITOR.instances[textarea.id].destroy();
+                        }
+
+                        serviceBlock.remove();
+                        totalForms.value = parseInt(totalForms.value) - 1;
+                    }
+                }
+
+                // Удаление существующих услуг
+                if (e.target.closest('.delete-service-btn')) {
+                    e.preventDefault();
+                    const btn = e.target.closest('.delete-service-btn');
+                    const url = btn.dataset.url;
+
+                    if (confirm('Удалить эту услугу?')) {
+                        fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                            .then(res => {
+                                if (res.ok) return res.json();
+                                throw new Error('Ошибка удаления');
+                            })
+                            .then(data => {
+                                if (data.success) {
+                                    const serviceBlock = btn.closest('.form-websiteservice');
+                                    const textarea = serviceBlock.querySelector('textarea');
+
+                                    if (textarea && CKEDITOR.instances[textarea.id]) {
+                                        CKEDITOR.instances[textarea.id].destroy();
+                                    }
+
+                                    serviceBlock.remove();
+                                    totalForms.value = parseInt(totalForms.value) - 1;
+                                }
+                            })
+                            .catch(error => {
+                                alert('Ошибка при удалении: ' + error.message);
+                            });
+                    }
+                }
+            });
+        });
+</script>
+{% endblock %}

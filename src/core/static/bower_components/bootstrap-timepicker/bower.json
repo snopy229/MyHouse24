@@ -17,8 +17,8 @@
         "composer.json"
     ],
     "repository": {
-      "type": "git",
-      "url": "https://github.com/jdewit/bootstrap-timepicker"
+        "type": "git",
+        "url": "https://github.com/jdewit/bootstrap-timepicker"
     },
     "dependencies": {
         "bootstrap": "^3.0",

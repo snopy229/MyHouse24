@@ -11,6 +11,7 @@
                     </div>
                     <div class="box-body">
                         <form method="post">
+                            {% csrf_token %}
                             <input type="hidden"
                                    name="_csrf-backend"
                                    value="PbE-SOWAHwcpq6ANycQn8MJcVkCEYMFdztujyUZYs1NzhVEOpLRVMlHRwmyd90zIuw8wLMA5oDeRq9qZPA_SHg==">

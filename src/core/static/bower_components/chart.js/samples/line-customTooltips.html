@@ -1,12 +1,10 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-
-<head>
-    <title>Line Chart with Custom Tooltips</title>
-    <script src="../Chart.js"></script>
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-
-    <style>
+    <head>
+        <title>Line Chart with Custom Tooltips</title>
+        <script src="../Chart.js"></script>
+        <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+        <style>
     #canvas-holder1 {
         width: 300px;
         margin: 20px auto;
@@ -33,22 +31,17 @@
    		width:10px;
    		height:10px;
    	}
-    </style>
-</head>
-
-<body>
-    <div id="canvas-holder1">
-        <canvas id="chart1" width="300" height="30" />
-    </div>
-    <div id="canvas-holder2">
-        <canvas id="chart2" width="450" height="600" />
-    </div>
-
-    <div id="chartjs-tooltip"></div>
-
-
-    <script>
-
+        </style>
+    </head>
+    <body>
+        <div id="canvas-holder1">
+            <canvas id="chart1" width="300" height="30" />
+        </div>
+        <div id="canvas-holder2">
+            <canvas id="chart2" width="450" height="600" />
+        </div>
+        <div id="chartjs-tooltip"></div>
+        <script>
     Chart.defaults.global.pointHitDetectionRadius = 1;
     Chart.defaults.global.customTooltips = function(tooltip) {
 
@@ -123,7 +116,6 @@
             responsive: true
         });
     };
-    </script>
-</body>
-
+        </script>
+    </body>
 </html>
