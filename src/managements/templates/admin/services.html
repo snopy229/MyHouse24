@@ -2,6 +2,20 @@
 {% block title %}Редактирование страницы "Услуги"{% endblock %}
 {% block content %}
     {% block content_header %}Редактирование страницы{% endblock %}
+    <style>
+        .form-group label {
+            display: block;
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        .form-group textarea,
+        .form-group .cke {
+            display: block;
+            width: 100%;
+            clear: both;
+        }
+    </style>
     <section class="content">
         <div class="row">
             <div class="col-xs-12">
@@ -63,9 +77,11 @@
                                                 {{ s_form.title }}
                                             </div>
                                             <div class="form-group margin-bottom-30">
-                                                <label>Описание услуги</label>
+                                                <label class="control-label">Описание услуги</label>
                                                 {{ s_form.description }}
+                                                <div class="help-block"></div>
                                             </div>
+                                            <div></div>
                                         </div>
                                     {% endfor %}
                                 </div>
@@ -88,14 +104,15 @@
                                             (650x300)
                                         </label>
                                         {{ services_formset.empty_form.image }}
-                                        <div class="form-group">
-                                            <label>Название услуги</label>
-                                            {{ services_formset.empty_form.title }}
-                                        </div>
-                                        <div class="form-group margin-bottom-30">
-                                            <label>Описание услуги</label>
-                                            {{ services_formset.empty_form.description }}
-                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Название услуги</label>
+                                        {{ services_formset.empty_form.title }}
+                                    </div>
+                                    <div class="form-group margin-bottom-30">
+                                        <label class="control-label">Описание услуги</label>
+                                        {{ services_formset.empty_form.description }}
+                                        <div class="help-block"></div>
                                     </div>
                                 </div>
                             </div>
@@ -148,7 +165,7 @@
                     ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent']
                 ],
                 height: 150,
-                width: '100%',
+                width: '156%',
                 resize_enabled: false,
                 removePlugins: 'elementspath',
                 language: 'ru'
@@ -158,6 +175,20 @@
                 if (document.getElementById(elementId) && !CKEDITOR.instances[elementId]) {
                     CKEDITOR.replace(elementId, ckeditorConfig);
                 }
+            }
+
+            // Функция обновления нумерации всех услуг
+            function updateServiceNumbers() {
+                const services = container.querySelectorAll('.form-websiteservice');
+                services.forEach((service, index) => {
+                    const header = service.querySelector('h4');
+                    if (header) {
+                        const firstTextNode = Array.from(header.childNodes).find(node => node.nodeType === 3);
+                        if (firstTextNode) {
+                            firstTextNode.textContent = `Услуга ${index + 1} `;
+                        }
+                    }
+                });
             }
 
             // Инициализация существующих
@@ -183,6 +214,9 @@
                     container.appendChild(newNode);
                     totalForms.value = formNum + 1;
 
+                    // Обновляем нумерацию всех услуг
+                    updateServiceNumbers();
+
                     const newTextarea = newNode.querySelector('textarea');
                     if (newTextarea) {
                         initCKEditor(newTextarea.id);
@@ -190,7 +224,7 @@
                 });
             }
 
-            // Удаление услуг
+            // Удаление услуг (ВЫНЕСЕНО ИЗ if (addFormBtn))
             container.addEventListener('click', function (e) {
                 // Удаление новых услуг
                 if (e.target.closest('.delete-new-service-btn')) {
@@ -208,6 +242,9 @@
 
                         serviceBlock.remove();
                         totalForms.value = parseInt(totalForms.value) - 1;
+
+                        // Обновляем нумерацию после удаления
+                        updateServiceNumbers();
                     }
                 }
 
@@ -240,6 +277,9 @@
 
                                     serviceBlock.remove();
                                     totalForms.value = parseInt(totalForms.value) - 1;
+
+                                    // Обновляем нумерацию после удаления
+                                    updateServiceNumbers();
                                 }
                             })
                             .catch(error => {

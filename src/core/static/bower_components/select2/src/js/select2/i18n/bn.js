@@ -42,4 +42,3 @@ define(function () {
       }
     };
   });
-

@@ -18,6 +18,3 @@ Current changes include:
 + Removed built-in handle types
 + Bower install
 + Limits and locks
-
-
-
