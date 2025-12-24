@@ -9,6 +9,9 @@ from .models import (
     ServicesAndSeoBlock,
     TariffsForSite,
     TariffsAndSeoBlock,
+    AboutUsAndSeoBlock,
+    Images,
+    Document,
 )
 
 
@@ -211,5 +214,91 @@ TariffsForSiteFormSet = inlineformset_factory(
     TariffsAndSeoBlock,
     TariffsForSite,
     form=TariffsForSiteForm,
+    extra=0,
+)
+
+
+class AboutUsAndSeoBlockForm(forms.ModelForm):
+    short_text = forms.CharField(
+        widget=forms.Textarea(
+            attrs={
+                "id": "id_short_text",
+                "class": "form-control",
+                "rows": 5,
+                "style": "width: 100%; min-width: 100%;",
+            }
+        )
+    )
+    extra_short_text = forms.CharField(
+        widget=forms.Textarea(
+            attrs={
+                "id": "id_short_text",
+                "class": "form-control",
+                "rows": 5,
+                "style": "width: 100%; min-width: 100%;",
+            }
+        )
+    )
+    gallery_upload = forms.ImageField(
+        required=False, widget=forms.ClearableFileInput(attrs={"class": "form-control"})
+    )
+
+    extra_gallery_upload = forms.ImageField(
+        required=False, widget=forms.ClearableFileInput(attrs={"class": "form-control"})
+    )
+
+    class Meta:
+        model = AboutUsAndSeoBlock
+        fields = "__all__"
+        exclude = ("seo_block", "gallery", "extra_gallery")
+        widgets = {
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+            "extra_title": forms.TextInput(attrs={"class": "form-control"}),
+            "photo": forms.FileInput(attrs={"class": "form-control"}),
+        }
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+
+        if commit:
+            instance.save()
+
+            img1 = self.cleaned_data.get("gallery_upload")
+            if img1:
+                new_img = Images.objects.create(image=img1)
+                instance.gallery.add(new_img)
+
+            img2 = self.cleaned_data.get("extra_gallery_upload")
+            if img2:
+                new_img_extra = Images.objects.create(image=img2)
+                instance.gallery.add(new_img_extra)
+
+        return instance
+
+
+class DocumentForm(forms.ModelForm):
+    class Meta:
+        model = Document
+        fields = ["title", "document"]
+        widgets = {
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+            "document": forms.FileInput(attrs={"class": "form-control"}),
+        }
+
+    def clean(self):
+        file = self.cleaned_data.get("document")
+        if not file:
+            raise forms.ValidationError("Файл не выбран.")
+
+        if not (
+            file.name.lower().endswith(".pdf") or file.name.lower().endswith(".jpg")
+        ):
+            raise forms.ValidationError("Можно загружать только файлы .pdf или .jpg")
+
+
+DocumentFormSet = inlineformset_factory(
+    AboutUsAndSeoBlock,
+    Document,
+    form=DocumentForm,
     extra=0,
 )

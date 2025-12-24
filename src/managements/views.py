@@ -1,6 +1,6 @@
 from django.db import transaction
 from django.http import JsonResponse
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.views.generic import (
     TemplateView,
     UpdateView,
@@ -17,6 +17,8 @@ from .forms import (
     ServicesForSiteFormSet,
     TariffsAndSeoBlockForm,
     TariffsForSiteFormSet,
+    AboutUsAndSeoBlockForm,
+    DocumentFormSet,
 )
 from .models import (
     MainPage,
@@ -26,6 +28,9 @@ from .models import (
     ServicesForSite,
     TariffsForSite,
     TariffsAndSeoBlock,
+    AboutUsAndSeoBlock,
+    Document,
+    Images,
 )
 
 
@@ -248,6 +253,73 @@ class EditTariffsPage(UpdateView):
 
 class DeleteTariffView(DeleteView):
     model = TariffsForSite
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+        return JsonResponse({"success": True})
+
+    post = delete
+
+
+class EditAboutUsPage(UpdateView):
+    model = AboutUsAndSeoBlock
+    form_class = AboutUsAndSeoBlockForm
+    template_name = "admin/about_us.html"
+
+    def get_object(self, queryset=None):
+        obj = AboutUsAndSeoBlock.objects.first()
+        if not obj:
+            seo_block = SeoBlock.objects.create()
+            obj = AboutUsAndSeoBlock.objects.create(seo_block=seo_block)
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        seo_instance = self.object.seo_block
+        if self.request.POST:
+            context["seo_form"] = SeoBlockForm(self.request.POST, instance=seo_instance)
+            context["documents"] = DocumentFormSet(
+                self.request.POST, self.request.FILES, instance=self.object
+            )
+        else:
+            context["seo_form"] = SeoBlockForm(instance=seo_instance)
+            context["documents"] = DocumentFormSet(instance=self.object)
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        seo_form = context["seo_form"]
+        document_formset = context["documents"]
+
+        if seo_form.is_valid() and document_formset.is_valid():
+            with transaction.atomic():
+                self.object = form.save()
+                seo_form.save()
+            document_formset.save()
+            return super().form_valid(form)
+        else:
+            print(f"ERRORS: {seo_form.errors}")
+            print(f"ERRORS: {document_formset.errors}")
+
+    def get_success_url(self):
+        return reverse("managements:statistic")
+
+
+class DeleteImageView(DeleteView):
+    model = Images
+    success_url = reverse_lazy("managements:statistic")
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+        return JsonResponse({"success": True})
+
+    post = delete
+
+
+class DeleteDocument(DeleteView):
+    model = Document
 
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()

@@ -76,3 +76,28 @@ class TariffsForSite(models.Model):
     tariffs_and_seo_block = models.ForeignKey(
         TariffsAndSeoBlock, on_delete=models.CASCADE
     )
+
+
+class Images(models.Model):
+    image = models.ImageField(upload_to="images/", blank=True, null=True)
+
+
+class AboutUsAndSeoBlock(models.Model):
+    title = models.CharField(max_length=200)
+    short_text = RichTextField()
+    seo_block = models.OneToOneField(SeoBlock, on_delete=models.CASCADE)
+    extra_title = models.CharField(max_length=200)
+    extra_short_text = RichTextField()
+    photo = models.ImageField(upload_to="images/", blank=True, null=True)
+    gallery = models.ManyToManyField(Images, related_name="about_us_gallery")
+    extra_gallery = models.ManyToManyField(
+        Images, related_name="about_us_extra_gallery"
+    )
+
+
+class Document(models.Model):
+    title = models.CharField(max_length=200)
+    document = models.FileField(upload_to="documents/", blank=True, null=True)
+    about_us_and_seo_block = models.ForeignKey(
+        AboutUsAndSeoBlock, on_delete=models.CASCADE
+    )
