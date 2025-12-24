@@ -164,7 +164,8 @@ HCAPTCHA_TIMEOUT = 5
 
 CKEDITOR_CONFIGS = {
     "default": {
-        "skin": "moono-lisa",
+        "versionCheck": False,
+        "skin": "mono-lisa",
         "toolbar": "Custom",
         "toolbar_Custom": [
             ["Format"],

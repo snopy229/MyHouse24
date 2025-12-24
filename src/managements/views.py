@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.http import JsonResponse
 from django.urls import reverse
 from django.views.generic import (
@@ -14,8 +15,18 @@ from .forms import (
     ContactsForm,
     ServicesAndSeoBlockForm,
     ServicesForSiteFormSet,
+    TariffsAndSeoBlockForm,
+    TariffsForSiteFormSet,
 )
-from .models import MainPage, SeoBlock, Contacts, ServicesAndSeoBlock, ServicesForSite
+from .models import (
+    MainPage,
+    SeoBlock,
+    Contacts,
+    ServicesAndSeoBlock,
+    ServicesForSite,
+    TariffsForSite,
+    TariffsAndSeoBlock,
+)
 
 
 # Create your views here.
@@ -129,7 +140,7 @@ class ContactsDetail(DetailView):
 
 
 class EditServicesPage(UpdateView):
-    model = "ServicesAndSeoBlock"
+    model = ServicesAndSeoBlock
     form_class = ServicesAndSeoBlockForm
     template_name = "admin/services.html"
 
@@ -146,7 +157,7 @@ class EditServicesPage(UpdateView):
         if self.request.POST:
             context["seo_form"] = SeoBlockForm(self.request.POST, instance=seo_instance)
             context["services_formset"] = ServicesForSiteFormSet(
-                self.request.POST, instance=self.object
+                self.request.POST, self.request.FILES, instance=self.object
             )
         else:
             context["seo_form"] = SeoBlockForm(instance=seo_instance)
@@ -156,15 +167,19 @@ class EditServicesPage(UpdateView):
     def form_valid(self, form):
         context = self.get_context_data()
         seo_form = context["seo_form"]
+        services_formset = context["services_formset"]
 
-        if seo_form.is_valid():
-            self.object = form.save()
-
-            seo_form.save()
-
+        if seo_form.is_valid() and services_formset.is_valid():
+            with transaction.atomic():
+                self.object = form.save()
+                seo_form.save()
+                services_formset.save()
             return super().form_valid(form)
         else:
-            return self.render_to_response(self.get_context_data(form=form))
+            print(f"ERRORS: {seo_form.errors}")
+            print(f"ERRORS: {services_formset.errors}")
+
+        return self.render_to_response(self.get_context_data(form=form))
 
     def get_success_url(self):
         return reverse("managements:statistic")
@@ -185,3 +200,58 @@ class ServicesView(ListView):
     model = ServicesForSite
     template_name = "site/services.html"
     context_object_name = "services"
+
+
+class EditTariffsPage(UpdateView):
+    model = TariffsAndSeoBlock
+    form_class = TariffsAndSeoBlockForm
+    template_name = "admin/tariffs.html"
+
+    def get_object(self, queryset=None):
+        obj = TariffsAndSeoBlock.objects.first()
+        if not obj:
+            seo_block = SeoBlock.objects.create()
+            obj = TariffsAndSeoBlock.objects.create(seo_block=seo_block)
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        seo_instance = self.object.seo_block
+        if self.request.POST:
+            context["seo_form"] = SeoBlockForm(self.request.POST, instance=seo_instance)
+            context["tariffs_formset"] = TariffsForSiteFormSet(
+                self.request.POST, self.request.FILES, instance=self.object
+            )
+        else:
+            context["seo_form"] = SeoBlockForm(instance=seo_instance)
+            context["tariffs_formset"] = TariffsForSiteFormSet(instance=self.object)
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        seo_form = context["seo_form"]
+        tariffs_formset = context["tariffs_formset"]
+
+        if seo_form.is_valid() and tariffs_formset.is_valid():
+            with transaction.atomic():
+                self.object = form.save()
+                seo_form.save()
+                tariffs_formset.save()
+            return super().form_valid(form)
+        else:
+            print(f"ERRORS: {seo_form.errors}")
+            print(f"ERRORS: {tariffs_formset.errors}")
+
+    def get_success_url(self):
+        return reverse("managements:statistic")
+
+
+class DeleteTariffView(DeleteView):
+    model = TariffsForSite
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+        return JsonResponse({"success": True})
+
+    post = delete

@@ -1,19 +1,20 @@
-{% extends 'base_admin.html' %}
-{% block title %}Редактирование страницы "Услуги"{% endblock %}
+{% extends "base_admin.html" %}
+{% block title %}
+    Редактирование страницы "Услуги"
+{% endblock title %}
 {% block content %}
-    {% block content_header %}Редактирование страницы{% endblock %}
+    {% block content_header %}
+        Редактирование страницы
+    {% endblock content_header %}
     <style>
-        .form-group label {
-            display: block;
+        .form-websiteservice img {
             width: 100%;
-            margin-bottom: 5px;
+            height: 300px;
+            object-fit: cover;
         }
 
-        .form-group textarea,
-        .form-group .cke {
-            display: block;
-            width: 100%;
-            clear: both;
+        .hidden-template {
+            display: none;
         }
     </style>
     <section class="content">
@@ -37,13 +38,14 @@
                                 <div id="form-websiteservice-rows">
                                     {% for s_form in services_formset %}
                                         <div class="col-md-4 form-websiteservice">
+                                            {{ s_form.id }}
                                             <h4>
                                                 Услуга {{ forloop.counter }}
                                                 {% if s_form.instance.pk %}
                                                     <a href="#"
                                                        class="pull-right text-red delete-service-btn"
                                                        data-pk="{{ s_form.instance.pk }}"
-                                                       data-url="{% url 'delete_service' s_form.instance.pk %}"
+                                                       data-url="{% url 'managements:delete_service' s_form.instance.pk %}"
                                                        data-confirm="Удалить?">
                                                         <i class="fa fa-trash"></i>
                                                     </a>
@@ -57,14 +59,17 @@
                                             </h4>
                                             {% if s_form.instance.image %}
                                                 <img src="{{ s_form.instance.image.url }}"
-                                                     alt=""
-                                                     class="img-responsive margin-bottom-15">
+                                                     alt="Service Image"
+                                                     class="img-responsive margin-bottom-15"
+                                                     width="650"
+                                                     height="300">
                                             {% else %}
                                                 <img src="https://myhouse24.demodev.cc/site/glide?path=%2Fupload%2Fplaceholder.jpg&w=650&h=300&fit=crop"
-                                                     alt=""
-                                                     class="img-responsive margin-bottom-15">
+                                                     alt="Placeholder"
+                                                     class="img-responsive margin-bottom-15"
+                                                     width="650"
+                                                     height="300">
                                             {% endif %}
-                                            <input type="hidden" id="websiteservice-0-id" value="174">
                                             <div class="form-group">
                                                 <label>
                                                     Рекомендуемый размер:
@@ -81,11 +86,10 @@
                                                 {{ s_form.description }}
                                                 <div class="help-block"></div>
                                             </div>
-                                            <div></div>
                                         </div>
                                     {% endfor %}
                                 </div>
-                                <div id="empty-form" style="display: none">
+                                <div id="empty-form" class="hidden-template">
                                     <div class="col-md-4 form-websiteservice">
                                         <h4>
                                             Услуга <a href="#"
@@ -95,9 +99,10 @@
                                         </a>
                                     </h4>
                                     <img src="https://myhouse24.demodev.cc/site/glide?path=%2Fupload%2Fplaceholder.jpg&w=650&h=300&fit=crop"
-                                         alt=""
-                                         class="img-responsive margin-bottom-15">
-                                    <input type="hidden" value="174">
+                                         alt="Placeholder"
+                                         class="img-responsive margin-bottom-15"
+                                         width="650"
+                                         height="300">
                                     <div class="form-group">
                                         <label>
                                             Рекомендуемый размер:
@@ -139,7 +144,7 @@
                             <div class="row">
                                 <div class="col-xs-12 text-center">
                                     <div class="form-group">
-                                        <a href="/admin/website/services" class="btn btn-default">Отменить</a>
+                                        <a href="#" class="btn btn-default">Отменить</a>
                                         <button type="button"
                                                 role="button"
                                                 class="btn btn-success bg-green-active form-row-add-websiteservice-btn"
@@ -148,13 +153,13 @@
                                     </div>
                                 </div>
                             </div>
-                        </form>
-                    </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
-    </section>
-</div>
+    </div>
+</section>
 <script src="https://cdn.ckeditor.com/4.16.0/standard/ckeditor.js"></script>
 <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -165,10 +170,11 @@
                     ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent']
                 ],
                 height: 150,
-                width: '156%',
+                width: '100%',
                 resize_enabled: false,
                 removePlugins: 'elementspath',
-                language: 'ru'
+                language: 'ru',
+                versionCheck: false
             };
 
             function initCKEditor(elementId) {
@@ -177,7 +183,6 @@
                 }
             }
 
-            // Функция обновления нумерации всех услуг
             function updateServiceNumbers() {
                 const services = container.querySelectorAll('.form-websiteservice');
                 services.forEach((service, index) => {
@@ -191,7 +196,6 @@
                 });
             }
 
-            // Инициализация существующих
             document.querySelectorAll('textarea[id*="-description"]').forEach(textarea => {
                 initCKEditor(textarea.id);
             });
@@ -201,7 +205,6 @@
             const container = document.getElementById('form-websiteservice-rows');
             const emptyFormHtml = document.getElementById('empty-form').innerHTML;
 
-            // Добавление новой услуги
             if (addFormBtn) {
                 addFormBtn.addEventListener('click', function () {
                     let formNum = parseInt(totalForms.value);
@@ -214,7 +217,6 @@
                     container.appendChild(newNode);
                     totalForms.value = formNum + 1;
 
-                    // Обновляем нумерацию всех услуг
                     updateServiceNumbers();
 
                     const newTextarea = newNode.querySelector('textarea');
@@ -224,9 +226,7 @@
                 });
             }
 
-            // Удаление услуг (ВЫНЕСЕНО ИЗ if (addFormBtn))
             container.addEventListener('click', function (e) {
-                // Удаление новых услуг
                 if (e.target.closest('.delete-new-service-btn')) {
                     e.preventDefault();
                     const btn = e.target.closest('.delete-new-service-btn');
@@ -235,7 +235,6 @@
                         const serviceBlock = btn.closest('.form-websiteservice');
                         const textarea = serviceBlock.querySelector('textarea');
 
-                        // Удаляем CKEditor инстанс если есть
                         if (textarea && CKEDITOR.instances[textarea.id]) {
                             CKEDITOR.instances[textarea.id].destroy();
                         }
@@ -243,12 +242,10 @@
                         serviceBlock.remove();
                         totalForms.value = parseInt(totalForms.value) - 1;
 
-                        // Обновляем нумерацию после удаления
                         updateServiceNumbers();
                     }
                 }
 
-                // Удаление существующих услуг
                 if (e.target.closest('.delete-service-btn')) {
                     e.preventDefault();
                     const btn = e.target.closest('.delete-service-btn');
@@ -278,7 +275,6 @@
                                     serviceBlock.remove();
                                     totalForms.value = parseInt(totalForms.value) - 1;
 
-                                    // Обновляем нумерацию после удаления
                                     updateServiceNumbers();
                                 }
                             })
@@ -290,4 +286,4 @@
             });
         });
 </script>
-{% endblock %}
+{% endblock content %}

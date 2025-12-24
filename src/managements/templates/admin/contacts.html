@@ -1,7 +1,11 @@
 {% extends "base_admin.html" %}
-{% block title %}Редактировать контакты{% endblock %}
+{% block title %}
+    Редактировать контакты
+{% endblock title %}
 {% block content %}
-    {% block content_header %}Редактировать контакты{% endblock %}
+    {% block content_header %}
+        Редактировать контакты
+    {% endblock content_header %}
     <section class="content">
         <div class="row">
             <div class="col-xs-12">
@@ -133,10 +137,11 @@
                         width: '100%',
                         resize_enabled: false,
                         removePlugins: 'elementspath',
-                        language: 'ru'
+                        language: 'ru',
+                        versionCheck: false
                     });
                 }
             });
         });
     </script>
-{% endblock %}
+{% endblock content %}

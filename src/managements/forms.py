@@ -142,7 +142,7 @@ class ContactsForm(forms.ModelForm):
 
 
 class ServicesForSiteForm(forms.ModelForm):
-    block_description = forms.CharField(
+    description = forms.CharField(
         widget=forms.Textarea(
             attrs={
                 "class": "form-control",
@@ -172,6 +172,7 @@ ServicesForSiteFormSet = inlineformset_factory(
     ServicesAndSeoBlock,
     ServicesForSite,
     form=ServicesForSiteForm,
+    extra=0,
 )
 
 
@@ -187,13 +188,28 @@ class TariffsForSiteForm(forms.ModelForm):
 
 
 class TariffsAndSeoBlockForm(forms.ModelForm):
+    short_text = forms.CharField(
+        widget=forms.Textarea(
+            attrs={
+                "id": "id_short_text",
+                "class": "form-control",
+                "rows": 5,
+                "style": "width: 100%; min-width: 100%;",
+            }
+        )
+    )
+
     class Meta:
         model = TariffsAndSeoBlock
-        fields = []
+        fields = ["title", "short_text"]
+        widgets = {
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+        }
 
 
 TariffsForSiteFormSet = inlineformset_factory(
     TariffsAndSeoBlock,
     TariffsForSite,
     form=TariffsForSiteForm,
+    extra=0,
 )

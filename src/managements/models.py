@@ -56,21 +56,23 @@ class ServicesAndSeoBlock(models.Model):
 
 
 class ServicesForSite(models.Model):
-    title = models.CharField(max_length=200)
-    image = models.ImageField(upload_to="services/")
-    description = RichTextField()
+    title = models.CharField(max_length=200, blank=True, null=True)
+    image = models.ImageField(upload_to="services/", blank=True, null=True)
+    description = RichTextField(blank=True, null=True)
     services_and_seo_block = models.ForeignKey(
         ServicesAndSeoBlock, on_delete=models.CASCADE
     )
 
 
 class TariffsAndSeoBlock(models.Model):
+    title = models.CharField(max_length=200, blank=True, null=True)
+    short_text = RichTextField()
     seo_block = models.OneToOneField(SeoBlock, on_delete=models.CASCADE)
 
 
 class TariffsForSite(models.Model):
-    title = models.CharField(max_length=200)
-    image = models.ImageField(upload_to="tariffs/")
+    title = models.CharField(max_length=200, blank=True, null=True)
+    image = models.ImageField(upload_to="tariffs/", blank=True, null=True)
     tariffs_and_seo_block = models.ForeignKey(
         TariffsAndSeoBlock, on_delete=models.CASCADE
     )

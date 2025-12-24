@@ -1,8 +1,279 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Title</title>
-    </head>
-    <body></body>
-</html>
+{% extends "base_admin.html" %}
+{% block title %}
+    Редактировать тарифы
+{% endblock title %}
+{% block content %}
+    <style>
+        .hidden-template {
+            display: none;
+        }
+
+        .tariff-img {
+            width: 100%;
+            height: auto;
+            max-height: 300px;
+            object-fit: cover;
+        }
+    </style>
+    <section class="content">
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Редактирование страницы "Тарифы"</h3>
+                    </div>
+                    <div class="box-body">
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <h3 class="page-header">Информация</h3>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="form-group field-websitetariffform-tarifftitle">
+                                        <label class="control-label" for="websitetariffform-tarifftitle">Заголовок</label>
+                                        {{ form.title }}
+                                        <div class="help-block"></div>
+                                    </div>
+                                    <div class="form-group field-websitetariffform-tariffdescription">
+                                        <label class="control-label" for="websitetariffform-tariffdescription">Краткий текст</label>
+                                        {{ form.short_text }}
+                                        <div class="help-block"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row near-img">
+                                <div class="col-xs-12">
+                                    <h3 class="page-header">Изображения</h3>
+                                </div>
+                                {{ tariffs_formset.management_form }}
+                                <div id="form-websitetariff-rows">
+                                    {% for t_form in tariffs_formset %}
+                                        {{ t_form.id }}
+                                        <div class="col-md-4 form-websitetariff">
+                                            <h4>
+                                                Тариф {{ forloop.counter }}
+                                                {% if t_form.instance.pk %}
+                                                    <a href="#"
+                                                       class="pull-right text-red delete-service-btn"
+                                                       data-pk="{{ t_form.instance.pk }}"
+                                                       data-url="#"
+                                                       data-confirm="Удалить?">
+                                                        <i class="fa fa-trash"></i>
+                                                    </a>
+                                                {% else %}
+                                                    <a href="#"
+                                                       class="pull-right text-red delete-new-service-btn"
+                                                       data-confirm="Удалить?">
+                                                        <i class="fa fa-trash"></i>
+                                                    </a>
+                                                {% endif %}
+                                            </h4>
+                                            {% if t_form.instance.image %}
+                                                <img src="{{ t_form.instance.image.url }}"
+                                                     class="img-responsive margin-bottom-15 tariff-img"
+                                                     width="650"
+                                                     height="300"
+                                                     alt="Tariff Image">
+                                            {% else %}
+                                                <img src="https://myhouse24.demodev.cc/site/glide?path=%2Fupload%2Fplaceholder.jpg&w=650&h=300&fit=crop"
+                                                     class="img-responsive margin-bottom-15 tariff-img"
+                                                     width="650"
+                                                     height="300"
+                                                     alt="Placeholder">
+                                            {% endif %}
+                                            <div class="form-group">
+                                                <label>Файл</label>
+                                                {{ t_form.image }}
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Подпись</label>
+                                                {{ t_form.title }}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <div id="empty-form" class="hidden-template">
+                                    <div class="col-md-4 form-websitetariff">
+                                        <h4>
+                                            Тариф <a href="#"
+    class="pull-right text-red delete-new-service-btn"
+    data-confirm="Удалить?">
+                                            <i class="fa fa-trash"></i>
+                                        </a>
+                                    </h4>
+                                    <img src="https://myhouse24.demodev.cc/site/glide?path=%2Fupload%2Fplaceholder.jpg&w=650&h=300&fit=crop"
+                                         class="img-responsive margin-bottom-15 tariff-img"
+                                         width="650"
+                                         height="300"
+                                         alt="Placeholder">
+                                    <div class="form-group">
+                                        <label>Файл</label>
+                                        {{ tariffs_formset.empty_form.image }}
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Подпись</label>
+                                        {{ tariffs_formset.empty_form.title }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h3 class="page-header">Настройки SEO</h3>
+                                <div class="form-group field-websitetariffform-tariffmetatitle">
+                                    <label class="control-label" for="websitetariffform-tariffmetatitle">Title</label>
+                                    {{ seo_form.title }}
+                                    <div class="help-block"></div>
+                                </div>
+                                <div class="form-group field-websitetariffform-tariffmetadescription">
+                                    <label class="control-label" for="websitetariffform-tariffmetadescription">Description</label>
+                                    {{ seo_form.description }}
+                                    <div class="help-block"></div>
+                                </div>
+                                <div class="form-group field-websitetariffform-tariffmetakeywords">
+                                    <label class="control-label" for="websitetariffform-tariffmetakeywords">Keywords</label>
+                                    {{ seo_form.keywords }}
+                                    <div class="help-block"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-12 text-center">
+                                <div class="form-group">
+                                    <button type="reset" class="btn btn-success bg-green-active">Отменить</button>
+                                    <button type="button"
+                                            role="button"
+                                            class="btn btn-success bg-green-active"
+                                            id="add-form">Добавить тариф</button>
+                                    <button type="submit" class="btn btn-success">Сохранить</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<script src="https://cdn.ckeditor.com/4.16.0/standard/ckeditor.js"></script>
+<script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var editors = ['id_short_text',];
+
+            editors.forEach(function (id) {
+                if (document.getElementById(id)) {
+                    CKEDITOR.replace(id, {
+                        toolbar: [
+                            ['Format'],
+                            ['Bold', 'Italic', 'Underline', 'Strike'],
+                            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent']
+                        ],
+                        height: 150,
+                        width: '100%',
+                        resize_enabled: false,
+                        removePlugins: 'elementspath',
+                        language: 'ru',
+                        versionCheck: false
+                    });
+                }
+            });
+        });
+</script>
+<script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            function updateServiceNumbers() {
+                const services = container.querySelectorAll('.form-websitetariff');
+                services.forEach((service, index) => {
+                    const header = service.querySelector('h4');
+                    if (header) {
+                        const firstTextNode = Array.from(header.childNodes).find(node => node.nodeType === 3);
+                        if (firstTextNode) {
+                            firstTextNode.textContent = `Тариф ${index + 1} `;
+                        }
+                    }
+                });
+            }
+
+            const addFormBtn = document.getElementById('add-form');
+            const totalForms = document.querySelector('input[name$="-TOTAL_FORMS"]');
+            const container = document.getElementById('form-websitetariff-rows');
+            const emptyFormHtml = document.getElementById('empty-form').innerHTML;
+
+            if (addFormBtn) {
+                addFormBtn.addEventListener('click', function () {
+                    let formNum = parseInt(totalForms.value);
+                    let newFormHtml = emptyFormHtml.replace(/__prefix__/g, formNum);
+
+                    let wrapper = document.createElement('div');
+                    wrapper.innerHTML = newFormHtml.trim();
+                    let newNode = wrapper.firstChild;
+
+                    container.appendChild(newNode);
+                    totalForms.value = formNum + 1;
+
+                    updateServiceNumbers();
+
+                });
+            }
+
+            container.addEventListener('click', function (e) {
+                if (e.target.closest('.delete-new-service-btn')) {
+                    e.preventDefault();
+                    const btn = e.target.closest('.delete-new-service-btn');
+
+                    if (confirm('Удалить этот тариф?')) {
+                        const serviceBlock = btn.closest('.form-websitetariff');
+                        const textarea = serviceBlock.querySelector('textarea');
+
+                        if (textarea && CKEDITOR.instances[textarea.id]) {
+                            CKEDITOR.instances[textarea.id].destroy();
+                        }
+
+                        serviceBlock.remove();
+                        totalForms.value = parseInt(totalForms.value) - 1;
+
+                        updateServiceNumbers();
+                    }
+                }
+
+                if (e.target.closest('.delete-service-btn')) {
+                    e.preventDefault();
+                    const btn = e.target.closest('.delete-service-btn');
+                    const url = btn.dataset.url;
+
+                    if (confirm('Удалить этот тариф?')) {
+                        fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                            .then(res => {
+                                if (res.ok) return res.json();
+                                throw new Error('Ошибка удаления');
+                            })
+                            .then(data => {
+                                if (data.success) {
+                                    const serviceBlock = btn.closest('.form-websitetariff');
+                                    const textarea = serviceBlock.querySelector('textarea');
+
+                                    if (textarea && CKEDITOR.instances[textarea.id]) {
+                                        CKEDITOR.instances[textarea.id].destroy();
+                                    }
+
+                                    serviceBlock.remove();
+                                    totalForms.value = parseInt(totalForms.value) - 1;
+
+                                    updateServiceNumbers();
+                                }
+                            })
+                            .catch(error => {
+                                alert('Ошибка при удалении: ' + error.message);
+                            });
+                    }
+                }
+            });
+        });
+</script>
+{% endblock content %}

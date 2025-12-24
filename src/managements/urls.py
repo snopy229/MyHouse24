@@ -9,19 +9,26 @@ from .views import (
     EditServicesPage,
     DeleteServiceView,
     ServicesView,
+    EditTariffsPage,
+    DeleteTariffView,
 )
 
 app_name = "managements"
 
 urlpatterns = [
+    # admin
     path("admin/main-page/", EditMainPage.as_view(), name="edit-main-page"),
     path("admin/statistic/", Statistic.as_view(), name="statistic"),
     path("admin/contacts/", EditContactsPage.as_view(), name="edit-contacts"),
+    path("admin/services/", EditServicesPage.as_view(), name="edit-services"),
+    path("admin/tariffs", EditTariffsPage.as_view(), name="edit-tariffs"),
+    # site
     path("", MainPageDetail.as_view(), name="main-page"),
     path("contacts/", ContactsDetail.as_view(), name="contacts-page"),
-    path("admin/services/", EditServicesPage.as_view(), name="edit-services"),
+    path("sirvices/", ServicesView.as_view(), name="services"),
+    # delete
     path(
         "delete-service/<int:pk>/", DeleteServiceView.as_view(), name="delete_service"
     ),
-    path("sirvices/", ServicesView.as_view(), name="services"),
+    path("delete/tariff/<int:px>/", DeleteTariffView.as_view(), name="delete_tariff"),
 ]
