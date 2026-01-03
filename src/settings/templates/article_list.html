@@ -1,0 +1,90 @@
+{% extends "base_admin.html" %}
+{% block title %}
+    Статьи
+{% endblock title %}
+{% block content %}
+    <style>
+        .col-actions {
+            width: 80px;
+            min-width: 80px;
+        }
+
+        .actions-flex {
+            display: flex;
+            align-items: center;
+        }
+
+        .form-inline-block {
+            display: inline-block;
+        }
+    </style>
+    <section class="content">
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="pull-right margin-bottom">
+                    <a class="btn btn-success" href="{% url 'settings:article-create' %}">Добавить статью</a>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box">
+                    <div id="w0" class="grid-view">
+                        <div class="box-body table-responsive no-padding">
+                            <table class="table table-bordered table-hover table-striped linkedRow">
+                                <thead>
+                                    <tr>
+                                        <th>Название</th>
+                                        <th>
+                                            <a href="" data-sort="type">Приход/расход</a>
+                                        </th>
+                                        <th class="col-actions">&nbsp;</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for article in articles %}
+                                        <tr>
+                                            <td>{{ article.title }}</td>
+                                            <td>
+                                                {% if article.type == 'OUT' %}
+                                                    <span class="text text-red">Расход</span>
+                                                {% else %}
+                                                    <span class="text text-green">Приход</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group pull-right actions-flex">
+                                                    <a class="btn btn-default btn-sm"
+                                                       href="{% url 'settings:article-edit' article.pk %}"
+                                                       title="Редактировать"
+                                                       data-toggle="tooltip">
+                                                        <i class="fa fa-pencil"></i>
+                                                    </a>
+                                                    <form method="post"
+                                                          action="{% url 'settings:article-delete' article.pk %}"
+                                                          class="form-inline-block">
+                                                        {% csrf_token %}
+                                                        <button class="btn btn-default btn-sm"
+                                                                data-container="body"
+                                                                title="Удалить"
+                                                                data-toggle="tooltip"
+                                                                data-pjax="0"
+                                                                data-method="post"
+                                                                data-confirm="Вы уверены?">
+                                                            <i class="fa fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="box-footer clearfix"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock content %}

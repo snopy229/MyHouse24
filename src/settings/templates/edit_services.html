@@ -1,0 +1,209 @@
+{% extends "base_admin.html" %}
+{% block title %}
+    Редактировать услуги
+{% endblock title %}
+{% block content %}
+    <style>
+        .hidden {
+            display: none !important;
+        }
+
+        .margin-bottom-16 {
+            margin-bottom: 16px;
+        }
+    </style>
+    <section class="content-header">
+        <h1>Редактирование услуг</h1>
+    </section>
+    <section class="content">
+        <div class="box">
+            <div class="box-body">
+                <form action="" method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-xs-12 col-lg-7">
+                            <div class="nav-tabs-custom">
+                                <ul class="nav nav-tabs">
+                                    <li class="active">
+                                        <a href="#tab_service" data-toggle="tab">Услуги</a>
+                                    </li>
+                                    <li>
+                                        <a href="#tab_serviceunit" data-toggle="tab">Единицы измерения</a>
+                                    </li>
+                                </ul>
+                                <div class="tab-content">
+                                    <div class="tab-pane clearfix active" id="tab_service">
+                                        {{ services.management_form }}
+                                        <div id="service-rows">
+                                            {% for form in services %}
+                                                <div class="row form-service form-row">
+                                                    {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+                                                    <div class="col-xs-12 col-sm-7">
+                                                        <div class="form-group">
+                                                            <label>Услуга</label>
+                                                            {{ form.title }}
+                                                            <div class="text-danger">{{ form.title.errors }}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-xs-12 col-sm-5">
+                                                        <div class="form-group">
+                                                            <label>Ед. изм.</label>
+                                                            <div class="input-group">
+                                                                {{ form.units_of_measure }}
+                                                                <span class="input-group-btn">
+                                                                    {% if services.can_delete %}
+                                                                        <div class="hidden">{{ form.DELETE }}</div>
+                                                                        <button type="button" class="btn btn-default delete-btn">
+                                                                            <i class="fa fa-trash"></i>
+                                                                        </button>
+                                                                    {% endif %}
+                                                                </span>
+                                                            </div>
+                                                            <div class="text-danger">{{ form.units_of_measure.errors }}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-xs-12">
+                                                        <label>{{ form.is_showing }} Показывать в счетчиках</label>
+                                                        <div class="margin-bottom-16"></div>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                        <button type="button"
+                                                class="btn btn-default btn-hover-change pull-left add-btn"
+                                                data-prefix="services"
+                                                data-target="#service-rows">Добавить</button>
+                                    </div>
+                                    <div class="tab-pane clearfix" id="tab_serviceunit">
+                                        {{ units.management_form }}
+                                        <div id="unit-rows">
+                                            {% for form in units %}
+                                                <div class="row form-serviceunit form-row">
+                                                    {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+                                                    <div class="col-xs-12">
+                                                        <div class="form-group">
+                                                            <label>Ед. изм.</label>
+                                                            <div class="input-group">
+                                                                {{ form.units }}
+                                                                <span class="input-group-btn">
+                                                                    {% if units.can_delete %}
+                                                                        <div class="hidden">{{ form.DELETE }}</div>
+                                                                        <button type="button" class="btn btn-default delete-btn">
+                                                                            <i class="fa fa-trash"></i>
+                                                                        </button>
+                                                                    {% endif %}
+                                                                </span>
+                                                            </div>
+                                                            <div class="text-danger">{{ form.units.errors }}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                        <button type="button"
+                                                class="btn btn-default btn-hover-change pull-left add-btn"
+                                                data-prefix="units"
+                                                data-target="#unit-rows">Добавить</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 text-center">
+                            <div class="form-group">
+                                <a href="{% url 'settings:service-index' %}" class="btn btn-default">Отменить</a>
+                                <button type="submit" class="btn btn-success">Сохранить</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+    <div id="empty-form-services" class="hidden">
+        <div class="row form-service form-row">
+            <div class="col-xs-12 col-sm-7">
+                <div class="form-group">
+                    <label>Услуга</label>
+                    {{ services.empty_form.title }}
+                </div>
+            </div>
+            <div class="col-xs-12 col-sm-5">
+                <div class="form-group">
+                    <label>Ед. изм.</label>
+                    <div class="input-group">
+                        {{ services.empty_form.units_of_measure }}
+                        <span class="input-group-btn">
+                            <div class="hidden">{{ services.empty_form.DELETE }}</div>
+                            <button type="button" class="btn btn-default delete-btn">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-12">
+                <label>{{ services.empty_form.is_showing }} Показывать в счетчиках</label>
+                <div class="margin-bottom-16"></div>
+            </div>
+        </div>
+    </div>
+    <div id="empty-form-units" class="hidden">
+        <div class="row form-serviceunit form-row">
+            <div class="col-xs-12">
+                <div class="form-group">
+                    <label>Ед. изм.</label>
+                    <div class="input-group">
+                        {{ units.empty_form.units }}
+                        <span class="input-group-btn">
+                            <div class="hidden">{{ units.empty_form.DELETE }}</div>
+                            <button type="button" class="btn btn-default delete-btn">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // 1. Клик по "Добавить"
+            const addButtons = document.querySelectorAll('.add-btn');
+            addButtons.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const prefix = this.dataset.prefix;
+                    const targetId = this.dataset.target;
+                    const container = document.querySelector(targetId);
+                    const totalFormsInput = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
+                    const emptyFormHtml = document.getElementById(`empty-form-${prefix}`).innerHTML;
+
+                    let currentCount = parseInt(totalFormsInput.value);
+                    // Замена __prefix__ на число
+                    const newRow = emptyFormHtml.replace(/__prefix__/g, currentCount);
+
+                    container.insertAdjacentHTML('beforeend', newRow);
+                    totalFormsInput.value = currentCount + 1;
+                });
+            });
+
+            // 2. Клик по "Удалить" (делегирование)
+            document.body.addEventListener('click', function (e) {
+                const target = e.target.closest('.delete-btn');
+                if (target) {
+                    const row = target.closest('.form-row');
+                    const deleteInput = row.querySelector('input[name$="-DELETE"]');
+
+                    if (deleteInput) {
+                        deleteInput.checked = true;
+                        row.style.display = 'none';
+                    } else {
+                        row.remove();
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock content %}

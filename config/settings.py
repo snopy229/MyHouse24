@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "hcaptcha_field",
     "src.managements",
     "ckeditor",
+    "src.settings",
 ]
 
 MIDDLEWARE = [

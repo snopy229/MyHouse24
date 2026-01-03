@@ -232,7 +232,7 @@ class AboutUsAndSeoBlockForm(forms.ModelForm):
     extra_short_text = forms.CharField(
         widget=forms.Textarea(
             attrs={
-                "id": "id_short_text",
+                "id": "id_extra_short_text",
                 "class": "form-control",
                 "rows": 5,
                 "style": "width: 100%; min-width: 100%;",

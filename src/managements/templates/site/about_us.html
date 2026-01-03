@@ -1,0 +1,100 @@
+{% extends "base_main.html" %}
+{% block content %}
+    <div class="about">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="box clearfix">
+                        <div class="page-header">
+                            <h1>{{ about_us.title }}</h1>
+                        </div>
+                        {% if about_us.photo %}
+                            <img src="{{ about_us.photo.url }}"
+                                 width="{{ about_us.photo.width }}"
+                                 height="{{ about_us.photo.height }}"
+                                 class="img-responsive imgFloatRight"
+                                 alt="">
+                        {% endif %}
+                        {{ about_us.short_text | safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="gallery g1">
+        <div class="container">
+            {% for image in about_us.gallery %}
+                <div class="row">
+                    <div class="col-xs-12 col-sm-6 col-md-3 item"
+                         data-src="{{ image.image.url }}">
+                        <a href="{{ image.image.url }}" class="big">
+                            <img src="{{ image.image.url }}"
+                                 width="{{ image.image.width }}"
+                                 height="{{ image.image.height }}"
+                                 alt=""
+                                 class="img-responsive img-thumbnail">
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="about">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="box clearfix">
+                        <div class="page-header">
+                            <h3>{{ about_us.extra_title }}</h3>
+                        </div>
+                        {{ about_us.extra_short_description | safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="gallery g2">
+        <div class="container">
+            <div class="row">
+                {% for foo in about_us.extra_gallery %}
+                    <div class="col-xs-12 col-sm-6 col-md-3 item">
+                        <img src="{{ foo.image.url }}"
+                             width="{{ foo.image.width }}"
+                             height="{{ foo.image.height }}"
+                             alt=""
+                             class="img-responsive img-thumbnail">
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="documents">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="box">
+                        <div class="page-header">
+                            <h3>Документы</h3>
+                        </div>
+                        {% for foo in about_us.documents %}
+                            <div class="media">
+                                <div class="media-left">
+                                    <div class="media-object">
+                                        <i class="far fa-file-pdf fa-3x"></i>
+                                    </div>
+                                </div>
+                                <div class="media-body">
+                                    <h4 class="media-heading">{{ foo.title }}</h4>
+                                    <a href="{{ foo.file.url }}" download>
+                                        <i class="fa fa-download" aria-hidden="true"></i>
+                                        Скачать
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

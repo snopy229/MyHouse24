@@ -1,0 +1,37 @@
+{% extends "base_admin.html"ad %}
+{% block title %}
+    Редактирование статьи
+{% endblock title %}
+{% block content %}
+    <section class="content">
+        <div class="box">
+            <div class="box-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-xs-12 col-lg-7">
+                            <div class="form-group field-transactionpurpose-name required">
+                                <label class="control-label" for="transactionpurpose-name">Название</label>
+                                {{ form.title }}
+                                <div class="help-block"></div>
+                            </div>
+                            <div class="form-group field-transactionpurpose-type">
+                                <label class="control-label" for="transactionpurpose-type">Приход/расход</label>
+                                {{ form.type }}
+                                <div class="help-block"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 text-right">
+                            <div class="form-group">
+                                <button type="reset" class="btn btn-default">Отменить</button>
+                                <button type="submit" class="btn btn-success">Сохранить</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+{% endblock content %}

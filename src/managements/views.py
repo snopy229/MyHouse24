@@ -266,6 +266,7 @@ class EditAboutUsPage(UpdateView):
     model = AboutUsAndSeoBlock
     form_class = AboutUsAndSeoBlockForm
     template_name = "admin/about_us.html"
+    context_object_name = "about_us"
 
     def get_object(self, queryset=None):
         obj = AboutUsAndSeoBlock.objects.first()
@@ -327,3 +328,9 @@ class DeleteDocument(DeleteView):
         return JsonResponse({"success": True})
 
     post = delete
+
+
+class AboutUsView(ListView):
+    model = AboutUsAndSeoBlock
+    template_name = "site/about_us.html"
+    context_object_name = "about_us"

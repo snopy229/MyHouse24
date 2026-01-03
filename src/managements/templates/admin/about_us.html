@@ -57,8 +57,8 @@
                                 </div>
                                 <div class="col-md-4">
                                     <h4>Фото директора</h4>
-                                    {% if form.photo %}
-                                        <img src="{{ form.photo.url }}"
+                                    {% if about_us.photo %}
+                                        <img src="{{ about_us.photo.url }}"
                                              alt="Фото директора"
                                              class="img-responsive"
                                              width="250"
@@ -266,6 +266,30 @@
             </div>
         </div>
     </section>
+    <script src="https://cdn.ckeditor.com/4.16.0/standard/ckeditor.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var editors = ['id_short_text', "id_extra_short_text"];
+
+            editors.forEach(function (id) {
+                if (document.getElementById(id)) {
+                    CKEDITOR.replace(id, {
+                        toolbar: [
+                            ['Format'],
+                            ['Bold', 'Italic', 'Underline', 'Strike'],
+                            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent']
+                        ],
+                        height: 150,
+                        width: '100%',
+                        resize_enabled: false,
+                        removePlugins: 'elementspath',
+                        language: 'ru',
+                        versionCheck: false
+                    });
+                }
+            });
+        });
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const container = document.getElementById('form-websitedocument-rows');
