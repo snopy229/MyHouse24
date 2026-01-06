@@ -18,11 +18,13 @@ Including another URLconf
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from .api import api
 
 urlpatterns = [
     path("user/", include("src.user.urls")),
     path("", include("src.managements.urls")),
     path("admin/settings/", include("src.settings.urls")),
+    path("api/", api.urls),
 ]
 
 if settings.DEBUG:

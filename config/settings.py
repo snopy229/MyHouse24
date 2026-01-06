@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "src.managements",
     "ckeditor",
     "src.settings",
+    "anymail",
 ]
 
 MIDDLEWARE = [
@@ -195,3 +196,11 @@ CKEDITOR_CONFIGS = {
         "language": "ru",
     },
 }
+
+EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
+ANYMAIL = {
+    "BREVO_API_KEY": env("BREVO_API_KEY"),  # Ключ нужно добавить в .env
+}
+DEFAULT_FROM_EMAIL = env("SENDER_EMAIL")
+
+SERVER_EMAIL = DEFAULT_FROM_EMAIL

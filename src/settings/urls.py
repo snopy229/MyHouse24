@@ -7,6 +7,10 @@ from settings.views import (
     ArticleCreate,
     ArticleDelete,
     RequisiteEdit,
+    UsersPageView,
+    EditUsersPageView,
+    SendInvite,
+    DeleteUsersView,
 )
 
 app_name = "settings"
@@ -18,4 +22,8 @@ urlpatterns = [
     path("article-create/", ArticleCreate.as_view(), name="article-create"),
     path("article-delete/<int:pk>/", ArticleDelete.as_view(), name="article-delete"),
     path("requisite-edit/", RequisiteEdit.as_view(), name="requisite-edit"),
+    path("users-list/", UsersPageView.as_view(), name="users-list"),
+    path("user/edit/<int:pk>", EditUsersPageView.as_view(), name="edit-user"),
+    path("user/invite/<int:pk>", SendInvite.as_view(), name="send-invite"),
+    path("user/delete/<int:pk>", DeleteUsersView.as_view(), name="delete-user"),
 ]

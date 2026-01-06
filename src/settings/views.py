@@ -1,15 +1,24 @@
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
+from django.core.mail import send_mail
 from django.views.generic import (
     UpdateView,
     TemplateView,
     ListView,
     CreateView,
     DeleteView,
+    RedirectView,
 )
 
-from src.settings.forms import UnitsFormSet, ServiceFormSet, ArticleForm, RequisiteForm
+from src.settings.forms import (
+    UnitsFormSet,
+    ServiceFormSet,
+    ArticleForm,
+    RequisiteForm,
+    UserForm,
+)
 from src.settings.models import Service, UnitsOfMeasurement, Article, Requisite
+from src.user.models import User
 
 
 # Create your views here
@@ -89,3 +98,57 @@ class RequisiteEdit(UpdateView):
             obj = Requisite.objects.create()
 
         return obj
+
+
+class UsersPageView(TemplateView):
+    template_name = "users.html"
+
+
+class EditUsersPageView(UpdateView):
+    model = User
+    form_class = UserForm
+    context_object_name = "user"
+    template_name = "edit_user.html"
+    success_url = reverse_lazy("managements:statistic")
+
+    def form_valid(self, form):
+        raw_password = form.cleaned_data.get("password1")
+        user_email = form.cleaned_data.get("email")
+        if len(raw_password) != 0:
+            try:
+                send_mail(
+                    subject="Изменение пароля",
+                    message=f"Новый пароль: {raw_password}",
+                    from_email=None,
+                    recipient_list=[user_email],
+                )
+            except Exception as e:
+                print(f"Ошибка отправки: {e}")
+
+        return super().form_valid(form)
+
+
+class SendInvite(RedirectView):
+    pattern_name = "settings:users-list"
+
+    def get_redirect_url(self, **kwargs):
+        user_id = self.kwargs.get("pk")
+        user = get_object_or_404(User, pk=user_id)
+        try:
+            send_mail(
+                subject="Тест",
+                message=f"Пользователь:{user.email}, вернись на сайт",
+                from_email=None,
+                recipient_list=[user.email],
+            )
+        except Exception as e:
+            print(f"Ошибка отправки: {e}")
+
+        return super().get_redirect_url()
+
+
+class DeleteUsersView(DeleteView):
+    def post(self, request, pk):
+        article = get_object_or_404(User, pk=pk)
+        article.delete()
+        return redirect("settings:users-list")

@@ -3,6 +3,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from phonenumber_field.modelfields import PhoneNumberField
 
+from user.choices import Status
+
 
 # Create your models here.
 class MyUserManager(BaseUserManager):
@@ -59,14 +61,14 @@ class User(AbstractUser):
     )
     role = models.ForeignKey(Role, on_delete=models.SET_NULL, blank=True, null=True)
     id_user = models.IntegerField(blank=True, null=True)
-    name = models.CharField(max_length=50, blank=True, null=True)
-    surname = models.CharField(max_length=50, blank=True, null=True)
+    second_name = models.CharField(blank=True, null=True, max_length=50)
     last_name = models.CharField(max_length=50, blank=True, null=True)
     birth_date = models.DateField(auto_now=False, blank=True, null=True)
     about_owner = models.TextField(blank=True, null=True)
     phone_number = PhoneNumberField(blank=True, null=True)
     viber = PhoneNumberField(blank=True, null=True)
     telegram = models.CharField(blank=True, null=True, max_length=50)
+    status = models.CharField(choices=Status, default=Status.active)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
