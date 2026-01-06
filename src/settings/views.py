@@ -1,3 +1,5 @@
+from django.db import transaction
+from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.core.mail import send_mail
@@ -18,7 +20,7 @@ from src.settings.forms import (
     UserForm,
 )
 from src.settings.models import Service, UnitsOfMeasurement, Article, Requisite
-from src.user.models import User
+from src.user.models import User, Role
 
 
 # Create your views here
@@ -152,3 +154,44 @@ class DeleteUsersView(DeleteView):
         article = get_object_or_404(User, pk=pk)
         article.delete()
         return redirect("settings:users-list")
+
+
+class CreateUser(CreateView):
+    model = User
+    form_class = UserForm
+    template_name = "create_user.html"
+    success_url = reverse_lazy("settings:users-list")
+
+    def form_valid(self, form):
+        user = form.save(commit=False)
+        user.is_staff = True
+
+        raw_password = form.cleaned_data.get("password1")
+
+        try:
+            with transaction.atomic():
+                user.save()
+
+                role_name = form.cleaned_data.get("role")
+                if role_name:
+                    Role.objects.update_or_create(
+                        user=user,
+                        defaults={"name": role_name},
+                    )
+
+                user_email = form.cleaned_data.get("email")
+                send_mail(
+                    subject="Изменение пароля",
+                    message=f"Новый пароль: {raw_password}",
+                    from_email=None,
+                    recipient_list=[user_email],
+                )
+        except Exception as e:
+            print(f"ОШИБКА: {e}")
+            import traceback
+
+            traceback.print_exc()
+            form.add_error(None, f"Ошибка: {e}")
+            return self.form_invalid(form)
+
+        return HttpResponseRedirect(reverse_lazy("settings:users-list"))

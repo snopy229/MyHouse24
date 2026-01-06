@@ -11,6 +11,7 @@ from settings.views import (
     EditUsersPageView,
     SendInvite,
     DeleteUsersView,
+    CreateUser,
 )
 
 app_name = "settings"
@@ -26,4 +27,5 @@ urlpatterns = [
     path("user/edit/<int:pk>", EditUsersPageView.as_view(), name="edit-user"),
     path("user/invite/<int:pk>", SendInvite.as_view(), name="send-invite"),
     path("user/delete/<int:pk>", DeleteUsersView.as_view(), name="delete-user"),
+    path("user/create_user/", CreateUser.as_view(), name="create-user"),
 ]

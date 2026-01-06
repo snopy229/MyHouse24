@@ -7,7 +7,7 @@
         <div class="row">
             <div class="col-xs-12">
                 <div class="pull-right margin-bottom">
-                    <a class="btn btn-success" href="#">Создать пользователя</a>
+                    <a class="btn btn-success" href="{% url 'settings:create-user' %}">Создать пользователя</a>
                 </div>
             </div>
         </div>
@@ -98,7 +98,7 @@
         }
 
         .status-active {
-            background: #dff0d8;
+            background: #49f601;
             color: white;
         }
 
@@ -196,7 +196,7 @@
                 data.items.forEach((user, index) => {
                     const rowNumber = ((page - 1) * PAGE_SIZE) + (index + 1);
                     const tr = document.createElement('tr');
-                    const roleName = user.role ? user.role.name : '—';
+                    const roleName = user.role ? user.role.title : '—';
                     const statusClass = `status-${user.status}`;
 
                     tr.innerHTML = `
