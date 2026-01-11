@@ -3,7 +3,7 @@
     Редактировать услуги
 {% endblock title %}
 {% block content %}
-    <style>
+    <style xmlns="http://www.w3.org/1999/html">
         .hidden {
             display: none !important;
         }
@@ -112,7 +112,7 @@
                     <div class="row">
                         <div class="col-xs-12 text-center">
                             <div class="form-group">
-                                <a href="{% url 'settings:service-index' %}" class="btn btn-default">Отменить</a>
+                                <button type="reset" class="btn btn-default">Отменить</button>
                                 <button type="submit" class="btn btn-success">Сохранить</button>
                             </div>
                         </div>

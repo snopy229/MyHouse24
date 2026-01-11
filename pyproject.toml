@@ -19,7 +19,8 @@ dependencies = [
     "django-ckeditor (>=6.7.3,<7.0.0)",
     "djlint (>=1.36.4,<2.0.0)",
     "django-ninja (>=1.5.1,<2.0.0)",
-    "django-anymail[brevo] (>=14.0,<15.0)"
+    "django-anymail[brevo] (>=14.0,<15.0)",
+    "django-ajax-datatable (>=4.5.0,<5.0.0)"
 ]
 
 

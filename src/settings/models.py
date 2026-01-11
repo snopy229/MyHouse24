@@ -14,7 +14,6 @@ class UnitsOfMeasurement(models.Model):
 
 class Service(models.Model):
     title = models.CharField("Название", max_length=200)
-    description = models.TextField("Описание")
     is_showing = models.BooleanField("Показывать", default=False)
     units_of_measure = models.ForeignKey(UnitsOfMeasurement, on_delete=models.CASCADE)
 
@@ -27,3 +26,17 @@ class Requisite(models.Model):
 class Article(models.Model):
     title = models.CharField(max_length=200)
     type = models.CharField(choices=TransactionType)
+
+
+class Tariffs(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    edited_at = models.DateTimeField(auto_now=True)
+
+
+class ServicesCost(models.Model):
+    tariff = models.ForeignKey(
+        Tariffs, on_delete=models.CASCADE, related_name="services"
+    )
+    service = models.ForeignKey("Service", on_delete=models.CASCADE)
+    cost = models.DecimalField(max_digits=10, decimal_places=2)

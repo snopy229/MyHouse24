@@ -1,8 +1,15 @@
 from django import forms
 from django.contrib.auth.password_validation import validate_password
-from django.forms import modelformset_factory
+from django.forms import modelformset_factory, inlineformset_factory
 
-from src.settings.models import UnitsOfMeasurement, Service, Article, Requisite
+from src.settings.models import (
+    UnitsOfMeasurement,
+    Service,
+    Article,
+    Requisite,
+    Tariffs,
+    ServicesCost,
+)
 from src.user.models import User
 
 
@@ -135,3 +142,44 @@ class UserForm(forms.ModelForm):
                     self.fields["role"].initial = current_role.title
             except Exception:
                 pass
+
+
+class TariffsForm(forms.ModelForm):
+    class Meta:
+        model = Tariffs
+        fields = "__all__"
+        widgets = {
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "edited_at": forms.DateTimeInput(attrs={"class": "form-control"}),
+        }
+
+
+class ServicesCostForm(forms.ModelForm):
+    class Meta:
+        model = ServicesCost
+        fields = "__all__"
+        exclude = ("tariff",)
+        widgets = {
+            "cost": forms.TextInput(attrs={"class": "form-control"}),
+            "service": forms.Select(attrs={"class": "form-control"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            try:
+                current_service = self.instance.service_set.first()
+                if current_service:
+                    self.fields["service"].initial = current_service.title
+            except Exception:
+                pass
+
+
+ServiceCostFormSet = inlineformset_factory(
+    Tariffs,
+    ServicesCost,
+    form=ServicesCostForm,
+    extra=0,
+    can_delete=True,
+)

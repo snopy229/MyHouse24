@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "ckeditor",
     "src.settings",
     "anymail",
+    "ajax_datatable",
 ]
 
 MIDDLEWARE = [

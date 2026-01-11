@@ -1,3 +1,4 @@
+from ajax_datatable import AjaxDatatableView
 from django.db import transaction
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, get_object_or_404
@@ -44,8 +45,12 @@ class EditServicesView(TemplateView):
         return context
 
     def post(self, request, *args, **kwargs):
-        services_formset = ServiceFormSet(request.POST, prefix="services")
-        units_formset = UnitsFormSet(request.POST, prefix="units")
+        services_formset = ServiceFormSet(
+            request.POST, queryset=Service.objects.all(), prefix="services"
+        )
+        units_formset = UnitsFormSet(
+            request.POST, queryset=UnitsOfMeasurement.objects.all(), prefix="units"
+        )
 
         if services_formset.is_valid() and units_formset.is_valid():
             services_formset.save()
@@ -104,6 +109,23 @@ class RequisiteEdit(UpdateView):
 
 class UsersPageView(TemplateView):
     template_name = "users.html"
+
+
+class UserAjaxTable(AjaxDatatableView):
+    model = User
+    title = "Пользователи"
+    initial_order = [
+        ["app_label", "asc"],
+    ]
+    column_defs = [
+        AjaxDatatableView.render_row_tools_column_def(),
+        {"name": "id", "visible": False},
+        {"name": "first_name", "visible": True},
+        {"name": "role__id", "visible": True},
+        {"name": "phone_number", "visible": True},
+        {"name": "email", "visible": True},
+        {"name": "status", "visible": True},
+    ]
 
 
 class EditUsersPageView(UpdateView):
