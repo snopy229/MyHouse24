@@ -1,4 +1,5 @@
 {% extends "base_admin.html" %}
+{% load static %}
 {% block title %}
     Пользователи
 {% endblock title %}
@@ -16,61 +17,11 @@
                 <div class="box">
                     <div class="box-header with-border">
                         <h3 class="box-title">Список пользователей</h3>
-                        <div class="box-tools">
-                            <button onclick="clearFilters()" class="btn btn-default btn-sm">
-                                <span class="hidden-xs">Очистить</span>
-                                <i class="fa fa-eraser visible-xs" aria-hidden="true"></i>
-                            </button>
-                        </div>
                     </div>
                     <div id="w0" class="grid-view">
                         <div class="box-body table-responsive no-padding">
-                            <table class="table table-bordered table-hover table-striped linkedRow">
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Пользователь</th>
-                                        <th>Роль</th>
-                                        <th>Телефон</th>
-                                        <th>Email (логин)</th>
-                                        <th>Статус</th>
-                                        <th></th>
-                                    </tr>
-                                    <tr id="w0-filters" class="filters">
-                                        <td></td>
-                                        <td>
-                                            <input type="text"
-                                                   class="form-control"
-                                                   id="nameInput"
-                                                   oninput="loadUsers(1)"
-                                                   placeholder="Поиск...">
-                                        </td>
-                                        <td>
-                                            <select id="roleSelect" class="form-control" onchange="loadUsers(1)">
-                                                <option value="">Все роли</option>
-                                            </select>
-                                        </td>
-                                        <td>
-                                            <input type="text"
-                                                   class="form-control"
-                                                   id="phoneNumberInput"
-                                                   oninput="loadUsers(1)">
-                                        </td>
-                                        <td>
-                                            <input type="text"
-                                                   class="form-control"
-                                                   id="emailInput"
-                                                   oninput="loadUsers(1)">
-                                        </td>
-                                        <td>
-                                            <select id="statusSelect" class="form-control" onchange="loadUsers(1)">
-                                                <option value="">Все статусы</option>
-                                            </select>
-                                        </td>
-                                    </tr>
-                                </thead>
-                                <tbody id="usersTableBody">
-                                </tbody>
+                            <table id="user-table"
+                                   class="table table-bordered table-hover table-striped linkedRow">
                             </table>
                         </div>
                         <div class="box-footer clearfix">
@@ -125,135 +76,32 @@
             border-color: #3c8dbc;
         }
     </style>
-    <script>
-        const PAGE_SIZE = 50;
+    <script src="//cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript"
+            src="{% static 'ajax_datatable/js/utils.js' %}"></script>
+    <script language="javascript">
+        $(document).ready(function () {
+            AjaxDatatableViewUtils.initialize_table(
+                $('#user-table'),
+                "{% url 'settings:user-ajax-table' %}",
+                {
+                    // extra_options (example)
+                    processing: false,
+                    autoWidth: false,
+                    scrollX: false,
+                    lengthChange: false,
+                    pageLength: 50,
 
-        async function loadRoles() {
-            try {
-                const res = await fetch('/api/settings/roles');
-                const data = await res.json();
+                    searching: false,
+                    pagingType: 'numbers',
+                    showing: false,
 
-                console.log("ПРИШЛИ РОЛИ:", data);
+                    dom: '<"box-body"t><"box-footer clearfix"p>',
 
-                const select = document.getElementById('roleSelect');
-                data.forEach(item => {
-                    const opt = document.createElement('option');
-                    opt.value = item.id;
-
-                    opt.textContent = item.title;
-
-                    select.appendChild(opt);
-                });
-            } catch (e) {
-                console.error(e);
-            }
-        }
-
-        async function loadStatuses() {
-            try {
-                const res = await fetch('/api/settings/statuses');
-                const data = await res.json();
-                const select = document.getElementById('statusSelect');
-                data.forEach(item => {
-                    const opt = document.createElement('option');
-                    opt.value = item.id || item.value;
-                    opt.textContent = item.name || item.label;
-                    select.appendChild(opt);
-                });
-            } catch (e) {
-                console.error(e);
-            }
-        }
-
-        async function loadUsers(page) {
-            const params = new URLSearchParams({page: page});
-
-            const name = document.getElementById('nameInput').value;
-            const role = document.getElementById('roleSelect').value;
-            const phoneNumber = document.getElementById('phoneNumberInput').value;
-            const email = document.getElementById('emailInput').value;
-            const status = document.getElementById('statusSelect').value;
-
-            if (name) params.append('q', name);
-            if (role) params.append('role', role);
-            if (phoneNumber) params.append('phone_number', phoneNumber);
-            if (email) params.append('email', email);
-            if (status) params.append('status', status);
-
-            try {
-                const res = await fetch(`/api/settings/users?${params}`);
-                const data = await res.json();
-
-                const tbody = document.getElementById('usersTableBody');
-                tbody.innerHTML = '';
-
-                if (!data.items || data.items.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="text-center">Ничего не найдено</td></tr>';
-                    document.getElementById('pagination').innerHTML = '';
-                    return;
-                }
-
-                data.items.forEach((user, index) => {
-                    const rowNumber = ((page - 1) * PAGE_SIZE) + (index + 1);
-                    const tr = document.createElement('tr');
-                    const roleName = user.role ? user.role.title : '—';
-                    const statusClass = `status-${user.status}`;
-
-                    tr.innerHTML = `
-                    <td>${rowNumber}</td>
-                    <td>${user.first_name} ${user.second_name}</td>
-                    <td>${roleName}</td>
-                    <td>${user.phone_number || '-'}</td>
-                    <td>${user.email || '-'}</td>
-                    <td><span class="status-badge ${statusClass}">${user.status_label}</span></td>
-                    <td>
-                                            <div class="btn-group pull-right">
-                                                <a class="btn btn-default btn-sm" onclick="return confirm('Вы уверены, что хотите отправить приглашение?');" href="/admin/settings/user/invite/{{ user.id }}" title="Отправить приглашение" data-toggle="tooltip">
-                                                    <i class="fa fa-repeat"></i></a> <a class="btn btn-default btn-sm" href="/admin/settings/user/edit/${user.id}" title="Редактировать" data-toggle="tooltip"><i class="fa fa-pencil"></i></a> <a class="btn btn-default btn-sm" href="/admin/user-admin/delete/3" title="Удалить" data-toggle="tooltip" data-pjax="0" data-method="post" data-confirm="Вы уверены, что хотите удалить этот элемент?"><i class="fa fa-trash"></i></a></div>
-                                        </td>
-                `;
-                    tbody.appendChild(tr);
-                });
-
-                renderPagination(data.count, page);
-
-            } catch (error) {
-                console.error(error);
-            }
-        }
-
-        function renderPagination(totalItems, currentPage) {
-            const container = document.getElementById('pagination');
-            container.innerHTML = '';
-            const totalPages = Math.ceil(totalItems / PAGE_SIZE);
-
-            if (totalPages <= 1) return;
-
-            function createBtn(text, page, isActive) {
-                const btn = document.createElement('li');
-                btn.className = isActive ? 'active' : '';
-                btn.innerHTML = `<a href="javascript:void(0)" onclick="loadUsers(${page})">${text}</a>`;
-                container.appendChild(btn);
-            }
-
-            for (let i = 1; i <= totalPages; i++) {
-                createBtn(i, i, i === currentPage);
-            }
-        }
-
-        function clearFilters() {
-            document.getElementById('nameInput').value = '';
-            document.getElementById('roleSelect').value = '';
-            document.getElementById('phoneNumberInput').value = '';
-            document.getElementById('emailInput').value = '';
-            document.getElementById('statusSelect').value = '';
-            loadUsers(1);
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            Promise.all([loadRoles(), loadStatuses()]).then(() => {
-                loadUsers(1);
-            });
+                    info: false,
+                }, {},
+            );
         });
+
     </script>
 {% endblock content %}

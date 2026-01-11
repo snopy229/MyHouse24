@@ -96,6 +96,7 @@ DATABASES = {
         "PASSWORD": env("DB_PASSWORD"),
         "HOST": env("DB_HOST"),
         "PORT": env("DB_PORT"),
+        "DISABLE_SERVER_SIDE_CURSORS": True,
     }
 }
 

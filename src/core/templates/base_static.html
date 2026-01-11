@@ -4,7 +4,10 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        {% block meta %}{% endblock %}
+        {% block meta %}
+            <meta name="description" content="Система управления домом">
+            <meta name="keywords" content="CRM, ЖКХ, управление домом">
+        {% endblock meta %}
         <title>
             {% block title %}
                 Мой Дом 24
@@ -33,6 +36,8 @@
               href="{% static 'plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.min.css' %}">
         <link rel="stylesheet"
               href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+        <link href="{% static 'ajax_datatable/css/style.css' %}" rel="stylesheet" />
+        <link href="//cdn.datatables.net/1.10.22/css/jquery.dataTables.min.css" />
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
     </head>
@@ -43,7 +48,6 @@
         console.log("hCaptcha готова к работе!");
     };
     </script>
-    <script src="{% static 'bower_components/jquery/dist/jquery.min.js' %}"></script>
     <script src="{% static 'bower_components/jquery-ui/jquery-ui.min.js' %}"></script>
     <script>$.widget.bridge('uibutton', $.ui.button);</script>
     <script src="{% static 'bower_components/bootstrap/dist/js/bootstrap.min.js' %}"></script>
@@ -62,5 +66,4 @@
     <script src="{% static 'dist/js/adminlte.min.js' %}"></script>
     <script src="{% static 'dist/js/pages/dashboard.js' %}"></script>
     <script src="{% static 'dist/js/demo.js' %}"></script>
-</body>
 </html>

@@ -4,6 +4,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.core.mail import send_mail
+from django.utils.html import format_html
 from django.views.generic import (
     UpdateView,
     TemplateView,
@@ -114,18 +115,54 @@ class UsersPageView(TemplateView):
 class UserAjaxTable(AjaxDatatableView):
     model = User
     title = "Пользователи"
-    initial_order = [
-        ["app_label", "asc"],
-    ]
+    initial_order = [["id", "asc"]]
+    length_menu = [[10, 20, 50, 100, -1], [10, 20, 50, 100, "all"]]
+    search_values_separator = "+"
+
     column_defs = [
-        AjaxDatatableView.render_row_tools_column_def(),
-        {"name": "id", "visible": False},
-        {"name": "first_name", "visible": True},
-        {"name": "role__id", "visible": True},
-        {"name": "phone_number", "visible": True},
-        {"name": "email", "visible": True},
-        {"name": "status", "visible": True},
+        {"name": "id", "visible": True, "searchable": False, "title": "#"},
+        {
+            "name": "first_name",
+            "visible": True,
+            "searchable": True,
+            "title": "Пользователь",
+        },
+        {
+            "name": "role",
+            "foreign_field": "role__title",
+            "visible": True,
+            "searchable": True,
+            "title": "Роль",
+        },
+        {
+            "name": "phone_number",
+            "visible": True,
+            "searchable": True,
+            "title": "Телефон",
+        },
+        {"name": "email", "visible": True, "searchable": True, "title": "Email"},
+        {"name": "status", "visible": True, "searchable": True, "title": "Статус"},
+        {
+            "name": "actions",
+            "visible": True,
+            "searchable": False,
+            "orderable": False,
+            "title": "",
+        },
     ]
+
+    def customize_row(self, row, obj):
+        row["first_name"] = f"{obj.first_name} {obj.second_name}"
+        row["role__title"] = obj.role.title if obj.role else "—"
+
+        row["actions"] = format_html(
+            '<div class="btn-group btn-group-sm">'
+            '<a href="/admin/settings/user/edit/{0}/" class="btn btn-default"><i class="fa fa-pencil"></i></a>'
+            '<a href="/admin/settings/user/delete/{0}/" class="btn btn-default"><i class="fa fa-trash"></i></a>'
+            "</div>",
+            obj.id,
+        )
+        return
 
 
 class EditUsersPageView(UpdateView):
