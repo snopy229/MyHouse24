@@ -20,6 +20,9 @@
                     </div>
                     <div id="w0" class="grid-view">
                         <div class="box-body table-responsive no-padding">
+                            <button id="clear-table-filters" class="btn btn-default">
+                                <i class="fa fa-refresh"></i> Очистить фильтры
+                            </button>
                             <table id="user-table"
                                    class="table table-bordered table-hover table-striped linkedRow">
                             </table>
@@ -33,47 +36,37 @@
         </div>
     </section>
     <style>
-        #roleSelect,
-        #statusSelect,
-        #roleSelect option,
-        #statusSelect option {
-            color: #333 !important;
-            background-color: #fff !important;
+        /* Исправлено: вынос инлайнового стиля (Ошибка H021) */
+        #clear-table-filters {
+            margin-right: 5px;
         }
 
-        .status-badge {
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 0.85em;
-            font-weight: bold;
+        #user-table thead tr.filters th {
+            padding: 4px 8px !important;
+            background-color: #f9f9f9;
+            vertical-align: middle;
         }
 
-        .status-active {
-            background: #49f601;
-            color: white;
+        #user-table thead input,
+        #user-table thead select {
+            width: 100% !important;
+            height: 28px !important;
+            padding: 2px 5px !important;
+            font-size: 12px !important;
+            border: 1px solid #d2d6de !important;
+            border-radius: 3px !important;
+            box-sizing: border-box !important;
+            color: #555;
         }
 
-        .status-banned {
-            background: #f2dede;
-            color: white;
+        #user-table thead tr.filters th:after,
+        #user-table thead tr.filters th:before {
+            display: none !important;
         }
 
-        .status-pending {
-            background: #fcf8e3;
-            color: white;
-        }
-
-        .page-btn {
-            padding: 5px 10px;
-            border: 1px solid #ddd;
-            background: white;
-            cursor: pointer;
-        }
-
-        .page-btn.active {
-            background: #3c8dbc;
-            color: white;
-            border-color: #3c8dbc;
+        .label-status {
+            font-size: 11px;
+            padding: 0.2em 0.6em;
         }
     </style>
     <script src="//cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
@@ -85,23 +78,30 @@
                 $('#user-table'),
                 "{% url 'settings:user-ajax-table' %}",
                 {
-                    // extra_options (example)
                     processing: false,
                     autoWidth: false,
                     scrollX: false,
                     lengthChange: false,
                     pageLength: 50,
-
-                    searching: false,
+                    searching: true,
                     pagingType: 'numbers',
                     showing: false,
-
                     dom: '<"box-body"t><"box-footer clearfix"p>',
-
                     info: false,
+                    bFilter: true
                 }, {},
             );
-        });
 
+            $('#clear-table-filters').on('click', function () {
+                var datatable = $('#user-table').DataTable();
+                datatable.search('');
+                datatable.columns().search('');
+                var $wrapper = $('#user-table_wrapper');
+                $wrapper.find('input').val('');
+                $wrapper.find('select').prop('selectedIndex', 0);
+                $('#roleSelect, #statusSelect').val('');
+                datatable.draw();
+            });
+        });
     </script>
 {% endblock content %}

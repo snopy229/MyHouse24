@@ -23,6 +23,7 @@ from src.settings.forms import (
 )
 from src.settings.models import Service, UnitsOfMeasurement, Article, Requisite
 from src.user.models import User, Role
+from src.user.choices import Status
 
 
 # Create your views here
@@ -126,6 +127,7 @@ class UserAjaxTable(AjaxDatatableView):
             "visible": True,
             "searchable": True,
             "title": "Пользователь",
+            "orderable": True,
         },
         {
             "name": "role",
@@ -133,6 +135,8 @@ class UserAjaxTable(AjaxDatatableView):
             "visible": True,
             "searchable": True,
             "title": "Роль",
+            "choices": list(Role.objects.values_list("id", "title")),
+            "lookup_field": "__id",
         },
         {
             "name": "phone_number",
@@ -141,7 +145,13 @@ class UserAjaxTable(AjaxDatatableView):
             "title": "Телефон",
         },
         {"name": "email", "visible": True, "searchable": True, "title": "Email"},
-        {"name": "status", "visible": True, "searchable": True, "title": "Статус"},
+        {
+            "name": "status",
+            "visible": True,
+            "searchable": True,
+            "title": "Статус",
+            "choices": Status.choices,
+        },
         {
             "name": "actions",
             "visible": True,
