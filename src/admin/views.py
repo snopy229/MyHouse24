@@ -1,6 +1,8 @@
 # Create your views here.
+from ajax_datatable import AjaxDatatableView
 from django.db import transaction
-from django.views.generic import CreateView, UpdateView
+from django.utils.html import format_html
+from django.views.generic import CreateView, UpdateView, TemplateView
 
 from src.admin.forms import FloorFormSet, StaffFormSet
 from src.admin.forms import HouseForm, SectionFormSet
@@ -89,3 +91,47 @@ class EditHouse(UpdateView):
             return super().form_valid(form)
         else:
             return self.render_to_response(self.get_context_data(form=form))
+
+
+class HouseAjaxTable(AjaxDatatableView):
+    model = House
+    title = "Дома"
+    initial_order = [["id", "asc"]]
+    column_defs = [
+        {"name": "id", "visible": True, "searchable": False, "title": "#"},
+        {
+            "name": "itle",
+            "visible": True,
+            "searchable": True,
+            "title": "Название",
+            "choices": list(House.objects.values_list("id", "title")),
+        },
+        {
+            "name": "address",
+            "visible": True,
+            "searchable": True,
+            "title": "Адрес",
+            "choices": list(House.objects.values_list("id", "address")),
+        },
+        {
+            "name": "actions",
+            "visible": True,
+            "searchable": False,
+            "orderable": False,
+            "title": "",
+        },
+    ]
+
+    def customize_row(self, row, obj):
+        row["actions"] = format_html(
+            '<div class="btn-group btn-group-sm">'
+            '<a href="/admin/house/edit/{0}/" class="btn btn-default"><i class="fa fa-pencil"></i></a>'
+            '<a href="/admin/house/delete/{0}/" class="btn btn-default"><i class="fa fa-trash"></i></a>'
+            "</div>",
+            obj.id,
+        )
+        return
+
+
+class HouseList(TemplateView):
+    template_name = "houses.html"
