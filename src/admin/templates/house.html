@@ -1,0 +1,399 @@
+{% extends "base_admin.html" %}
+{% block content %}
+    <style>
+        .mb-15 {
+            margin-bottom: 15px;
+        }
+
+        .h-34 {
+            height: 34px;
+        }
+    </style>
+    <section class="content-header">
+        <h1>Новый дом</h1>
+        <ul class="breadcrumb">
+            <li>
+                {# Проверьте имя URL 'admin_index' в вашем urls.py #}
+                <a href="{% url 'admin_index' %}"><i class="fa fa-home"></i> Главная</a>
+            </li>
+            <li>
+                {# Проверьте имя URL 'house_list' в вашем urls.py #}
+                <a href="{% url 'house_list' %}">Дома</a>
+            </li>
+            <li class="active">Новый дом</li>
+        </ul>
+    </section>
+    <section class="content">
+        <div class="box">
+            <div class="box-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-xs-12 col-lg-4">
+                            <div class="form-group">
+                                <label class="control-label">Название</label>
+                                {{ form.title }}
+                                {{ form.title.errors }}
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">Адрес</label>
+                                {{ form.address }}
+                                {{ form.address.errors }}
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">Изображение #1. Размер: (522x350)</label>
+                                {{ form.image1 }}
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">Изображение #2. Размер: (248x160)</label>
+                                {{ form.image2 }}
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">Изображение #3. Размер: (248x160)</label>
+                                {{ form.image3 }}
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">Изображение #4. Размер: (248x160)</label>
+                                {{ form.image4 }}
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">Изображение #5. Размер: (248x160)</label>
+                                {{ form.image5 }}
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-lg-8">
+                            <div class="row">
+                                <div class="col-xs-12 col-md-6">
+                                    {% if house.image1 %}
+                                        <img src="{{ house.image1.url }}"
+                                             class="img-responsive margin-bottom-30"
+                                             id="img-preview1"
+                                             alt="Изображение дома 1"
+                                             width="522"
+                                             height="350">
+                                    {% else %}
+                                        <img src="https://myhouse24.demodev.cc/upload/placeholder.jpg"
+                                             class="img-responsive margin-bottom-30"
+                                             id="img-preview1"
+                                             alt="Заглушка 1"
+                                             width="522"
+                                             height="350">
+                                    {% endif %}
+                                </div>
+                                <div class="col-xs-6 col-md-3">
+                                    {% if house.image2 %}
+                                        <img src="{{ house.image2.url }}"
+                                             class="img-responsive margin-bottom-30"
+                                             id="img-preview2"
+                                             alt="Изображение дома 2"
+                                             width="248"
+                                             height="160">
+                                    {% else %}
+                                        <img src="https://myhouse24.demodev.cc/upload/placeholder.jpg"
+                                             class="img-responsive margin-bottom-30"
+                                             id="img-preview2"
+                                             alt="Заглушка 2"
+                                             width="248"
+                                             height="160">
+                                    {% endif %}
+                                </div>
+                                <div class="col-xs-6 col-md-3">
+                                    {% if house.image3 %}
+                                        <img src="{{ house.image3.url }}"
+                                             class="img-responsive margin-bottom-30"
+                                             id="img-preview3"
+                                             alt="Изображение дома 3"
+                                             width="248"
+                                             height="160">
+                                    {% else %}
+                                        <img src="https://myhouse24.demodev.cc/upload/placeholder.jpg"
+                                             class="img-responsive margin-bottom-30"
+                                             id="img-preview3"
+                                             alt="Заглушка 3"
+                                             width="248"
+                                             height="160">
+                                    {% endif %}
+                                </div>
+                                <div class="col-xs-6 col-md-3">
+                                    {% if house.image4 %}
+                                        <img src="{{ house.image4.url }}"
+                                             class="img-responsive margin-bottom-30"
+                                             id="img-preview4"
+                                             alt="Изображение дома 4"
+                                             width="248"
+                                             height="160">
+                                    {% else %}
+                                        <img src="https://myhouse24.demodev.cc/upload/placeholder.jpg"
+                                             class="img-responsive margin-bottom-30"
+                                             id="img-preview4"
+                                             alt="Заглушка 4"
+                                             width="248"
+                                             height="160">
+                                    {% endif %}
+                                </div>
+                                <div class="col-xs-6 col-md-3">
+                                    {% if house.image5 %}
+                                        <img src="{{ house.image5.url }}"
+                                             class="img-responsive margin-bottom-30"
+                                             id="img-preview5"
+                                             alt="Изображение дома 5"
+                                             width="248"
+                                             height="160">
+                                    {% else %}
+                                        <img src="https://myhouse24.demodev.cc/upload/placeholder.jpg"
+                                             class="img-responsive margin-bottom-30"
+                                             id="img-preview5"
+                                             alt="Заглушка 5"
+                                             width="248"
+                                             height="160">
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 col-lg-8">
+                            <div class="nav-tabs-custom">
+                                <ul class="nav nav-tabs">
+                                    <li class="active">
+                                        <a href="#tab-sections" data-toggle="tab">Секции</a>
+                                    </li>
+                                    <li>
+                                        <a href="#tab-floors" data-toggle="tab">Этажи</a>
+                                    </li>
+                                    <li>
+                                        <a href="#tab-staff" data-toggle="tab">Пользователи</a>
+                                    </li>
+                                </ul>
+                                <div class="tab-content">
+                                    <div class="tab-pane active clearfix" id="tab-sections">
+                                        {{ sections.management_form }}
+                                        <div id="sections-container">
+                                            {% for s_form in sections %}
+                                                <div class="formset-row mb-15">
+                                                    {% for hidden in s_form.hidden_fields %}{{ hidden }}{% endfor %}
+                                                    <label>Название</label>
+                                                    <div class="input-group">
+                                                        {{ s_form.title }}
+                                                        <span class="input-group-btn">
+                                                            <button type="button" class="btn btn-danger delete-row h-34">
+                                                                <i class="fa fa-trash"></i>
+                                                            </button>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                        <button class="btn btn-success pull-right add-formset-row"
+                                                type="button"
+                                                data-container="sections-container"
+                                                data-prefix="sections">Добавить</button>
+                                    </div>
+                                    <div class="tab-pane clearfix" id="tab-floors">
+                                        {{ floors.management_form }}
+                                        <div id="floors-container">
+                                            {% for f_form in floors %}
+                                                <div class="formset-row mb-15">
+                                                    {% for hidden in f_form.hidden_fields %}{{ hidden }}{% endfor %}
+                                                    <label>Название</label>
+                                                    <div class="input-group">
+                                                        {{ f_form.title }}
+                                                        <span class="input-group-btn">
+                                                            <button type="button" class="btn btn-danger delete-row h-34">
+                                                                <i class="fa fa-trash"></i>
+                                                            </button>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                        <button class="btn btn-success pull-right add-formset-row"
+                                                type="button"
+                                                data-container="floors-container"
+                                                data-prefix="floors">Добавить</button>
+                                    </div>
+                                    <div class="tab-pane clearfix" id="tab-staff">
+                                        {{ staff.management_form }}
+                                        <div id="staff-container">
+                                            {% for st_form in staff %}
+                                                <div class="formset-row mb-15">
+                                                    {% for hidden in st_form.hidden_fields %}{{ hidden }}{% endfor %}
+                                                    <div class="row">
+                                                        <div class="col-xs-6">
+                                                            <label>Сотрудник</label>
+                                                            <select name="{{ st_form.user.html_name }}"
+                                                                    class="form-control user-select"
+                                                                    id="{{ st_form.user.auto_id }}">
+                                                                <option value="">Выберите...</option>
+                                                                {% for choice in st_form.user.field.queryset %}
+                                                                    <option value="{{ choice.pk }}"
+                                                                            data-role=" {% if choice.role %}{{ choice.role.title }}{% endif %}"
+                                                                            {% if st_form.user.value|stringformat:"s" == choice.pk|stringformat:"s" %}selected{% endif %}>
+                                                                        {{ choice }}
+                                                                    </option>
+                                                                {% endfor %}
+                                                            </select>
+                                                            {{ st_form.user.errors }}
+                                                        </div>
+                                                        <div class="col-xs-5">
+                                                            <label>Роль</label>
+                                                            <input type="text"
+                                                                   class="form-control role-field"
+                                                                   disabled
+                                                                   value=" {% if st_form.instance.pk and st_form.instance.user.role %}{{ st_form.instance.user.role.title }}{% endif %}">
+                                                        </div>
+                                                        <div class="col-xs-1">
+                                                            <label>&nbsp;</label>
+                                                            <button type="button" class="btn btn-danger delete-row btn-block h-34">
+                                                                <i class="fa fa-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                        <button class="btn btn-success pull-right add-formset-row"
+                                                type="button"
+                                                data-container="staff-container"
+                                                data-prefix="staff">Добавить</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 text-right">
+                            <div class="form-group">
+                                {# Проверьте имя URL 'house_list' #}
+                                <a href="{% url 'house_list' %}" class="btn btn-default">Отменить</a>
+                                <button type="submit" class="btn btn-success">Сохранить</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+    <script id="sections-empty" type="text/template">
+        <div class="formset-row mb-15">
+            <label>Название</label>
+            <div class="input-group">
+                {{ sections.empty_form.title }}
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-danger delete-row h-34">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+    </script>
+    <script id="floors-empty" type="text/template">
+        <div class="formset-row mb-15">
+            <label>Название</label>
+            <div class="input-group">
+                {{ floors.empty_form.title }}
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-danger delete-row h-34">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+    </script>
+    <script id="staff-empty" type="text/template">
+        <div class="formset-row mb-15">
+            <div class="row">
+                <div class="col-xs-6">
+                    <label>Сотрудник</label>
+                    <select name="staff-__prefix__-user" class="form-control user-select" id="id_staff-__prefix__-user">
+                        <option value="">Выберите...</option>
+                        {% for choice in staff.empty_form.user.field.queryset %}
+                            <option value="{{ choice.pk }}" data-role="{% if choice.role %}{{ choice.role.title }}{% endif %}">
+                                {{ choice }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-xs-5">
+                    <label>Роль</label>
+                    <input type="text" class="form-control role-field" disabled>
+                </div>
+                <div class="col-xs-1">
+                    <label>&nbsp;</label>
+                    <button type="button" class="btn btn-danger delete-row btn-block h-34">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const staffContainer = document.getElementById('staff-container');
+
+            // Функция для обновления роли
+            function updateRoleField(selectElement) {
+                const selectedOption = selectElement.options[selectElement.selectedIndex];
+                const roleText = selectedOption ? (selectedOption.getAttribute('data-role') || '') : '';
+                const row = selectElement.closest('.formset-row');
+                const roleField = row.querySelector('.role-field');
+                if (roleField) {
+                    roleField.value = roleText;
+                }
+            }
+
+            // Обработчик изменения селекта пользователя
+            document.addEventListener('change', function (e) {
+                if (e.target.classList.contains('user-select') || (e.target.name && e.target.name.includes('staff') && e.target.name.includes('-user'))) {
+                    updateRoleField(e.target);
+                }
+            });
+
+            // Инициализация существующих селектов (чтобы убедиться, что роли подтянулись, если value в HTML не сработал)
+            const existingSelects = staffContainer.querySelectorAll('select[name*="staff"][name*="-user"]');
+            existingSelects.forEach(select => {
+                updateRoleField(select);
+            });
+        });
+
+        document.addEventListener('click', function (e) {
+            // Обработчик добавления строк
+            if (e.target.classList.contains('add-formset-row') || e.target.closest('.add-formset-row')) {
+                const button = e.target.classList.contains('add-formset-row') ? e.target : e.target.closest('.add-formset-row');
+                const prefix = button.dataset.prefix;
+                const container = document.getElementById(button.dataset.container);
+                const totalForms = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
+                const count = parseInt(totalForms.value);
+
+                let newRow = document.getElementById(`${prefix}-empty`).innerHTML;
+                newRow = newRow.replace(/__prefix__/g, count);
+
+                container.insertAdjacentHTML('beforeend', newRow);
+                totalForms.value = count + 1;
+
+                // Автоматическое заполнение названия для секций и этажей
+                const newInput = container.lastElementChild.querySelector('input[type="text"]');
+                if (newInput && prefix === 'sections') {
+                    newInput.value = `Секция ${count + 1}`;
+                } else if (newInput && prefix === 'floors') {
+                    newInput.value = `Этаж ${count + 1}`;
+                }
+            }
+
+            // Обработчик удаления строк
+            if (e.target.classList.contains('delete-row') || e.target.closest('.delete-row')) {
+                const button = e.target.classList.contains('delete-row') ? e.target : e.target.closest('.delete-row');
+                const row = button.closest('.formset-row');
+                const checkbox = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+                if (checkbox) {
+                    checkbox.checked = true;
+                    row.style.display = 'none';
+                } else {
+                    row.remove();
+                }
+            }
+        });
+
+
+    </script>
+{% endblock content %}

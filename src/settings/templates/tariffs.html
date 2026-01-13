@@ -1,1 +1,75 @@
 {% extends "base_admin.html" %}
+{% block content %}
+    <style>
+        .col-actions {
+            width: 114px;
+            min-width: 114px;
+        }
+    </style>
+    <section class="content">
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="pull-right margin-bottom">
+                    <a class="btn btn-success" href="{% url 'settings:tariff-create' %}">Добавить тариф</a>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box">
+                    <div id="w0" class="grid-view">
+                        <div class="box-body table-responsive no-padding">
+                            <table class="table table-bordered table-hover table-striped linkedRow">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            <a data-sort="name">Название тарифа</a>
+                                        </th>
+                                        <th>Описание тарифа</th>
+                                        <th>Дата редактирования</th>
+                                        <th class="col-actions">&nbsp;</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for tariff in tariffs %}
+                                        <tr data-href="/admin/tariff/{{ tariff.pk }}" data-key="{{ tariff.pk }}">
+                                            <td>{{ tariff.title }}</td>
+                                            <td>{{ tariff.description }}</td>
+                                            <td>{{ tariff.edited_at }}</td>
+                                            <td>
+                                                <div class="btn-group pull-right">
+                                                    <a class="btn btn-default btn-sm"
+                                                       href="#"
+                                                       title="Копировать"
+                                                       data-toggle="tooltip">
+                                                        <i class="fa fa-clone"></i>
+                                                    </a>
+                                                    <a class="btn btn-default btn-sm"
+                                                       href="#"
+                                                       title="Редактировать"
+                                                       data-toggle="tooltip">
+                                                        <i class="fa fa-pencil"></i>
+                                                    </a>
+                                                    <a class="btn btn-default btn-sm"
+                                                       href="#"
+                                                       title="Удалить"
+                                                       data-toggle="tooltip"
+                                                       data-pjax="0"
+                                                       data-method="post"
+                                                       data-confirm="Вы уверены, что хотите удалить этот элемент?">
+                                                        <i class="fa fa-trash"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="box-footer clearfix"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock content %}

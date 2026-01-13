@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "src.managements",
     "ckeditor",
     "src.settings",
+    "src.admin",
     "anymail",
     "ajax_datatable",
 ]

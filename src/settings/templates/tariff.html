@@ -1,0 +1,201 @@
+{% extends "base_admin.html" %}
+{% block content %}
+    <section class="content">
+        <div class="box">
+            <div class="box-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-xs-12 col-lg-7">
+                            <div class="form-group">
+                                <label class="control-label" for="{{ form.title.id_for_label }}">Название тарифа</label>
+                                {{ form.title }}
+                                {% if form.title.errors %}<div class="help-block text-danger">{{ form.title.errors }}</div>{% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label" for="{{ form.description.id_for_label }}">
+                                    Описание
+                                    тарифа
+                                </label>
+                                {{ form.description }}
+                                {% if form.description.errors %}<div class="help-block text-danger">{{ form.description.errors }}</div>{% endif %}
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-lg-7">
+                            {{ services.management_form }}
+                            <div id="form-tariffservice-rows">
+                                {% for service_form in services %}
+                                    <div class="service-form-row">
+                                        <div class="row">
+                                            <div class="col-xs-6 col-md-3">
+                                                <div class="form-group">
+                                                    <label>Услуга</label>
+                                                    {{ service_form.service }}
+                                                    {% if service_form.service.errors %}
+                                                        <div class="help-block text-danger">{{ service_form.service.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="col-xs-6 col-md-3">
+                                                <div class="form-group">
+                                                    <label>Цена</label>
+                                                    {{ service_form.cost }}
+                                                    {% if service_form.cost.errors %}<div class="help-block text-danger">{{ service_form.cost.errors }}</div>{% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="col-xs-6 col-md-2">
+                                                <div class="form-group">
+                                                    <label>Валюта</label>
+                                                    <input type="text" class="form-control currency-field" value="грн" disabled>
+                                                </div>
+                                            </div>
+                                            <div class="col-xs-6 col-md-3">
+                                                <div class="form-group">
+                                                    <label>Ед. изм.</label>
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control unit-field" value="" disabled>
+                                                        <span class="input-group-btn">
+                                                            <button type="button" class="btn btn-default remove-service-btn">
+                                                                <i class="fa fa-trash"></i>
+                                                            </button>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {{ service_form.id }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <button type="button"
+                                    class="btn btn-default btn-hover-change pull-left margin-bottom-15"
+                                    id="add-service-btn">Добавить услугу</button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 col-lg-7 text-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-default" onclick="history.back()">Отменить</button>
+                                <button type="submit" class="btn btn-success">Сохранить</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+    <template id="service-form-template">
+        <div class="service-form-row">
+            <div class="row">
+                <div class="col-xs-6 col-md-3">
+                    <div class="form-group">
+                        <label>Услуга</label>
+                        <select name="services-__prefix__-service"
+                                class="form-control service-select"
+                                id="id_services-__prefix__-service">
+                            <option value="">Выберите...</option>
+                            {% for choice in services.empty_form.service.field.queryset %}
+                                <option value="{{ choice.pk }}" data-unit="{{ choice.units_of_measure }}">{{ choice }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-xs-6 col-md-3">
+                    <div class="form-group">
+                        <label>Цена</label>
+                        <input type="text"
+                               name="services-__prefix__-cost"
+                               class="form-control"
+                               id="id_services-__prefix__-cost"
+                               value="0.00">
+                    </div>
+                </div>
+                <div class="col-xs-6 col-md-2">
+                    <div class="form-group">
+                        <label>Валюта</label>
+                        <input type="text" class="form-control currency-field" value="грн" disabled>
+                    </div>
+                </div>
+                <div class="col-xs-6 col-md-3">
+                    <div class="form-group">
+                        <label>Ед. изм.</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control unit-field" value="" disabled>
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-default remove-service-btn">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden"
+                   name="services-__prefix__-id"
+                   id="id_services-__prefix__-id">
+        </div>
+    </template>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const container = document.getElementById('form-tariffservice-rows');
+            const addButton = document.getElementById('add-service-btn');
+            const totalFormsInput = document.querySelector('input[name="services-TOTAL_FORMS"]');
+            const template = document.getElementById('service-form-template');
+
+            function updateUnitField(selectElement) {
+                const selectedOption = selectElement.options[selectElement.selectedIndex];
+                const unitText = selectedOption.getAttribute('data-unit') || '';
+                const row = selectElement.closest('.service-form-row');
+                const unitField = row.querySelector('.unit-field');
+                if (unitField) {
+                    unitField.value = unitText;
+                }
+            }
+
+            container.addEventListener('change', function (e) {
+                if (e.target.classList.contains('service-select') || e.target.name && e.target.name.includes('-service')) {
+                    updateUnitField(e.target);
+                }
+            });
+
+            const existingSelects = container.querySelectorAll('select[name*="-service"]');
+            existingSelects.forEach(select => {
+                updateUnitField(select);
+            });
+
+            addButton.addEventListener('click', function () {
+                const formCount = parseInt(totalFormsInput.value);
+
+                const newForm = template.content.cloneNode(true);
+                const formDiv = newForm.querySelector('.service-form-row');
+
+                formDiv.innerHTML = formDiv.innerHTML.replace(/__prefix__/g, formCount);
+
+                container.appendChild(newForm);
+                totalFormsInput.value = formCount + 1;
+            });
+
+            container.addEventListener('click', function (e) {
+                if (e.target.classList.contains('remove-service-btn') || e.target.closest('.remove-service-btn')) {
+                    const formRow = e.target.closest('.service-form-row');
+                    if (formRow) {
+                        formRow.remove();
+
+                        const currentCount = parseInt(totalFormsInput.value);
+                        totalFormsInput.value = currentCount - 1;
+
+                        reindexForms();
+                    }
+                }
+            });
+
+            function reindexForms() {
+                const forms = container.querySelectorAll('.service-form-row');
+                forms.forEach((form, index) => {
+                    const formRegex = RegExp(`services-(\\d+)-`, 'g');
+                    form.innerHTML = form.innerHTML.replace(formRegex, `services-${index}-`);
+                });
+            }
+        });
+    </script>
+{% endblock content %}

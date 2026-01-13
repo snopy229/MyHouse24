@@ -23,6 +23,7 @@ urlpatterns = [
     path("user/", include("src.user.urls")),
     path("", include("src.managements.urls")),
     path("admin/settings/", include("src.settings.urls")),
+    path("admin/", include("src.admin.urls")),
 ]
 
 if settings.DEBUG:

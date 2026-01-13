@@ -9,13 +9,13 @@
             color: #333;
         }
 
-        /* H021: Вынесенные стили для логотипа */
+        /* H021: Стили для логотипа */
         .logo-lg-img {
             max-height: 45px;
             margin: auto;
         }
 
-        /* H021: Вынесенные стили для аватара пользователя */
+        /* H021: Стили для аватара пользователя */
         .user-header-img {
             font-size: 90px;
             height: 90px;
@@ -24,7 +24,7 @@
             background-color: #fff !important;
         }
 
-        /* H021: Класс для открытого меню вместо style="display: block" */
+        /* H021: Класс для открытого меню */
         .treeview-menu-visible {
             display: block;
         }
@@ -74,7 +74,7 @@
                                         <i class="fa fa-user-circle text-purple bg-gray-light img-circle user-header-img"></i>
                                         <p>
                                             {{ user.name }} {{ user.surname }}
-                                            {#                                            {% if user.role %}<small>({{ user.role }})</small>{% endif %}#}
+                                            {# {% if user.role %}<small>({{ user.role }})</small>{% endif %} #}
                                         </p>
                                     </li>
                                     <li class="user-footer">
@@ -112,6 +112,7 @@
                         <li>
                             <a href="#"><i class="fa fa-key"></i> <span>Квартиры</span></a>
                         </li>
+                        {# Удален ошибочный вложенный блок HTML #}
                         <li>
                             <a href="#"><i class="fa fa-users"></i> <span>Владельцы квартир</span></a>
                         </li>
@@ -155,41 +156,42 @@
                                     <a href="{% url 'settings:edit-services' %}"><i class="fa fa-briefcase"></i> <span>Услуги</span></a>
                                 </li>
                                 <li>
-                                    <a href="#"><i class="fa fa-money"></i> <span>Тарифы</span></a>
-                                </li>
-                                <li>
-                                    <a href="#"><i class="fa fa-user"></i> <span>Роли</span></a>
-                                </li>
-                                <li>
-                                    <a href="{% url 'settings:users-list' %}"><i class="fa fa-user-plus"></i> <span>Пользователи</span></a>
-                                </li>
-                                <li>
-                                    <a href="{% url 'settings:requisite-edit' %}"><i class="fa fa-credit-card"></i> <span>Платежные реквизиты</span></a>
-                                </li>
-                                <li>
-                                    <a href="{% url 'settings:article-list' %}"><i class="fa fa-list-ol"></i> <span>Статьи платежей</span></a>
-                                </li>
-                            </ul>
+                                <a href="{% url 'settings:tariff-list' %}"><i class="fa fa-money"></i>
+                                <span>Тарифы</span></a>
+                        </li>
+                        <li>
+                            <a href="#"><i class="fa fa-user"></i> <span>Роли</span></a>
+                        </li>
+                        <li>
+                            <a href="{% url 'settings:users-list' %}"><i class="fa fa-user-plus"></i> <span>Пользователи</span></a>
+                        </li>
+                        <li>
+                            <a href="{% url 'settings:requisite-edit' %}"><i class="fa fa-credit-card"></i> <span>Платежные реквизиты</span></a>
+                        </li>
+                        <li>
+                            <a href="{% url 'settings:article-list' %}"><i class="fa fa-list-ol"></i> <span>Статьи платежей</span></a>
                         </li>
                     </ul>
-                </section>
-            </aside>
-            <div class="content-wrapper">
-                <section class="content-header">
-                    <h1>
-                        {% block content_header %}
-                            Редактирование услуг
-                        {% endblock content_header %}
-                    </h1>
-                </section>
-                <section class="content">
-                    {% block content %}
-                    {% endblock content %}
-                </section>
-            </div>
-            <footer class="main-footer">
-                Разработано <a href="#">AVADA-MEDIA</a>. На базе системы <a href="#">"МойДом24"</a>.
-            </footer>
-        </div>
-    </body>
+                </li>
+            </ul>
+        </section>
+    </aside>
+    <div class="content-wrapper">
+        <section class="content-header">
+            <h1>
+                {% block content_header %}
+                    Редактирование услуг
+                {% endblock content_header %}
+            </h1>
+        </section>
+        <section class="content">
+            {% block content %}
+            {% endblock content %}
+        </section>
+    </div>
+    <footer class="main-footer">
+        Разработано <a href="#">AVADA-MEDIA</a>. На базе системы <a href="#">"МойДом24"</a>.
+    </footer>
+</div>
+</body>
 {% endblock structure %}

@@ -20,8 +20,10 @@ from src.settings.forms import (
     ArticleForm,
     RequisiteForm,
     UserForm,
+    ServiceCostFormSet,
+    TariffsForm,
 )
-from src.settings.models import Service, UnitsOfMeasurement, Article, Requisite
+from src.settings.models import Service, UnitsOfMeasurement, Article, Requisite, Tariffs
 from src.user.models import User, Role
 from src.user.choices import Status
 
@@ -174,6 +176,9 @@ class UserAjaxTable(AjaxDatatableView):
         )
         return
 
+    def get_initial_queryset(self, request=None):
+        return self.model.objects.filter(is_staff=True)
+
 
 class EditUsersPageView(UpdateView):
     model = User
@@ -264,3 +269,100 @@ class CreateUser(CreateView):
             return self.form_invalid(form)
 
         return HttpResponseRedirect(reverse_lazy("settings:users-list"))
+
+
+class TariffsCreateView(CreateView):
+    model = Tariffs
+    form_class = TariffsForm
+    template_name = "tariff.html"
+    success_url = reverse_lazy("tariff_list")
+
+    def get_initial(self):
+        initial = super().get_initial()
+
+        if "duplicate_initial_data" in self.request.session:
+            initial.update(self.request.session.pop("duplicate_initial_data"))
+
+        return initial
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        duplicate_id = self.request.session.get("duplicate_tariff_id")
+
+        if self.request.POST:
+            context["services"] = ServiceCostFormSet(
+                self.request.POST, prefix="services"
+            )
+        else:
+            if duplicate_id:
+                original = Tariffs.objects.get(pk=duplicate_id)
+
+                initial_data = []
+                for service_cost in original.servicescost_set.all():
+                    initial_data.append(
+                        {
+                            "service": service_cost.service,
+                            "cost": service_cost.cost,
+                        }
+                    )
+
+                context["services"] = ServiceCostFormSet(
+                    prefix="services", initial=initial_data
+                )
+
+                self.request.session.pop("duplicate_tariff_id", None)
+            else:
+                context["services"] = ServiceCostFormSet(prefix="services")
+
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        formset = context["services"]
+
+        with transaction.atomic():
+            if formset.is_valid():
+                self.object = form.save()
+                formset.instance = self.object
+                formset.save()
+                return super().form_valid(form)
+            else:
+                return self.form_invalid(form)
+
+
+class TariffUpdateView(UpdateView):
+    model = Tariffs
+    form_class = TariffsForm
+    template_name = "tariff.html"
+    success_url = reverse_lazy("tariff_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context["formset"] = ServiceCostFormSet(
+                self.request.POST, instance=self.object
+            )
+        else:
+            context["formset"] = ServiceCostFormSet(instance=self.object)
+        context["title"] = "Редактирование тарифа"
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        formset = context["formset"]
+
+        with transaction.atomic():
+            if formset.is_valid():
+                self.object = form.save()
+                formset.instance = self.object
+                formset.save()
+                return super().form_valid(form)
+            else:
+                return self.form_invalid(form)
+
+
+class TariffsList(ListView):
+    model = Tariffs
+    context_object_name = "tariffs"
+    template_name = "tariffs.html"
