@@ -1,0 +1,180 @@
+{% extends "base_admin.html" %}
+{% block content %}
+    <section class="content">
+        <div class="box">
+            <div class="box-body">
+                <form method="post"
+                      id="flatForm"
+                      data-section-url="/api/admin/section"
+                      data-floor-url="/api/admin/floor"
+                      data-bankbook-url="/api/admin/bank_book">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-6 col-sm-push-6">
+                            <div class="form-group field-flatform-account_uid ">
+                                <label class="control-label" for="flatform-account_uid">Лицевой счет</label>
+                                <input type="text"
+                                       id="flatform-account_uid"
+                                       class="form-control"
+                                       name="FlatForm[account_uid]">
+                                <div class="kv-plugin-loading loading-account_uid">&nbsp;</div>
+                                {{ form.bank_book_select }}
+                                <div class="help-block"></div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-sm-pull-6">
+                            <input type="hidden" id="flatform-id" name="FlatForm[id]">
+                            <div class="form-group field-flatform-flat required">
+                                <label class="control-label" for="flatform-flat">Номер квартиры</label>
+                                {{ form.number }}
+                                <div class="help-block"></div>
+                            </div>
+                            <div class="form-group field-flatform-square">
+                                <label class="control-label" for="flatform-square">Площадь (кв.м.)</label>
+                                {{ form.area }}
+                                <div class="help-block"></div>
+                            </div>
+                            <div class="form-group field-flatform-house_id required">
+                                <label class="control-label" for="flatform-house_id">Дом</label>
+                                {{ form.house }}
+                                <div class="help-block"></div>
+                            </div>
+                            <div class="form-group field-flatform-section_id">
+                                <label class="control-label" for="flatform-section_id">Секция</label>
+                                {{ form.section }}
+                                <div class="help-block"></div>
+                            </div>
+                            <div class="form-group field-flatform-floor_id">
+                                <label class="control-label" for="flatform-floor_id">Этаж</label>
+                                {{ form.floor }}
+                                <div class="help-block"></div>
+                            </div>
+                            <div class="form-group field-flatform-user_id">
+                                <label class="control-label" for="flatform-user_id">Владелец</label>
+                                <div class="kv-plugin-loading loading-flatform-user_id">&nbsp;</div>
+                                {{ form.owner }}
+                                <div class="help-block"></div>
+                            </div>
+                            <div class="form-group field-flatform-tariff_id">
+                                <label class="control-label" for="flatform-tariff_id">Тариф</label>
+                                {{ form.tariff }}
+                                <div class="help-block"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 text-right">
+                            <div class="form-group">
+                                <a href="# class=" btn btn-default margin-bottom-15">Отменить</a>
+                                <input type="submit"
+                                       class="btn btn-success margin-bottom-15"
+                                       name="action_save"
+                                       value="Сохранить">
+                                <input type="submit"
+                                       class="btn btn-success margin-bottom-15 bg-green-active"
+                                       name="action_save_add"
+                                       value="Сохранить и добавить новую">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const houseSelect = document.getElementById('id_house');
+            const sectionSelect = document.getElementById('id_section');
+            const floorSelect = document.getElementById('id_floor');
+            const ownerSelect = document.getElementById('id_owner')
+            const bankBookSelect = document.getElementById('id_bank_book_select')
+
+            const form = document.getElementById('flatForm');
+            const sectionUrl = form.getAttribute('data-section-url');
+            const floorUrl = form.getAttribute('data-floor-url');
+            const bankBookUrl = form.getAttribute('data-bankbook-url');
+
+            async function updateSelect(selectElement, url, houseId, placeholder) {
+                selectElement.disabled = true;
+                selectElement.innerHTML = `<option value="">Загрузка...</option>`;
+
+                if (!houseId) {
+                    selectElement.innerHTML = `<option value="">${placeholder}</option>`;
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`${url}?house_id=${houseId}`);
+                    if (!response.ok) throw new Error('Ошибка сети');
+
+                    const data = await response.json();
+
+                    selectElement.innerHTML = `<option value="">${placeholder}</option>`;
+
+                    if (data.length > 0) {
+                        data.forEach(item => {
+                            const optionText = item.name || item.title || `ID ${item.id}`;
+                            const option = new Option(optionText, item.id);
+                            selectElement.add(option);
+                        });
+                        selectElement.disabled = false;
+                    } else {
+                        selectElement.innerHTML = '<option value="">Нет данных</option>';
+                    }
+
+                } catch (error) {
+                    console.error('Ошибка загрузки:', error);
+                    selectElement.innerHTML = '<option value="">Ошибка</option>';
+                }
+            }
+
+            async function updateSelectBankBook(selectElement, url, ownerId, placeholder) {
+                selectElement.disabled = true;
+                selectElement.innerHTML = `<option value="">Загрузка...</option>`;
+
+                if (!ownerId) {
+                    selectElement.innerHTML = `<option value="">${placeholder}</option>`;
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`${url}?owner_id=${ownerId}`);
+                    if (!response.ok) throw new Error('Ошибка сети');
+
+                    const data = await response.json();
+
+                    selectElement.innerHTML = `<option value="">${placeholder}</option>`;
+
+                    if (data.length > 0) {
+                        data.forEach(item => {
+                            const optionText = item.name || item.title || `ID ${item.id}`;
+                            const option = new Option(optionText, item.id);
+                            selectElement.add(option);
+                        });
+                        selectElement.disabled = false;
+                    } else {
+                        selectElement.innerHTML = '<option value="">Нет данных</option>';
+                    }
+
+                } catch (error) {
+                    console.error('Ошибка загрузки:', error);
+                    selectElement.innerHTML = '<option value="">Ошибка</option>';
+                }
+            }
+
+            houseSelect.addEventListener('change', function () {
+                const houseId = this.value;
+                updateSelect(sectionSelect, sectionUrl, houseId, 'Выберите секцию');
+                updateSelect(floorSelect, floorUrl, houseId, 'Выберите этаж');
+            });
+            ownerSelect.addEventListener('change', function () {
+                const ownerId = this.value;
+                updateSelectBankBook(bankBookSelect, bankBookUrl, ownerId, 'Выберите ');
+            });
+            if (!houseSelect.value) {
+                sectionSelect.disabled = true;
+                floorSelect.disabled = true;
+            }
+        });
+    </script>
+{% endblock content %}

@@ -139,6 +139,7 @@ class UserAjaxTable(AjaxDatatableView):
             "title": "Роль",
             "choices": list(Role.objects.values_list("id", "title")),
             "lookup_field": "__id",
+            "orderable": True,
         },
         {
             "name": "phone_number",
@@ -275,7 +276,7 @@ class TariffsCreateView(CreateView):
     model = Tariffs
     form_class = TariffsForm
     template_name = "tariff.html"
-    success_url = reverse_lazy("tariff_list")
+    success_url = reverse_lazy("settings:tariff-list")
 
     def get_initial(self):
         initial = super().get_initial()

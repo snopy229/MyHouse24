@@ -2,7 +2,7 @@ from django.db import models
 
 # Create your models here.
 
-from settings.choices import TransactionType
+from src.settings.choices import TransactionType
 
 
 class UnitsOfMeasurement(models.Model):

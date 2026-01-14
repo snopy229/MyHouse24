@@ -1,12 +1,13 @@
 # Create your views here.
 from ajax_datatable import AjaxDatatableView
 from django.db import transaction
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse_lazy
 from django.utils.html import format_html
-from django.views.generic import CreateView, UpdateView, TemplateView
+from django.views.generic import CreateView, UpdateView, TemplateView, DeleteView
 
-from src.admin.forms import FloorFormSet, StaffFormSet
-from src.admin.forms import HouseForm, SectionFormSet
-from src.admin.models import House
+from .forms import FloorFormSet, StaffFormSet, ApartmentForm, HouseForm, SectionFormSet
+from src.admin.models import House, Apartment
 
 
 class CreateHouse(CreateView):
@@ -14,11 +15,12 @@ class CreateHouse(CreateView):
     form_class = HouseForm
     context_object_name = "house"
     template_name = "house.html"
+    success_url = reverse_lazy("admin:house-list")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.request.POST:
-            context["sections"] = SectionFormSet(self.request.POST, prefix="sections")
+            context["section"] = SectionFormSet(self.request.POST, prefix="sections")
             context["floors"] = FloorFormSet(self.request.POST, prefix="floors")
             context["staff"] = StaffFormSet(self.request.POST, prefix="staff")
         else:
@@ -52,6 +54,7 @@ class EditHouse(UpdateView):
     form_class = HouseForm
     context_object_name = "house"
     template_name = "house.html"
+    success_url = reverse_lazy("admin:house-list")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -100,7 +103,7 @@ class HouseAjaxTable(AjaxDatatableView):
     column_defs = [
         {"name": "id", "visible": True, "searchable": False, "title": "#"},
         {
-            "name": "itle",
+            "name": "title",
             "visible": True,
             "searchable": True,
             "title": "Название",
@@ -133,5 +136,25 @@ class HouseAjaxTable(AjaxDatatableView):
         return
 
 
+class DeleteHouse(DeleteView):
+    model = House
+
+    def get(self, request, pk):
+        article = get_object_or_404(House, pk=pk)
+        article.delete()
+        return redirect("admin:house-list")
+
+
 class HouseList(TemplateView):
     template_name = "houses.html"
+
+
+class CreateFlat(CreateView):
+    model = Apartment
+    template_name = "flat.html"
+    form_class = ApartmentForm
+    success_url = reverse_lazy("managements:statistic")
+
+
+class ListFlat(TemplateView):
+    template_name = "flats.html"
