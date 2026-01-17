@@ -20,7 +20,7 @@ class CreateHouse(CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.request.POST:
-            context["section"] = SectionFormSet(self.request.POST, prefix="sections")
+            context["sections"] = SectionFormSet(self.request.POST, prefix="sections")
             context["floors"] = FloorFormSet(self.request.POST, prefix="floors")
             context["staff"] = StaffFormSet(self.request.POST, prefix="staff")
         else:

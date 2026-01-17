@@ -1,5 +1,7 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
+from django_select2.forms import Select2Widget
 
 from .models import House, Section, Floor, Apartment, BankBook
 
@@ -76,74 +78,85 @@ FloorFormSet = inlineformset_factory(
 
 class ApartmentForm(forms.ModelForm):
     bank_book_select = forms.ModelChoiceField(
-        queryset=BankBook.objects.all(),
+        widget=Select2Widget(attrs={"class": "form-control"}),
         required=False,
-        widget=forms.Select(attrs={"class": "form-control"}),
+        queryset=BankBook.objects.all(),
+    )
+    bank_book_input = forms.CharField(
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+        required=False,
     )
 
     class Meta:
         model = Apartment
         fields = ["number", "area", "house", "floor", "section", "owner", "tariff"]
         widgets = {
-            "number": forms.NumberInput(attrs={"class": "form-control"}),
+            "number": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                }
+            ),
             "area": forms.NumberInput(attrs={"class": "form-control"}),
-            "house": forms.Select(attrs={"class": "form-control"}),
-            "floor": forms.Select(attrs={"class": "form-control"}),
-            "section": forms.Select(attrs={"class": "form-control"}),
-            "owner": forms.Select(attrs={"class": "form-control"}),
-            "tariff": forms.Select(attrs={"class": "form-control"}),
+            "house": Select2Widget(
+                attrs={
+                    "class": "form-control",
+                }
+            ),
+            "section": Select2Widget(attrs={"class": "form-control"}),
+            "floor": Select2Widget(attrs={"class": "form-control"}),
+            "owner": Select2Widget(attrs={"class": "form-control"}),
+            "tariff": Select2Widget(attrs={"class": "form-control"}),
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def clean(self):
+        cleaned_data = super(ApartmentForm, self).clean()
 
-        self.fields["section"].queryset = Section.objects.none()
-        self.fields["floor"].queryset = Floor.objects.none()
-        self.fields["bank_book_select"].queryset = BankBook.objects.none()
-
-        if "owner" in self.data:
-            owner_id = int(self.data["owner"])
-            self.fields["bank_book_select"].queryset = BankBook.objects.filter(
-                owner_id=owner_id
-            ).order_by("number")
-
-        if "house" in self.data:
-            try:
-                house_id = int(self.data.get("house"))
-                self.fields["section"].queryset = Section.objects.filter(
-                    house_id=house_id
-                ).order_by("title")
-                self.fields["floor"].queryset = Floor.objects.filter(
-                    house_id=house_id
-                ).order_by("title")
-            except (ValueError, TypeError):
-                pass
-
-        elif self.instance.pk and self.instance.house:
-            self.fields["section"].queryset = self.instance.house.section.order_by(
-                "title"
-            )
-            self.fields["floor"].queryset = self.instance.house.floor.order_by("title")
-            self.fields[
-                "bank_book_select"
-            ].queryset = self.instance.owner.bank_book_select.order_by("number")
+        input_num = self.cleaned_data.get("bank_book_input")
+        if input_num:
+            bank_book = BankBook.objects.filter(number=input_num).first()
+            if (
+                bank_book
+                and bank_book.apartment
+                and bank_book.apartment != self.instance
+            ):
+                raise ValidationError(
+                    {
+                        "bank_book_input": "Счет уже занят",
+                    }
+                )
+        return cleaned_data
 
     def save(self, commit=True):
         apartment = super().save(commit=commit)
+        input_num = self.cleaned_data.get("bank_book_input")
+        selected_obj = self.cleaned_data["bank_book_select"]
+        section = self.cleaned_data["section"]
+        floor = self.cleaned_data["floor"]
+        new_bank_book = None
 
-        selected_bank_book = self.cleaned_data.get("bank_book_select")
+        if input_num:
+            new_bank_book, created = BankBook.objects.update_or_create(
+                number=input_num,
+                defaults={"apartment": apartment, "section": section, "floor": floor},
+            )
+        elif selected_obj:
+            new_bank_book = selected_obj
+            new_bank_book.apartment = apartment
+            new_bank_book.section = section
+            new_bank_book.floor = floor
+            new_bank_book.save()
 
-        if selected_bank_book:
-            selected_bank_book.apartment = apartment
-            selected_bank_book.save()
+        try:
+            if hasattr(apartment, "bankbook"):
+                old_account = apartment.bankbook
 
-        elif self.instance.pk:
-            try:
-                if hasattr(self.instance, "bank_book"):
-                    old_bank_book = self.instance.bank_book
-                    old_bank_book.apartment = None
-                    old_bank_book.save()
-            except BankBook.DoesNotExist:
-                pass
+                if not new_bank_book or (old_account.pk != new_bank_book.pk):
+                    old_account.apartment = None
+                    old_account.section = None
+                    old_account.floor = None
+                    old_account.save()
+
+        except Exception:
+            pass
 
         return apartment

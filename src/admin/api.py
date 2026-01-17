@@ -1,49 +1,80 @@
-from typing import List, Optional
+from django.core.paginator import Paginator
+from ninja import Router, Query
 
-from ninja import Router
-
+from src.settings.models import Tariffs
 from src.user.models import User
 from .models import House, Floor, Section, BankBook
-from .schemas import (
-    HouseSchema,
-    FloorSchema,
-    SectionSchema,
-    OwnerSchema,
-    BankBookSchema,
-)
+from .schemas import Select2Response
+
+# from .schemas import SectionSchema, FloorSchema, HouseSchema
 
 router = Router()
 
 
-@router.get("/house", response=List[HouseSchema])
-# @paginate(PageNumberPagination, page_size=10)
-def lisr_house(request):
-    return House.objects.all()
+def get_select2_reesult(page, qs):
+    paginator = Paginator(qs, 10)
+    current_page = paginator.get_page(page)
+    result = [{"id": item.id, "text": item.title} for item in current_page.object_list]
+    return {"results": result, "pagination": {"more": current_page.has_next()}}
 
 
-@router.get("/floor", response=List[FloorSchema])
-# @paginate(PageNumberPagination, page_size=10)
-def lisr_floors(request, house_id: Optional[int] = None):
-    if house_id:
-        return Floor.objects.filter(house_id=house_id)
-    return []
+@router.get("/house", response=Select2Response)
+def list_house(request, q: str = Query(None), page: int = 1):
+    qs = House.objects.all()
+    if q:
+        qs = qs.filter(title__icontains=q)
+
+    return get_select2_reesult(page, qs)
 
 
-@router.get("/section", response=List[SectionSchema])
-# @paginate(PageNumberPagination, page_size=10)
-def lisr_sections(request, house_id: Optional[int] = None):
-    if house_id:
-        return Section.objects.filter(house_id=house_id)
-    return []
+@router.get("/section", response=Select2Response)
+def list_section(
+    request, house_id: int | None = Query(None), q: str = Query(None), page: int = 1
+):
+    if not house_id:
+        return {"results": [], "pagination": {"more": False}}
+
+    qs = Section.objects.filter(house_id=house_id)
+    if q:
+        qs = qs.filter(title__icontains=q)
+
+    return get_select2_reesult(page, qs)
 
 
-@router.get("/owner", response=List[OwnerSchema])
-# @paginate(PageNumberPagination, page_size=10)
-def lisr_owner(request):
-    return User.objects.filter(is_staff=False)
+@router.get("/floor", response=Select2Response)
+def list_floor(
+    request, house_id: int | None = Query(None), q: str = Query(None), page: int = 1
+):
+    if not house_id:
+        return {"results": [], "pagination": {"more": False}}
+
+    qs = Floor.objects.filter(house_id=house_id)
+    if q:
+        qs = qs.filter(title__icontains=q)
+
+    return get_select2_reesult(page, qs)
 
 
-@router.get("/bank_book", response=List[BankBookSchema])
-def list_bank_books(request, owner_id: Optional[int] = None):
-    if owner_id:
-        return BankBook.objects.filter(owner_id=owner_id)
+@router.get("/owner", response=Select2Response)
+def list_owner(request, q: str = Query(None), page: int = 1):
+    qs = User.objects.filter(is_staff=False)
+
+    if q:
+        qs = qs.filter(title__icontains=q)
+
+    return get_select2_reesult(page, qs)
+
+
+@router.get("/tariff", response=Select2Response)
+def list_tariff(request, q: str = Query(None), page: int = 1):
+    qs = Tariffs.objects.all()
+    if q:
+        qs = qs.filter(title__icontains=q)
+
+    return get_select2_reesult(page, qs)
+
+
+@router.get("/bank_book", response=Select2Response)
+def list_bank_book(request, q: str = Query(None), page: int = 1):
+    qs = BankBook.objects.filter(apartament=None)
+    return get_select2_reesult(page, qs)

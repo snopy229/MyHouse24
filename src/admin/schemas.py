@@ -1,31 +1,13 @@
+from typing import List
+
 from ninja import Schema
 
 
-class HouseSchema(Schema):
-    id: int
-    title: str
-    address: str
+class Select2Option(Schema):
+    id: int | str
+    text: str
 
 
-class SectionSchema(Schema):
-    id: int
-    title: str
-    house_id: int
-
-
-class FloorSchema(Schema):
-    id: int
-    title: str
-    house_id: int
-
-
-class OwnerSchema(Schema):
-    id: int
-    first_name: str
-    last_name: str
-
-
-class BankBookSchema(Schema):
-    id: int
-    number: int
-    owner_id: int
+class Select2Response(Schema):
+    results: List[Select2Option]
+    pagination: dict

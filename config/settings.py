@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "src.admin",
     "anymail",
     "ajax_datatable",
+    "django_select2",
 ]
 
 MIDDLEWARE = [
@@ -140,8 +141,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 STATIC_URL = "/static/"
-STATIC_DIR = os.path.join(BASE_DIR, "static")
-# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# STATIC_DIR = os.path.join(BASE_DIR, "static")
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 MEDIA_URL = "/media/"
 
@@ -207,3 +208,17 @@ ANYMAIL = {
 DEFAULT_FROM_EMAIL = env("SENDER_EMAIL")
 
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-snowflake",
+    },
+    "select2": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-snowflake",
+    },
+}
+
+# Tell select2 which cache configuration to use:
+SELECT2_CACHE_BACKEND = "select2"

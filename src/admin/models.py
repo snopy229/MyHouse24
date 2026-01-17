@@ -48,7 +48,7 @@ class Apartment(models.Model):
 
 class BankBook(models.Model):
     number = models.IntegerField(unique=True)
-    status = models.CharField(choices=Status, max_length=10)
+    status = models.CharField(choices=Status, max_length=10, blank=True, null=True)
     apartment = models.ForeignKey(Apartment, on_delete=models.CASCADE)
     house = models.ForeignKey(House, on_delete=models.CASCADE)
     floor = models.ForeignKey(Floor, on_delete=models.CASCADE)

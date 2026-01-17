@@ -1,22 +1,21 @@
 {% extends "base_admin.html" %}
+{% block extra_css %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
+    {{ form.media.css }}
+{% endblock extra_css %}
 {% block content %}
     <section class="content">
         <div class="box">
             <div class="box-body">
-                <form method="post"
-                      id="flatForm"
-                      data-section-url="/api/admin/section"
-                      data-floor-url="/api/admin/floor"
-                      data-bankbook-url="/api/admin/bank_book">
+                <form method="post" novalidate>
                     {% csrf_token %}
+                    {{ form.media }}
                     <div class="row">
                         <div class="col-xs-12 col-sm-6 col-sm-push-6">
                             <div class="form-group field-flatform-account_uid ">
                                 <label class="control-label" for="flatform-account_uid">Лицевой счет</label>
-                                <input type="text"
-                                       id="flatform-account_uid"
-                                       class="form-control"
-                                       name="FlatForm[account_uid]">
+                                {{ form.bank_book_input }}
                                 <div class="kv-plugin-loading loading-account_uid">&nbsp;</div>
                                 {{ form.bank_book_select }}
                                 <div class="help-block"></div>
@@ -51,7 +50,6 @@
                             </div>
                             <div class="form-group field-flatform-user_id">
                                 <label class="control-label" for="flatform-user_id">Владелец</label>
-                                <div class="kv-plugin-loading loading-flatform-user_id">&nbsp;</div>
                                 {{ form.owner }}
                                 <div class="help-block"></div>
                             </div>
@@ -81,100 +79,128 @@
             </div>
         </div>
     </section>
+    <style>
+        .select2-container .select2-selection--single {
+            height: 34px !important;
+            border: 1px solid #d2d6de !important;
+            border-radius: 0 !important;
+        }
+
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 32px !important;
+            padding-left: 12px !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 32px !important;
+        }
+    </style>
+{% endblock content %}
+{% block extra_js %}
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"
+          rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    {{ form.media.js }}
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const houseSelect = document.getElementById('id_house');
-            const sectionSelect = document.getElementById('id_section');
-            const floorSelect = document.getElementById('id_floor');
-            const ownerSelect = document.getElementById('id_owner')
-            const bankBookSelect = document.getElementById('id_bank_book_select')
-
-            const form = document.getElementById('flatForm');
-            const sectionUrl = form.getAttribute('data-section-url');
-            const floorUrl = form.getAttribute('data-floor-url');
-            const bankBookUrl = form.getAttribute('data-bankbook-url');
-
-            async function updateSelect(selectElement, url, houseId, placeholder) {
-                selectElement.disabled = true;
-                selectElement.innerHTML = `<option value="">Загрузка...</option>`;
-
-                if (!houseId) {
-                    selectElement.innerHTML = `<option value="">${placeholder}</option>`;
-                    return;
-                }
-
-                try {
-                    const response = await fetch(`${url}?house_id=${houseId}`);
-                    if (!response.ok) throw new Error('Ошибка сети');
-
-                    const data = await response.json();
-
-                    selectElement.innerHTML = `<option value="">${placeholder}</option>`;
-
-                    if (data.length > 0) {
-                        data.forEach(item => {
-                            const optionText = item.name || item.title || `ID ${item.id}`;
-                            const option = new Option(optionText, item.id);
-                            selectElement.add(option);
-                        });
-                        selectElement.disabled = false;
-                    } else {
-                        selectElement.innerHTML = '<option value="">Нет данных</option>';
-                    }
-
-                } catch (error) {
-                    console.error('Ошибка загрузки:', error);
-                    selectElement.innerHTML = '<option value="">Ошибка</option>';
-                }
-            }
-
-            async function updateSelectBankBook(selectElement, url, ownerId, placeholder) {
-                selectElement.disabled = true;
-                selectElement.innerHTML = `<option value="">Загрузка...</option>`;
-
-                if (!ownerId) {
-                    selectElement.innerHTML = `<option value="">${placeholder}</option>`;
-                    return;
-                }
-
-                try {
-                    const response = await fetch(`${url}?owner_id=${ownerId}`);
-                    if (!response.ok) throw new Error('Ошибка сети');
-
-                    const data = await response.json();
-
-                    selectElement.innerHTML = `<option value="">${placeholder}</option>`;
-
-                    if (data.length > 0) {
-                        data.forEach(item => {
-                            const optionText = item.name || item.title || `ID ${item.id}`;
-                            const option = new Option(optionText, item.id);
-                            selectElement.add(option);
-                        });
-                        selectElement.disabled = false;
-                    } else {
-                        selectElement.innerHTML = '<option value="">Нет данных</option>';
-                    }
-
-                } catch (error) {
-                    console.error('Ошибка загрузки:', error);
-                    selectElement.innerHTML = '<option value="">Ошибка</option>';
-                }
-            }
-
-            houseSelect.addEventListener('change', function () {
-                const houseId = this.value;
-                updateSelect(sectionSelect, sectionUrl, houseId, 'Выберите секцию');
-                updateSelect(floorSelect, floorUrl, houseId, 'Выберите этаж');
-            });
-            ownerSelect.addEventListener('change', function () {
-                const ownerId = this.value;
-                updateSelectBankBook(bankBookSelect, bankBookUrl, ownerId, 'Выберите ');
-            });
-            if (!houseSelect.value) {
-                sectionSelect.disabled = true;
-                floorSelect.disabled = true;
-            }
+        $(document).ready(function () {
+            console.log('jQuery version:', $.fn.jquery);
+            console.log('Select2 loaded:', typeof $.fn.select2);
         });
     </script>
-{% endblock content %}
+    <script>
+        $(document).ready(function () {
+            $('#id_house').select2({
+                width: '100%',
+                placeholder: "Выберите...",
+                ajax: {
+                    url: '/api/admin/house',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {q: params.term, page: params.page};
+                    }
+                }
+            });
+
+            $('#id_section').select2({
+                width: '100%',
+                placeholder: "Выберите...",
+                ajax: {
+                    url: '/api/admin/section',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term,
+                            page: params.page,
+                            house_id: $('#id_house').val()
+                        };
+                    }
+                }
+            });
+            $('#id_floor').select2({
+                width: '100%',
+                placeholder: "Выберите...",
+                ajax: {
+                    url: '/api/admin/floor',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term,
+                            page: params.page,
+                            house_id: $('#id_house').val()
+                        };
+                    }
+                }
+            });
+            $('#id_owner').select2({
+                width: '100%',
+                placeholder: "Выберите...",
+                ajax: {
+                    url: '/api/admin/owner',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term,
+                            page: params.page,
+                        };
+                    }
+                }
+            });
+
+            $('#id_tariff').select2({
+                width: '100%',
+                placeholder: "Выберите...",
+                ajax: {
+                    url: '/api/admin/tariff',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {q: params.term, page: params.page};
+                    }
+                }
+            });
+
+            $('#id_bank_book_select').select2({
+                width: '100%',
+                placeholder: "или выберите из списка...",
+                ajax: {
+                    url: '/api/admin/bank_book',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term,
+                            page: params.page,
+                        };
+                    }
+                }
+            });
+
+
+        });
+    </script>
+{% endblock extra_js %}
