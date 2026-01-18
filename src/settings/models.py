@@ -33,6 +33,9 @@ class Tariffs(models.Model):
     description = models.TextField()
     edited_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.title
+
 
 class ServicesCost(models.Model):
     tariff = models.ForeignKey(

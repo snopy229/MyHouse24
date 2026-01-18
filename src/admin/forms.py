@@ -108,6 +108,15 @@ class ApartmentForm(forms.ModelForm):
             "tariff": Select2Widget(attrs={"class": "form-control"}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.instance and self.instance.pk:
+            bank_book = BankBook.objects.filter(apartment=self.instance).first()
+
+            if bank_book:
+                self.fields["bank_book_input"].initial = bank_book.number
+
     def clean(self):
         cleaned_data = super(ApartmentForm, self).clean()
 
@@ -132,12 +141,24 @@ class ApartmentForm(forms.ModelForm):
         selected_obj = self.cleaned_data["bank_book_select"]
         section = self.cleaned_data["section"]
         floor = self.cleaned_data["floor"]
+        house = self.cleaned_data["house"]
+        owner = self.cleaned_data["owner"]
+        tariff = self.cleaned_data["tariff"]
         new_bank_book = None
+        DEFAULT_STATUS_FOR_NEW = "NEW"
 
         if input_num:
             new_bank_book, created = BankBook.objects.update_or_create(
                 number=input_num,
-                defaults={"apartment": apartment, "section": section, "floor": floor},
+                defaults={
+                    "house": house,
+                    "owner": owner,
+                    "apartment": apartment,
+                    "section": section,
+                    "floor": floor,
+                    "status": DEFAULT_STATUS_FOR_NEW,
+                    "tariff": tariff,
+                },
             )
         elif selected_obj:
             new_bank_book = selected_obj

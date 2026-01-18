@@ -1,6 +1,10 @@
 {% extends "base_admin.html" %}
 {% block content %}
     <section class="content">
+        {{ form.house }}
+        {{ form.section }}
+        {{ form.floor }}
+        {{ form.owner }}
         <div class="row">
             <!--<div class="col-xs-12 col-sm-6">-->
             <!--<h2 class="page-header">Квартиры</h2>-->
@@ -24,7 +28,8 @@
                     </div>
                     <div id="w0" class="grid-view">
                         <div class="box-body table-responsive no-padding">
-                            <table class="table table-bordered table-hover table-striped linkedRow">
+                            <table id="flat-table"
+                                   class="table table-bordered table-hover table-striped linkedRow">
                             </table>
                         </div>
                         <div class="box-footer clearfix"></div>
@@ -34,4 +39,133 @@
             </div>
         </div>
     </section>
+    <style>
+        /* 1. Заставляем сам Select2 растягиваться на 100% ширины ячейки */
+        .select2-container {
+            width: 100% !important;
+            display: block; /* Важно для правильного позиционирования */
+        }
+
+        /* 2. Задаем минимальную ширину для ячеек таблицы, где есть фильтры.
+           Иначе таблица сожмет колонку до 20px, и 100% от 20px всё равно будет мало. */
+        #flat-table th, #flat-table td {
+            min-width: 120px; /* Подберите значение под себя */
+            vertical-align: middle;
+        }
+
+        /* Опционально: уменьшить отступы внутри ячейки с фильтром, чтобы влезло больше */
+        #flat-table tfoot th, #flat-table thead th {
+            padding: 4px;
+        }
+    </style>
 {% endblock content %}
+{% block extra_js %}
+    <script>
+        $(document).ready(function () {
+            AjaxDatatableViewUtils.initialize_table(
+                $('#flat-table'),
+                "{% url 'admin:flat-ajax-table' %}",
+                {
+                    processing: true,
+                    autoWidth: false,
+                    scrollX: false,
+                    lengthChange: false,
+                    pageLength: 50,
+                    searching: true,
+                    pagingType: 'numbers',
+                    showing: false,
+                    dom: '<"box-body"t><"box-footer clearfix"p>',
+                    info: false,
+                    bFilter: true,
+                    initComplete: function (settings, json) {
+                        var api = this.api();
+
+                        function setupColumnFilter(colName, selectId, ajaxUrl, dependentDataFunc) {
+                            var column = api.column(colName + ':name');
+                            if (column.index() !== undefined) {
+                                var $cell = $(column.footer());
+
+                                if ($cell.length === 0 || $cell.is(':empty')) {
+                                    $cell = $('#flat-table thead tr:eq(1) th').eq(column.index());
+                                }
+
+                                $cell.empty();
+
+                                var $select = $(selectId);
+                                $select.appendTo($cell);
+
+                                $select.select2({
+                                    width: '100%',
+                                    placeholder: "Все",
+                                    allowClear: true,
+                                    ajax: {
+                                        url: ajaxUrl,
+                                        dataType: 'json',
+                                        delay: 250,
+                                        data: function (params) {
+                                            var query = {
+                                                q: params.term,
+                                                page: params.page
+                                            };
+
+                                            if (dependentDataFunc) {
+                                                $.extend(query, dependentDataFunc());
+                                            }
+
+                                            return query;
+                                        }
+                                    }
+                                });
+
+                                $cell.on('click', function (e) {
+                                    e.stopPropagation();
+                                });
+                            }
+                        }
+
+                        setupColumnFilter('house', '#id_house', '/api/admin/house', null);
+
+                        setupColumnFilter('section', '#id_section', '/api/admin/section', function () {
+                            return {house_id: $('#id_house').val()};
+                        });
+
+                        setupColumnFilter('floor', '#id_floor', '/api/admin/floor', function () {
+                            return {
+                                house_id: $('#id_house').val()
+                            };
+                        });
+
+                        setupColumnFilter('owner', '#id_owner', '/api/admin/house', null);
+
+                        $('#id_house, #id_section, #id_floor').on('change.select2', function () {
+                            $('#flat-table').DataTable().ajax.reload();
+                        });
+
+                        $('#id_house').on('change', function () {
+                            $('#id_section').val(null).trigger('change.select2');
+                            $('#id_floor').val(null).trigger('change.select2');
+                        });
+                    }
+                },
+                {
+                    house: function () {
+                        return $('#id_house').val();
+                    },
+                    section: function () {
+                        return $('#id_section').val();
+                    },
+                    floor: function () {
+                        return $('#id_floor').val();
+                    }
+                }
+            );
+
+            $('.box-tools a').on('click', function (e) {
+                e.preventDefault();
+                $('#id_house').val(null).trigger('change');
+                $('#id_section').val(null).trigger('change');
+                $('#id_floor').val(null).trigger('change');
+            });
+        });
+    </script>
+{% endblock extra_js %}
