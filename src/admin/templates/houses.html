@@ -35,7 +35,7 @@
                     </div>
                     <div class="box-footer">
                         <div>
-                            Количество домов: <span class="text-bold">114</span>
+                            Количество домов: <span class="text-bold">{{ house.count }}</span>
                         </div>
                     </div>
                 </div>
@@ -95,6 +95,15 @@
                     bFilter: true
                 }, {},
             );
+            $('body').on('click', 'tr[data-href]', function (e) {
+
+
+                if ($(e.target).closest('a, button, .btn').length) {
+                    return;
+                }
+
+                window.location = $(this).data('href');
+            });
 
             $('#clear-table-filters').on('click', function () {
                 var datatable = $('#house-table').DataTable();

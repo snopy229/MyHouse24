@@ -1,10 +1,17 @@
 {% extends "base_admin.html" %}
 {% block content %}
+    <style>
+        .invisible {
+            display: none;
+        }
+    </style>
     <section class="content">
-        {{ form.house }}
-        {{ form.section }}
-        {{ form.floor }}
-        {{ form.owner }}
+        <div id="hidden-filters" class="invisible">
+            {{ form.house }}
+            {{ form.section }}
+            {{ form.floor }}
+            {{ form.owner }}
+        </div>
         <div class="row">
             <!--<div class="col-xs-12 col-sm-6">-->
             <!--<h2 class="page-header">Квартиры</h2>-->
@@ -40,22 +47,31 @@
         </div>
     </section>
     <style>
-        /* 1. Заставляем сам Select2 растягиваться на 100% ширины ячейки */
-        .select2-container {
-            width: 100% !important;
-            display: block; /* Важно для правильного позиционирования */
+        #clear-table-filters {
+            margin-right: 5px;
         }
 
-        /* 2. Задаем минимальную ширину для ячеек таблицы, где есть фильтры.
-           Иначе таблица сожмет колонку до 20px, и 100% от 20px всё равно будет мало. */
-        #flat-table th, #flat-table td {
-            min-width: 120px; /* Подберите значение под себя */
+        #flat-table thead tr.filters th {
+            padding: 4px 8px !important;
+            background-color: #f9f9f9;
             vertical-align: middle;
         }
 
-        /* Опционально: уменьшить отступы внутри ячейки с фильтром, чтобы влезло больше */
-        #flat-table tfoot th, #flat-table thead th {
-            padding: 4px;
+        #flat-table thead input,
+        #flat-table thead select {
+            width: 100% !important;
+            height: 28px !important;
+            padding: 2px 5px !important;
+            font-size: 12px !important;
+            border: 1px solid #d2d6de !important;
+            border-radius: 3px !important;
+            box-sizing: border-box !important;
+            color: #555;
+        }
+
+        #flat-table thead tr.filters th:after,
+        #flat-table thead tr.filters th:before {
+            display: none !important;
         }
     </style>
 {% endblock content %}

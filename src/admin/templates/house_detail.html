@@ -1,0 +1,136 @@
+{% extends "base_admin.html" %}
+{% block content %}
+    <section class="content">
+        <div class="box">
+            <div class="box-header with-border">
+                <h3 class="box-title"></h3>
+                <div class="box-tools">
+                    <a href="{% url "admin:edit-house" pk=house.id %}"
+                       class="btn btn-primary btn-sm">
+                        <span class="hidden-xs">Редактировать дом</span><i class="fa fa-pencil visible-xs" aria-hidden="true"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-xs-12 col-lg-4">
+                        <table class="table table-bordered table-striped table-view">
+                            <tbody>
+                                <tr>
+                                    <td>Название</td>
+                                    <td>цйуйц</td>
+                                </tr>
+                                <tr>
+                                    <td>Адрес</td>
+                                    <td>цйу</td>
+                                </tr>
+                                <tr>
+                                    <td>Секций</td>
+                                    <td>{{ house.section_set.count }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Этажей</td>
+                                    <td>{{ house.floor_set }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Пользователи</td>
+                                    <td>
+                                        {% if house.owner %}
+                                            {% for owner in house.owner.all %}
+                                                <p class="no-margin">
+                                                    <strong>{{ owner.role }}:</strong>
+                                                    <a href="#">{{ owner.first_name }} {{ owner.second_name }}</a>
+                                                </p>
+                                            {% endfor %}
+                                        {% else %}
+                                            <p class="no-margin">Не назначены</p>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-xs-12 col-lg-8">
+                        <div class="row">
+                            <div class="col-xs-12 col-md-6">
+                                {% if house.image1 %}
+                                    <img src="{{ house.image1.url }}"
+                                         class="img-responsive largeImg margin-bottom-30"
+                                         width="522"
+                                         height="350"
+                                         alt="">
+                                {% else %}
+                                    <img src="https://myhouse24.demodev.cc/site/glide?path=%2Fupload%2FHouse%2F409%2Fimage1.jpg&w=522&h=350&fit=crop"
+                                         class="img-responsive largeImg margin-bottom-30"
+                                         width="522"
+                                         height="350"
+                                         alt="">
+                                {% endif %}
+                            </div>
+                            <div class="col-xs-6 col-md-3">
+                                {% if house.image2 %}
+                                    <img src="{{ house.image2.url }}"
+                                         class="img-responsive smallImg margin-bottom-30"
+                                         width="248"
+                                         height="160"
+                                         alt="">
+                                {% else %}
+                                    <img src="https://myhouse24.demodev.cc/site/glide?path=%2Fupload%2Fplaceholder.jpg&w=248&h=160&fit=crop"
+                                         class="img-responsive smallImg margin-bottom-30"
+                                         width="248"
+                                         height="160"
+                                         alt="">
+                                {% endif %}
+                            </div>
+                            <div class="col-xs-6 col-md-3">
+                                {% if house.image3 %}
+                                    <img src="{{ house.image3.url }}"
+                                         class="img-responsive smallImg margin-bottom-30"
+                                         width="248"
+                                         height="160"
+                                         alt="">
+                                {% else %}
+                                    <img src="https://myhouse24.demodev.cc/site/glide?path=%2Fupload%2Fplaceholder.jpg&w=248&h=160&fit=crop"
+                                         class="img-responsive smallImg margin-bottom-30"
+                                         width="248"
+                                         height="160"
+                                         alt="">
+                                {% endif %}
+                            </div>
+                            <div class="col-xs-6 col-md-3">
+                                {% if house.image4 %}
+                                    <img src="{{ house.image4.url }}"
+                                         class="img-responsive smallImg margin-bottom-30"
+                                         width="248"
+                                         height="160"
+                                         alt="">
+                                {% else %}
+                                    <img src="https://myhouse24.demodev.cc/site/glide?path=%2Fupload%2Fplaceholder.jpg&w=248&h=160&fit=crop"
+                                         class="img-responsive smallImg margin-bottom-30"
+                                         width="248"
+                                         height="160"
+                                         alt="">
+                                {% endif %}
+                            </div>
+                            <div class="col-xs-6 col-md-3">
+                                {% if house.image5 %}
+                                    <img src="{{ house.image5.url }}"
+                                         class="img-responsive smallImg margin-bottom-30"
+                                         width="248"
+                                         height="160"
+                                         alt="">
+                                {% else %}
+                                    <img src="https://myhouse24.demodev.cc/site/glide?path=%2Fupload%2Fplaceholder.jpg&w=248&h=160&fit=crop"
+                                         class="img-responsive smallImg margin-bottom-30"
+                                         width="248"
+                                         height="160"
+                                         alt="">
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock content %}

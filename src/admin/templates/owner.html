@@ -1,0 +1,215 @@
+{% extends "base_admin.html" %}
+{% load static %}
+{% block title %}
+    Добавить пользователя
+{% endblock title %}
+{% block content %}
+    <section class="content">
+        <div class="box">
+            <div class="box-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-6">
+                            <div class="userAvatar">
+                                {% if owner %}
+                                    <img class="img-circle pull-left img-responsive"
+                                         id="img-preview"
+                                         src="{{ owner.photo.url }}"
+                                         width="150"
+                                         height="150"
+                                         alt="Фото владельца">
+                                {% else %}
+                                    <img class="img-circle pull-left img-responsive" id="img-preview" src="{% static "image/glide.jpeg" %}" width="150" height="150" alt="Заглушка фото">
+                                {% endif %}
+                                <div class="form-group field-userform-image">
+                                    <label class="control-label" for="userform-image">Сменить изображение</label>
+                                    {{ form.photo }}
+                                    <div class="help-block"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6">
+                            <div class="form-group field-userform-status">
+                                <label class="control-label" for="userform-status">Статус</label>
+                                {{ form.status }}
+                                <div class="help-block"></div>
+                            </div>
+                            <div class="form-group field-userform-uid">
+                                <label class="control-label" for="userform-uid">ID</label>
+                                {{ form.id_user }}
+                                <div class="help-block"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-6">
+                            <div class="form-group field-userform-lastname">
+                                <label class="control-label" for="userform-lastname">Фамилия</label>
+                                {{ form.second_name }}
+                                <div class="help-block"></div>
+                            </div>
+                            <div class="form-group field-userform-firstname">
+                                <label class="control-label" for="userform-firstname">Имя</label>
+                                {{ form.first_name }}
+                                <div class="help-block"></div>
+                            </div>
+                            <div class="form-group field-userform-middlename">
+                                <label class="control-label" for="userform-middlename">Отчество</label>
+                                {{ form.last_name }}
+                                <div class="help-block"></div>
+                            </div>
+                            <div class="form-group ">
+                                <label class="control-label">Дата рождения</label>
+                                {{ form.birth_date }}
+                                <div class="help-block"></div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6">
+                            <div class="form-group field-userform-note">
+                                <label class="control-label" for="userform-note">О владельце (заметки)</label>
+                                {{ form.about_owner }}
+                                <div class="help-block"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 col-md-6">
+                            <h2 class="page-header">Контактные данные</h2>
+                            <div class="form-group field-userform-phone">
+                                <label class="control-label" for="userform-phone">Телефон</label>
+                                {{ form.phone_number }}
+                                <div class="help-block"></div>
+                            </div>
+                            <div class="form-group field-userform-viber">
+                                <label class="control-label" for="userform-viber">Viber</label>
+                                {{ form.viber }}
+                                <div class="help-block"></div>
+                            </div>
+                            <div class="form-group field-userform-telegram">
+                                <label class="control-label" for="userform-telegram">Telegram</label>
+                                {{ form.telegram }}
+                                <div class="help-block"></div>
+                            </div>
+                            <div class="form-group field-userform-email required">
+                                <label class="control-label" for="userform-email">Email (логин)</label>
+                                {{ form.email }}
+                                <div class="help-block"></div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-md-6">
+                            <h2 class="page-header">Изменить пароль</h2>
+                            <div class="form-group field-userform-password">
+                                <label class="control-label" for="userform-password">Пароль</label>
+                                <div class="input-group">
+                                    {{ form.password1 }}
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default" type="button" onclick="generateAndFill()">Сгенерировать</button>
+                                        <button type="button"
+                                                class="btn btn-primary"
+                                                id="showPass"
+                                                onclick="togglePassword()">
+                                            <i class="fa fa-eye" aria-hidden="true"></i>
+                                        </button>
+                                    </span>
+                                </div>
+                                <div class="help-block"></div>
+                            </div>
+                            <div class="form-group field-userform-password2">
+                                <label class="control-label" for="userform-password2">Повторить пароль</label>
+                                {{ form.password2 }}
+                                <div class="help-block"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 text-right">
+                            <a href="{% url "admin:owners" %}" class="btn btn-default">Отменить</a>
+                            <button type="submit" class="btn btn-success">Сохранить</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+    <style>
+        #img-preview {
+            width: 150px;
+            height: 150px;
+
+            object-fit: cover;
+            border-radius: 50%;
+        / max-width: none;
+        }
+
+        .userAvatar .field-userform-image {
+            margin-left: 165px;
+            padding-top: 20px;
+        }
+    </style>
+    <script>
+        function generateAndFill() {
+
+            var minLength = 8;
+            var maxLength = 12;
+
+            var randomLength = Math.floor(Math.random() * (maxLength - minLength + 1)) + minLength;
+
+
+            var chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%";
+            var password = "";
+
+
+            for (var i = 0; i < randomLength; i++) {
+                var randomPos = Math.floor(Math.random() * chars.length);
+                password += chars.substring(randomPos, randomPos + 1);
+            }
+
+            var inputField1 = document.getElementById("id_password1");
+            var inputField2 = document.getElementById("id_password2");
+            if (inputField1 && inputField2) {
+                inputField1.value = password;
+                inputField2.value = password;
+            }
+        }
+
+        function togglePassword() {
+            var inputField1 = document.getElementById("id_password1");
+            var inputField2 = document.getElementById("id_password2")
+            if (inputField1.type === "password") {
+                inputField1.type = "text";
+                inputField2.type = "text"
+            } else {
+                inputField1.type = "password";
+                inputField2.type = "password";
+            }
+        }
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            function readURL(input, previewId) {
+                if (input.files && input.files[0]) {
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        var preview = document.getElementById(previewId);
+                        if (preview) {
+                            preview.src = e.target.result;
+                        }
+                    };
+                    reader.readAsDataURL(input.files[0]);
+                }
+            }
+
+            const inputId = 'id_photo';
+            const previewId = 'img-preview';
+            const inputElement = document.getElementById(inputId);
+
+            if (inputElement) {
+                inputElement.addEventListener('change', function () {
+                    readURL(this, previewId);
+                });
+            }
+
+        });
+    </script>
+{% endblock content %}

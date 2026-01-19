@@ -25,16 +25,14 @@ class UnitForm(forms.ModelForm):
         }
 
 
-# Создаем формсет для единиц
 UnitsFormSet = modelformset_factory(
     UnitsOfMeasurement,
-    form=UnitForm,  # Подключаем форму с виджетами
-    extra=0,  # Не выводить пустые строки по умолчанию
+    form=UnitForm,
+    extra=0,
     can_delete=True,
 )
 
 
-# --- 2. Форма для Услуг ---
 class ServiceForm(forms.ModelForm):
     class Meta:
         model = Service
@@ -42,18 +40,15 @@ class ServiceForm(forms.ModelForm):
         widgets = {
             "title": forms.TextInput(attrs={"class": "form-control"}),
             "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
-            "is_showing": forms.CheckboxInput(
-                attrs={"class": "form-checkbox"}
-            ),  # Чекбокс
+            "is_showing": forms.CheckboxInput(attrs={"class": "form-checkbox"}),
             "units_of_measure": forms.Select(attrs={"class": "form-control"}),
         }
 
 
-# Создаем формсет для услуг
 ServiceFormSet = modelformset_factory(
     Service,
     form=ServiceForm,
-    extra=0,  # Не выводить пустые строки по умолчанию
+    extra=0,
     can_delete=True,
 )
 

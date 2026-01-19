@@ -1,12 +1,27 @@
-# Create your views here.
 from ajax_datatable import AjaxDatatableView
+from django.core.mail import send_mail
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 from django.utils.html import format_html
-from django.views.generic import CreateView, UpdateView, TemplateView, DeleteView
+from django.views.generic import (
+    CreateView,
+    UpdateView,
+    TemplateView,
+    DeleteView,
+    DetailView,
+    ListView,
+)
 
-from .forms import FloorFormSet, StaffFormSet, ApartmentForm, HouseForm, SectionFormSet
+from src.user.models import User
+from .forms import (
+    FloorFormSet,
+    StaffFormSet,
+    ApartmentForm,
+    HouseForm,
+    SectionFormSet,
+    OwnerForm,
+)
 from src.admin.models import House, Apartment
 
 
@@ -96,6 +111,12 @@ class EditHouse(UpdateView):
             return self.render_to_response(self.get_context_data(form=form))
 
 
+class DetailHouse(DetailView):
+    model = House
+    template_name = "house_detail.html"
+    context_object_name = "house"
+
+
 class HouseAjaxTable(AjaxDatatableView):
     model = House
     title = "Дома"
@@ -131,6 +152,10 @@ class HouseAjaxTable(AjaxDatatableView):
             "</div>",
             obj.id,
         )
+
+        detail_url = reverse("admin:detail-house", args=[obj.id])
+
+        row["DT_RowAttr"] = {"data-href": detail_url, "style": "cursor: pointer;"}
         return
 
 
@@ -143,8 +168,10 @@ class DeleteHouse(DeleteView):
         return redirect("admin:house-list")
 
 
-class HouseList(TemplateView):
+class HouseList(ListView):
     template_name = "houses.html"
+    model = House
+    context_object_name = "house"
 
 
 class CreateFlat(CreateView):
@@ -284,3 +311,115 @@ class DeleteFlat(DeleteView):
 
 class ListOwner(TemplateView):
     template_name = "owners.html"
+    form_class = OwnerForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        if "city" in self.request.GET:
+            context["form"] = self.form_class(self.request.GET)
+        else:
+            context["form"] = self.form_class()
+
+        return context
+
+
+class CreateOwner(CreateView):
+    template_name = "owner.html"
+    form_class = OwnerForm
+    model = User
+    context_object_name = "owner"
+    success_url = reverse_lazy("admin:flat-list")
+
+    def form_valid(self, form):
+        raw_password = form.cleaned_data.get("password1")
+        user_email = form.cleaned_data.get("email")
+        if len(raw_password) != 0:
+            try:
+                send_mail(
+                    subject="Создания пароля",
+                    message=f"Новый пароль: {raw_password}",
+                    from_email=None,
+                    recipient_list=[user_email],
+                )
+            except Exception as e:
+                print(f"Ошибка отправки: {e}")
+
+        return super().form_valid(form)
+
+
+class EditOwner(UpdateView):
+    template_name = "owner.html"
+    form_class = OwnerForm
+    model = User
+    context_object_name = "owner"
+    success_url = reverse_lazy("admin:flat-list")
+
+    def form_valid(self, form):
+        raw_password = form.cleaned_data.get("password1")
+        user_email = form.cleaned_data.get("email")
+        if len(raw_password) != 0:
+            try:
+                send_mail(
+                    subject="Изменение пароля",
+                    message=f"Новый пароль: {raw_password}",
+                    from_email=None,
+                    recipient_list=[user_email],
+                )
+            except Exception as e:
+                print(f"Ошибка отправки: {e}")
+
+        return super().form_valid(form)
+
+
+class OwnerAjaxTable(AjaxDatatableView):
+    model = User
+    title = "Квартиры"
+    initial_order = [["number", "asc"]]
+
+    def get_column_defs(self, request):
+        return [
+            {
+                "name": "id_user",
+                "title": "ID",
+                "searchable": True,
+                "orderable": False,
+            },
+            {
+                "name": "full_name",
+                "title": "ФИО",
+                "searchable": True,
+                "orderable": True,
+            },
+            {
+                "name": "phone_number",
+                "title": "Телефон",
+                "searchable": True,
+                "orderable": False,
+            },
+            {
+                "name": "email",
+                "title": "E-mail",
+                "searchable": True,
+                "orderable": False,
+            },
+            {
+                "name": "house.title",
+                "title": "Дом",
+                "searchable": False,
+                "orderable": False,
+            },
+            {
+                "name": "flat.number",
+                "title": "Квартира",
+                "searchable": False,
+                "orderable": False,
+            },
+            {
+                "name": "created_at",
+                "title": "Добавлен",
+            },
+        ]
+
+    def customize_row(self, row, obj):
+        row["full_name"] = f"{obj.second_name} {obj.first_name} {obj.last_name}"

@@ -1,8 +1,10 @@
 from django import forms
+from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
 from django_select2.forms import Select2Widget
 
+from src.user.models import User
 from .models import House, Section, Floor, Apartment, BankBook
 
 
@@ -181,3 +183,77 @@ class ApartmentForm(forms.ModelForm):
             pass
 
         return apartment
+
+
+class OwnerForm(forms.ModelForm):
+    password1 = forms.CharField(
+        widget=forms.PasswordInput(attrs={"class": "form-control"}), required=False
+    )
+    password2 = forms.CharField(
+        widget=forms.PasswordInput(attrs={"class": "form-control"}),
+        required=False,
+    )
+
+    class Meta:
+        model = User
+        fields = [
+            "first_name",
+            "second_name",
+            "last_name",
+            "photo",
+            "birth_date",
+            "phone_number",
+            "viber",
+            "telegram",
+            "email",
+            "id_user",
+            "status",
+            "about_owner",
+        ]
+        widgets = {
+            "first_name": forms.TextInput(attrs={"class": "form-control"}),
+            "second_name": forms.TextInput(attrs={"class": "form-control"}),
+            "last_name": forms.TextInput(attrs={"class": "form-control"}),
+            "photo": forms.FileInput(attrs={"class": "form-control"}),
+            "birth_date": forms.DateInput(
+                attrs={
+                    "class": "form-control w-100",
+                    "type": "date",
+                    "style": "width: 100%; box-sizing: border-box;",
+                }
+            ),
+            "phone_number": forms.NumberInput(attrs={"class": "form-control"}),
+            "viber": forms.Select(attrs={"class": "form-control"}),
+            "telegram": forms.Select(attrs={"class": "form-control"}),
+            "email": forms.EmailInput(attrs={"class": "form-control"}),
+            "id_user": forms.TextInput(attrs={"class": "form-control"}),
+            "status": forms.Select(attrs={"class": "form-control"}),
+            "about_owner": forms.Textarea(attrs={"class": "form-control"}),
+        }
+
+        def clean_password1(self):
+            password1 = self.cleaned_data.get("password1")
+            if password1:
+                validate_password(password1, user=self.instance)
+            return password1
+
+        def clean(self):
+            cleaned_data = super().clean()
+            password1 = cleaned_data.get("password1")
+            password2 = cleaned_data.get("password2")
+
+            if password1 or password2:
+                if password1 != password2:
+                    self.add_error("password2", "Пароли не совпадают.")
+            return cleaned_data
+
+        def save(self, commit=True):
+            user = super().save(commit=False)
+            password1 = self.cleaned_data.get("password1")
+            password2 = self.cleaned_data.get("password2")
+
+            if password1 and password1 == password2:
+                user.set_password(password1)
+            if commit:
+                user.save()
+            return user

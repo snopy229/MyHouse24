@@ -59,8 +59,9 @@ class User(AbstractUser):
         max_length=255,
         unique=True,
     )
+    photo = models.ImageField(blank=True, null=True)
     role = models.ForeignKey(Role, on_delete=models.SET_NULL, blank=True, null=True)
-    id_user = models.IntegerField(blank=True, null=True)
+    id_user = models.IntegerField(blank=True, null=True, unique=True)
     second_name = models.CharField(blank=True, null=True, max_length=50)
     last_name = models.CharField(max_length=50, blank=True, null=True)
     birth_date = models.DateField(auto_now=False, blank=True, null=True)
@@ -69,6 +70,7 @@ class User(AbstractUser):
     viber = PhoneNumberField(blank=True, null=True)
     telegram = models.CharField(blank=True, null=True, max_length=50)
     status = models.CharField(choices=Status, default=Status.active)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
