@@ -175,6 +175,18 @@ class UserAjaxTable(AjaxDatatableView):
             "</div>",
             obj.id,
         )
+
+        status_text = obj.get_status_display()
+
+        if obj.status == Status.active:
+            css_class = "label label-success"
+        elif obj.status == Status.new:
+            css_class = "label label-warning"
+        elif obj.status == Status.inactive:
+            css_class = "label label-danger"
+
+        row["status"] = f'<small class="{css_class}">{status_text}</small>'
+
         return
 
     def get_initial_queryset(self, request=None):

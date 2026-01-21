@@ -72,6 +72,23 @@
         #flat-table thead tr.filters th:after,
         #flat-table thead tr.filters th:before {
             display: none !important;
+            color: #555;
+        }
+
+        .select2-container .select2-selection--single {
+            height: 34px !important;
+            border: 1px solid #d2d6de !important;
+            border-radius: 0 !important;
+        }
+
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 32px !important;
+            padding-left: 12px !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 32px !important;
         }
     </style>
 {% endblock content %}
@@ -142,7 +159,9 @@
                         setupColumnFilter('house', '#id_house', '/api/admin/house', null);
 
                         setupColumnFilter('section', '#id_section', '/api/admin/section', function () {
-                            return {house_id: $('#id_house').val()};
+                            return {
+                                house_id: $('#id_house').val()
+                            };
                         });
 
                         setupColumnFilter('floor', '#id_floor', '/api/admin/floor', function () {
@@ -175,6 +194,15 @@
                     }
                 }
             );
+            $('body').on('click', 'tr[data-href]', function (e) {
+
+
+                if ($(e.target).closest('a, button, .btn').length) {
+                    return;
+                }
+
+                window.location = $(this).data('href');
+            });
 
             $('.box-tools a').on('click', function (e) {
                 e.preventDefault();

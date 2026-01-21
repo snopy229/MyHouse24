@@ -70,7 +70,7 @@ class User(AbstractUser):
     viber = PhoneNumberField(blank=True, null=True)
     telegram = models.CharField(blank=True, null=True, max_length=50)
     status = models.CharField(choices=Status, default=Status.active)
-    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    created_at = models.DateField(auto_now_add=True, blank=True, null=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

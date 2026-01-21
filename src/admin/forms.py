@@ -80,7 +80,7 @@ FloorFormSet = inlineformset_factory(
 
 class ApartmentForm(forms.ModelForm):
     bank_book_select = forms.ModelChoiceField(
-        widget=Select2Widget(attrs={"class": "form-control"}),
+        widget=Select2Widget,
         required=False,
         queryset=BankBook.objects.all(),
     )
@@ -192,6 +192,17 @@ class OwnerForm(forms.ModelForm):
     password2 = forms.CharField(
         widget=forms.PasswordInput(attrs={"class": "form-control"}),
         required=False,
+    )
+    house = forms.ModelChoiceField(
+        widget=Select2Widget, required=False, queryset=House.objects.all()
+    )
+    apartment = forms.ModelChoiceField(
+        widget=Select2Widget, required=False, queryset=Apartment.objects.all()
+    )
+    created_at = forms.DateField(
+        widget=forms.DateInput(
+            attrs={"class": "form-control"},
+        )
     )
 
     class Meta:

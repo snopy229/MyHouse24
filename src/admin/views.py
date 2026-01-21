@@ -1,6 +1,8 @@
 from ajax_datatable import AjaxDatatableView
 from django.core.mail import send_mail
 from django.db import transaction
+from django.db.models import CharField, Value
+from django.db.models.functions import Concat
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 from django.utils.html import format_html
@@ -14,6 +16,7 @@ from django.views.generic import (
 )
 
 from src.user.models import User
+from src.user.choices import Status
 from .forms import (
     FloorFormSet,
     StaffFormSet,
@@ -286,6 +289,10 @@ class FlatAjaxTable(AjaxDatatableView):
             edit_url,
             delete_url,
         )
+
+        detail_url = reverse("admin:flat-detail", args=[obj.id])
+
+        row["DT_RowAttr"] = {"data-href": detail_url, "style": "cursor: pointer;"}
         for key in row:
             if row[key] is None or row[key] == "":
                 row[key] = '<span class="text-muted">(не задано)</span>'
@@ -298,6 +305,12 @@ class EditFlat(UpdateView):
     template_name = "flat.html"
     form_class = ApartmentForm
     success_url = reverse_lazy("admin:flat-list")
+
+
+class FlatDetail(DetailView):
+    model = Apartment
+    template_name = "flat_detail.html"
+    context_object_name = "apartment"
 
 
 class DeleteFlat(DeleteView):
@@ -315,13 +328,15 @@ class ListOwner(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        if "city" in self.request.GET:
-            context["form"] = self.form_class(self.request.GET)
-        else:
-            context["form"] = self.form_class()
+        context["form"] = self.form_class()
 
         return context
+
+
+class DetailOwner(DetailView):
+    model = User
+    template_name = "owner_detail.html"
+    context_object_name = "owner"
 
 
 class CreateOwner(CreateView):
@@ -375,16 +390,11 @@ class EditOwner(UpdateView):
 class OwnerAjaxTable(AjaxDatatableView):
     model = User
     title = "Квартиры"
-    initial_order = [["number", "asc"]]
+    initial_order = [["full_name", "asc"]]
 
     def get_column_defs(self, request):
         return [
-            {
-                "name": "id_user",
-                "title": "ID",
-                "searchable": True,
-                "orderable": False,
-            },
+            {"name": "id_user", "title": "ID", "searchable": True, "orderable": False},
             {
                 "name": "full_name",
                 "title": "ФИО",
@@ -404,22 +414,130 @@ class OwnerAjaxTable(AjaxDatatableView):
                 "orderable": False,
             },
             {
-                "name": "house.title",
+                "name": "virtual_house",
                 "title": "Дом",
                 "searchable": False,
                 "orderable": False,
             },
             {
-                "name": "flat.number",
+                "name": "virtual_apartment",
                 "title": "Квартира",
                 "searchable": False,
                 "orderable": False,
             },
             {
-                "name": "created_at",
+                "name": "date_joined",
                 "title": "Добавлен",
+                "searchable": True,
+                "orderable": True,
+            },
+            {
+                "name": "status",
+                "title": "Статус",
+                "searchable": True,
+                "orderable": True,
+                "choices": Status.choices,
+            },
+            {
+                "name": "actions",
+                "visible": True,
+                "searchable": False,
+                "orderable": False,
+                "title": "",
             },
         ]
 
     def customize_row(self, row, obj):
-        row["full_name"] = f"{obj.second_name} {obj.first_name} {obj.last_name}"
+        parts = [obj.second_name, obj.first_name, obj.last_name]
+        row["full_name"] = " ".join(filter(None, parts))
+        row["phone_number"] = obj.phone_number if obj.phone_number else ""
+
+        detail_url = reverse("admin:detail-owner", args=[obj.id])
+        row["DT_RowAttr"] = {"data-href": detail_url, "style": "cursor: pointer;"}
+
+        edit_url = reverse("admin:edit-owner", args=[obj.id])
+        delete_url = reverse("admin:edit-owner", args=[obj.id])
+
+        row["actions"] = format_html(
+            '<div class="btn-group btn-group-sm">'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-pencil"></i></a>'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-trash"></i></a>'
+            "</div>",
+            edit_url,
+            delete_url,
+        )
+
+        apartments = obj.apartment_set.all()
+
+        if apartments:
+            houses = set(a.house.title for a in apartments if a.house)
+            row["virtual_house"] = ", ".join(houses)
+
+            numbers = [str(a.number) for a in apartments if a.number]
+            row["virtual_apartment"] = ", ".join(numbers)
+        else:
+            row["virtual_house"] = "(не задано)"
+            row["virtual_apartment"] = "(не задано)"
+
+        status_text = obj.get_status_display()
+
+        if obj.status == Status.active:
+            css_class = "label label-success"
+        elif obj.status == Status.new:
+            css_class = "label label-warning"
+        elif obj.status == Status.inactive:
+            css_class = "label label-danger"
+
+        row["status"] = f'<small class="{css_class}">{status_text}</small>'
+
+        for key in row:
+            if row[key] is None or row[key] == "":
+                row[key] = '<span class="text-muted">(не задано)</span>'
+
+        return row
+
+    def get_initial_queryset(self, request=None):
+        qs = User.objects.filter(is_staff=False)
+
+        qs = qs.annotate(
+            full_name=Concat(
+                "second_name",
+                Value(" "),
+                "first_name",
+                Value(" "),
+                "last_name",
+                output_field=CharField(),
+            )
+        )
+
+        qs = qs.annotate(
+            virtual_house=Value("", output_field=CharField()),
+            virtual_apartment=Value("", output_field=CharField()),
+        )
+
+        house_id = self.request.POST.get("house")
+        apartment_id = self.request.POST.get("apartment")
+        created_at = self.request.POST.get("created_at")
+
+        if house_id:
+            qs = qs.filter(apartment__house__id=house_id)
+
+        if apartment_id:
+            qs = qs.filter(apartment__id=apartment_id)
+
+        if created_at:
+            qs = qs.filter(date_joined__date=created_at)
+
+        if house_id or apartment_id:
+            qs = qs.distinct()
+
+        return qs
+
+
+class DeleteOwner(DeleteView):
+    model = User
+
+    def get(self, request, pk):
+        house = get_object_or_404(House, pk=pk)
+        house.delete()
+        return redirect("admin:owner-list")
