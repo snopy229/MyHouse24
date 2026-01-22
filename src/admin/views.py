@@ -322,9 +322,11 @@ class DeleteFlat(DeleteView):
         return redirect("admin:flat-list")
 
 
-class ListOwner(TemplateView):
+class ListOwner(ListView):
     template_name = "owners.html"
     form_class = OwnerForm
+    model = User
+    context_object_name = "owner"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -362,13 +364,19 @@ class CreateOwner(CreateView):
 
         return super().form_valid(form)
 
+    def form_invalid(self, form):
+        print(">>> ОШИБКИ В ФОРМЕ:", form.errors)
+        print(">>> ПРИШЕДШИЕ ДАННЫЕ:", form.data)
+
+        return super().form_invalid(form)
+
 
 class EditOwner(UpdateView):
     template_name = "owner.html"
     form_class = OwnerForm
     model = User
     context_object_name = "owner"
-    success_url = reverse_lazy("admin:flat-list")
+    success_url = reverse_lazy("admin:owner-list")
 
     def form_valid(self, form):
         raw_password = form.cleaned_data.get("password1")

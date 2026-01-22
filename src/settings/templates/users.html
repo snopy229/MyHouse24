@@ -99,6 +99,15 @@
                 $('#roleSelect, #statusSelect').val('');
                 datatable.draw();
             });
+            $('body').on('click', 'tr[data-href]', function (e) {
+
+
+                if ($(e.target).closest('a, button, .btn').length) {
+                    return;
+                }
+
+                window.location = $(this).data('href');
+            });
         });
     </script>
 {% endblock content %}

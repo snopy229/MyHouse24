@@ -10,7 +10,8 @@
                        target="_blank"
                        class="btn btn-default btn-sm"><i class="fa fa-external-link"></i> Перейти в
                     кабинет</a>
-                    <a href="#" class="btn btn-primary btn-sm">
+                    <a href="{% url 'admin:edit-owner' pk=owner.id %}"
+                       class="btn btn-primary btn-sm">
                         <span class="hidden-xs">Редактировать профиль</span><i class="fa fa-pencil visible-xs" aria-hidden="true"></i>
                     </a>
                 </div>

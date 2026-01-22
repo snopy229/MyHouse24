@@ -199,11 +199,6 @@ class OwnerForm(forms.ModelForm):
     apartment = forms.ModelChoiceField(
         widget=Select2Widget, required=False, queryset=Apartment.objects.all()
     )
-    created_at = forms.DateField(
-        widget=forms.DateInput(
-            attrs={"class": "form-control"},
-        )
-    )
 
     class Meta:
         model = User

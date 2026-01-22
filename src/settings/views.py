@@ -2,7 +2,7 @@ from ajax_datatable import AjaxDatatableView
 from django.db import transaction
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.core.mail import send_mail
 from django.utils.html import format_html
 from django.views.generic import (
@@ -12,6 +12,7 @@ from django.views.generic import (
     CreateView,
     DeleteView,
     RedirectView,
+    DetailView,
 )
 
 from src.settings.forms import (
@@ -187,6 +188,9 @@ class UserAjaxTable(AjaxDatatableView):
 
         row["status"] = f'<small class="{css_class}">{status_text}</small>'
 
+        detail_url = reverse("settings:user-detail", args=[obj.id])
+        row["DT_RowAttr"] = {"data-href": detail_url, "style": "cursor: pointer;"}
+
         return
 
     def get_initial_queryset(self, request=None):
@@ -282,6 +286,12 @@ class CreateUser(CreateView):
             return self.form_invalid(form)
 
         return HttpResponseRedirect(reverse_lazy("settings:users-list"))
+
+
+class DetailUser(DetailView):
+    model = User
+    template_name = "user_detail.html"
+    context_object_name = "user"
 
 
 class TariffsCreateView(CreateView):

@@ -1,5 +1,6 @@
 from django.urls import path
 
+from settings.views import DetailUser
 from src.settings.views import (
     EditServicesView,
     ArticleList,
@@ -31,6 +32,7 @@ urlpatterns = [
     path("user/edit/<int:pk>/", EditUsersPageView.as_view(), name="edit-user"),
     path("user/invite/<int:pk>/", SendInvite.as_view(), name="send-invite"),
     path("user/delete/<int:pk>/", DeleteUsersView.as_view(), name="delete-user"),
+    path("user/detail/<int:pk>/", DetailUser.as_view(), name="user-detail"),
     path("user/create_user/", CreateUser.as_view(), name="create-user"),
     path("tariff/list/", TariffsList.as_view(), name="tariff-list"),
     path("tariff/create", TariffsCreateView.as_view(), name="tariff-create"),

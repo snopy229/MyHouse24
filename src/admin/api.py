@@ -11,7 +11,7 @@ from .schemas import Select2Response
 router = Router()
 
 
-def get_select2_reesult(page, qs):
+def get_select2_result(page, qs):
     paginator = Paginator(qs, 10)
     current_page = paginator.get_page(page)
     result = [{"id": item.id, "text": item.title} for item in current_page.object_list]
@@ -24,7 +24,7 @@ def list_house(request, q: str = Query(None), page: int = 1):
     if q:
         qs = qs.filter(title__icontains=q)
 
-    return get_select2_reesult(page, qs)
+    return get_select2_result(page, qs)
 
 
 @router.get("/section", response=Select2Response)
@@ -38,7 +38,7 @@ def list_section(
     if q:
         qs = qs.filter(title__icontains=q)
 
-    return get_select2_reesult(page, qs)
+    return get_select2_result(page, qs)
 
 
 @router.get("/floor", response=Select2Response)
@@ -52,7 +52,7 @@ def list_floor(
     if q:
         qs = qs.filter(title__icontains=q)
 
-    return get_select2_reesult(page, qs)
+    return get_select2_result(page, qs)
 
 
 @router.get("/owner", response=Select2Response)
@@ -78,13 +78,13 @@ def list_tariff(request, q: str = Query(None), page: int = 1):
     if q:
         qs = qs.filter(title__icontains=q)
 
-    return get_select2_reesult(page, qs)
+    return get_select2_result(page, qs)
 
 
 @router.get("/bank_book", response=Select2Response)
 def list_bank_book(request, q: str = Query(None), page: int = 1):
     qs = BankBook.objects.filter(apartament=None)
-    return get_select2_reesult(page, qs)
+    return get_select2_result(page, qs)
 
 
 @router.get("/flat", response=Select2Response)

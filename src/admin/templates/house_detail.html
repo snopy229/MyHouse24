@@ -39,7 +39,7 @@
                                             {% for owner in house.owner.all %}
                                                 <p class="no-margin">
                                                     <strong>{{ owner.role }}:</strong>
-                                                    <a href="#">{{ owner.first_name }} {{ owner.second_name }}</a>
+                                                    <a href="{% url 'settings:user-detail' pk=owner.id %}">{{ owner.first_name }} {{ owner.second_name }}</a>
                                                 </p>
                                             {% endfor %}
                                         {% else %}
