@@ -73,6 +73,7 @@
                 $('#user-table'),
                 "{% url 'settings:user-ajax-table' %}",
                 {
+                    width: '100%',
                     processing: false,
                     autoWidth: false,
                     scrollX: false,
@@ -100,12 +101,9 @@
                 datatable.draw();
             });
             $('body').on('click', 'tr[data-href]', function (e) {
-
-
                 if ($(e.target).closest('a, button, .btn').length) {
                     return;
                 }
-
                 window.location = $(this).data('href');
             });
         });

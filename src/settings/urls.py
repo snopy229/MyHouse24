@@ -1,6 +1,6 @@
 from django.urls import path
 
-from settings.views import DetailUser
+from settings.views import DetailUser, ArticleAjaxTable
 from src.settings.views import (
     EditServicesView,
     ArticleList,
@@ -26,6 +26,7 @@ urlpatterns = [
     path("article-edit/<int:pk>/", ArticleEdit.as_view(), name="article-edit"),
     path("article-create/", ArticleCreate.as_view(), name="article-create"),
     path("article-delete/<int:pk>/", ArticleDelete.as_view(), name="article-delete"),
+    path("article/table/", ArticleAjaxTable.as_view(), name="article-table"),
     path("requisite-edit/", RequisiteEdit.as_view(), name="requisite-edit"),
     path("users-list/", UsersPageView.as_view(), name="users-list"),
     path("users-list/table/", UserAjaxTable.as_view(), name="user-ajax-table"),

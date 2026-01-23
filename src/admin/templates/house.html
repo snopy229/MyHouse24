@@ -8,6 +8,10 @@
         .h-34 {
             height: 34px;
         }
+
+        .hidden-delete {
+            display: none;
+        }
     </style>
     <section class="content-header">
         <h1>Новый дом</h1>
@@ -16,7 +20,7 @@
                 <a href="#"><i class="fa fa-home"></i> Главная</a>
             </li>
             <li>
-                <a href="#}">Дома</a>
+                <a href="#">Дома</a>
             </li>
             <li class="active">Новый дом</li>
         </ul>
@@ -24,127 +28,85 @@
     <section class="content">
         <div class="box">
             <div class="box-body">
-                <form method="post" enctype="multipart/form-data">
+                <form method="post" enctype="multipart/form-data" id="house-form">
                     {% csrf_token %}
+                    {% if form.errors or sections.errors or floors.errors or staff.errors %}
+                        <div class="alert alert-danger">Проверьте корректность заполнения полей.</div>
+                    {% endif %}
                     <div class="row">
                         <div class="col-xs-12 col-lg-4">
                             <div class="form-group">
-                                <label class="control-label">Название</label>
+                                <label>Название</label>
                                 {{ form.title }}
                                 {{ form.title.errors }}
                             </div>
                             <div class="form-group">
-                                <label class="control-label">Адрес</label>
+                                <label>Адрес</label>
                                 {{ form.address }}
                                 {{ form.address.errors }}
                             </div>
                             <div class="form-group">
-                                <label class="control-label">Изображение #1. Размер: (522x350)</label>
+                                <label>Изображение #1</label>
                                 {{ form.image1 }}
                             </div>
                             <div class="form-group">
-                                <label class="control-label">Изображение #2. Размер: (248x160)</label>
+                                <label>Изображение #2</label>
                                 {{ form.image2 }}
                             </div>
                             <div class="form-group">
-                                <label class="control-label">Изображение #3. Размер: (248x160)</label>
+                                <label>Изображение #3</label>
                                 {{ form.image3 }}
                             </div>
                             <div class="form-group">
-                                <label class="control-label">Изображение #4. Размер: (248x160)</label>
+                                <label>Изображение #4</label>
                                 {{ form.image4 }}
                             </div>
                             <div class="form-group">
-                                <label class="control-label">Изображение #5. Размер: (248x160)</label>
+                                <label>Изображение #5</label>
                                 {{ form.image5 }}
                             </div>
                         </div>
                         <div class="col-xs-12 col-lg-8">
                             <div class="row">
                                 <div class="col-xs-12 col-md-6">
-                                    {% if house.image1 %}
-                                        <img src="{{ house.image1.url }}"
-                                             class="img-responsive margin-bottom-30"
-                                             id="img-preview1"
-                                             alt="Изображение дома 1"
-                                             width="522"
-                                             height="350">
-                                    {% else %}
-                                        <img src="https://myhouse24.demodev.cc/upload/placeholder.jpg"
-                                             class="img-responsive margin-bottom-30"
-                                             id="img-preview1"
-                                             alt="Заглушка 1"
-                                             width="522"
-                                             height="350">
-                                    {% endif %}
+                                    <img src=" {% if house.image1 %}{{ house.image1.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
+                                         class="img-responsive margin-bottom-30"
+                                         id="img-preview1"
+                                         alt="Изображение дома 1"
+                                         width="522"
+                                         height="350">
                                 </div>
                                 <div class="col-xs-6 col-md-3">
-                                    {% if house.image2 %}
-                                        <img src="{{ house.image2.url }}"
-                                             class="img-responsive margin-bottom-30"
-                                             id="img-preview2"
-                                             alt="Изображение дома 2"
-                                             width="248"
-                                             height="160">
-                                    {% else %}
-                                        <img src="https://myhouse24.demodev.cc/upload/placeholder.jpg"
-                                             class="img-responsive margin-bottom-30"
-                                             id="img-preview2"
-                                             alt="Заглушка 2"
-                                             width="248"
-                                             height="160">
-                                    {% endif %}
+                                    <img src=" {% if house.image2 %}{{ house.image2.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
+                                         class="img-responsive margin-bottom-30"
+                                         id="img-preview2"
+                                         alt="Изображение дома 2"
+                                         width="248"
+                                         height="160">
                                 </div>
                                 <div class="col-xs-6 col-md-3">
-                                    {% if house.image3 %}
-                                        <img src="{{ house.image3.url }}"
-                                             class="img-responsive margin-bottom-30"
-                                             id="img-preview3"
-                                             alt="Изображение дома 3"
-                                             width="248"
-                                             height="160">
-                                    {% else %}
-                                        <img src="https://myhouse24.demodev.cc/upload/placeholder.jpg"
-                                             class="img-responsive margin-bottom-30"
-                                             id="img-preview3"
-                                             alt="Заглушка 3"
-                                             width="248"
-                                             height="160">
-                                    {% endif %}
+                                    <img src=" {% if house.image3 %}{{ house.image3.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
+                                         class="img-responsive margin-bottom-30"
+                                         id="img-preview3"
+                                         alt="Изображение дома 3"
+                                         width="248"
+                                         height="160">
                                 </div>
                                 <div class="col-xs-6 col-md-3">
-                                    {% if house.image4 %}
-                                        <img src="{{ house.image4.url }}"
-                                             class="img-responsive margin-bottom-30"
-                                             id="img-preview4"
-                                             alt="Изображение дома 4"
-                                             width="248"
-                                             height="160">
-                                    {% else %}
-                                        <img src="https://myhouse24.demodev.cc/upload/placeholder.jpg"
-                                             class="img-responsive margin-bottom-30"
-                                             id="img-preview4"
-                                             alt="Заглушка 4"
-                                             width="248"
-                                             height="160">
-                                    {% endif %}
+                                    <img src=" {% if house.image4 %}{{ house.image4.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
+                                         class="img-responsive margin-bottom-30"
+                                         id="img-preview4"
+                                         alt="Изображение дома 4"
+                                         width="248"
+                                         height="160">
                                 </div>
                                 <div class="col-xs-6 col-md-3">
-                                    {% if house.image5 %}
-                                        <img src="{{ house.image5.url }}"
-                                             class="img-responsive margin-bottom-30"
-                                             id="img-preview5"
-                                             alt="Изображение дома 5"
-                                             width="248"
-                                             height="160">
-                                    {% else %}
-                                        <img src="https://myhouse24.demodev.cc/upload/placeholder.jpg"
-                                             class="img-responsive margin-bottom-30"
-                                             id="img-preview5"
-                                             alt="Заглушка 5"
-                                             width="248"
-                                             height="160">
-                                    {% endif %}
+                                    <img src=" {% if house.image5 %}{{ house.image5.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
+                                         class="img-responsive margin-bottom-30"
+                                         id="img-preview5"
+                                         alt="Изображение дома 5"
+                                         width="248"
+                                         height="160">
                                 </div>
                             </div>
                         </div>
@@ -170,6 +132,7 @@
                                             {% for s_form in sections %}
                                                 <div class="formset-row mb-15">
                                                     {% for hidden in s_form.hidden_fields %}{{ hidden }}{% endfor %}
+                                                    <div class="hidden-delete">{{ s_form.DELETE }}</div>
                                                     <label>Название</label>
                                                     <div class="input-group">
                                                         {{ s_form.title }}
@@ -193,6 +156,7 @@
                                             {% for f_form in floors %}
                                                 <div class="formset-row mb-15">
                                                     {% for hidden in f_form.hidden_fields %}{{ hidden }}{% endfor %}
+                                                    <div class="hidden-delete">{{ f_form.DELETE }}</div>
                                                     <label>Название</label>
                                                     <div class="input-group">
                                                         {{ f_form.title }}
@@ -216,6 +180,7 @@
                                             {% for st_form in staff %}
                                                 <div class="formset-row mb-15">
                                                     {% for hidden in st_form.hidden_fields %}{{ hidden }}{% endfor %}
+                                                    <div class="hidden-delete">{{ st_form.DELETE }}</div>
                                                     <div class="row">
                                                         <div class="col-xs-6">
                                                             <label>Сотрудник</label>
@@ -225,20 +190,19 @@
                                                                 <option value="">Выберите...</option>
                                                                 {% for choice in st_form.user.field.queryset %}
                                                                     <option value="{{ choice.pk }}"
-                                                                            data-role="      {% if choice.role %}{{ choice.role.title }}{% endif %}"
+                                                                            data-role=" {% if choice.role %}{{ choice.role.title }}{% endif %}"
                                                                             {% if st_form.user.value|stringformat:"s" == choice.pk|stringformat:"s" %}selected{% endif %}>
                                                                         {{ choice }}
                                                                     </option>
                                                                 {% endfor %}
                                                             </select>
-                                                            {{ st_form.user.errors }}
                                                         </div>
                                                         <div class="col-xs-5">
                                                             <label>Роль</label>
                                                             <input type="text"
                                                                    class="form-control role-field"
                                                                    disabled
-                                                                   value="      {% if st_form.instance.pk and st_form.instance.user.role %}{{ st_form.instance.user.role.title }}{% endif %}">
+                                                                   value=" {% if st_form.instance.pk and st_form.instance.user.role %}{{ st_form.instance.user.role.title }}{% endif %}">
                                                         </div>
                                                         <div class="col-xs-1">
                                                             <label>&nbsp;</label>
@@ -261,44 +225,42 @@
                     </div>
                     <div class="row">
                         <div class="col-xs-12 text-right">
-                            <div class="form-group">
-                                <button type="reset" class="btn btn-default">Отменить</button>
-                                <button type="submit" class="btn btn-success">Сохранить</button>
-                            </div>
+                            <button type="reset" class="btn btn-default">Отменить</button>
+                            <button type="submit" class="btn btn-success">Сохранить</button>
                         </div>
                     </div>
                 </form>
             </div>
         </div>
     </section>
+    {# Шаблоны для пустых форм (JS) #}
     <script id="sections-empty" type="text/template">
         <div class="formset-row mb-15">
+            <div class="hidden-delete">{{ sections.empty_form.DELETE }}</div>
             <label>Название</label>
             <div class="input-group">
                 {{ sections.empty_form.title }}
                 <span class="input-group-btn">
-                    <button type="button" class="btn btn-danger delete-row h-34">
-                        <i class="fa fa-trash"></i>
-                    </button>
+                    <button type="button" class="btn btn-danger delete-row h-34"><i class="fa fa-trash"></i></button>
                 </span>
             </div>
         </div>
     </script>
     <script id="floors-empty" type="text/template">
         <div class="formset-row mb-15">
+            <div class="hidden-delete">{{ floors.empty_form.DELETE }}</div>
             <label>Название</label>
             <div class="input-group">
                 {{ floors.empty_form.title }}
                 <span class="input-group-btn">
-                    <button type="button" class="btn btn-danger delete-row h-34">
-                        <i class="fa fa-trash"></i>
-                    </button>
+                    <button type="button" class="btn btn-danger delete-row h-34"><i class="fa fa-trash"></i></button>
                 </span>
             </div>
         </div>
     </script>
     <script id="staff-empty" type="text/template">
         <div class="formset-row mb-15">
+            <div class="hidden-delete">{{ staff.empty_form.DELETE }}</div>
             <div class="row">
                 <div class="col-xs-6">
                     <label>Сотрудник</label>
@@ -317,8 +279,7 @@
                 </div>
                 <div class="col-xs-1">
                     <label>&nbsp;</label>
-                    <button type="button" class="btn btn-danger delete-row btn-block h-34">
-                        <i class="fa fa-trash"></i>
+                    <button type="button" class="btn btn-danger delete-row btn-block h-34"><i class="fa fa-trash"></i>
                     </button>
                 </div>
             </div>
@@ -326,86 +287,95 @@
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const staffContainer = document.getElementById('staff-container');
-
-            function updateRoleField(selectElement) {
-                const selectedOption = selectElement.options[selectElement.selectedIndex];
-                const roleText = selectedOption ? (selectedOption.getAttribute('data-role') || '') : '';
-                const row = selectElement.closest('.formset-row');
-                const roleField = row.querySelector('.role-field');
-                if (roleField) {
-                    roleField.value = roleText;
-                }
+            function updateRole(select) {
+                const option = select.options[select.selectedIndex];
+                const role = option ? (option.getAttribute('data-role') || '') : '';
+                const row = select.closest('.formset-row');
+                const field = row.querySelector('.role-field');
+                if (field) field.value = role;
             }
 
-            document.addEventListener('change', function (e) {
-                if (e.target.classList.contains('user-select') || (e.target.name && e.target.name.includes('staff') && e.target.name.includes('-user'))) {
-                    updateRoleField(e.target);
+            function filterStaffChoices() {
+                const allSelects = document.querySelectorAll('.user-select');
+                const selectedValues = Array.from(allSelects).map(s => s.value).filter(v => v !== "");
+                allSelects.forEach(select => {
+                    const currentValue = select.value;
+                    Array.from(select.options).forEach(option => {
+                        if (option.value === "") return;
+                        if (selectedValues.includes(option.value) && option.value !== currentValue) {
+                            option.style.display = 'none';
+                            option.disabled = true;
+                        } else {
+                            option.style.display = 'block';
+                            option.disabled = false;
+                        }
+                    });
+                });
+            }
+
+            document.addEventListener('click', function (e) {
+                const addBtn = e.target.closest('.add-formset-row');
+                if (addBtn) {
+                    const prefix = addBtn.dataset.prefix;
+                    const container = document.getElementById(addBtn.dataset.container);
+                    const totalForms = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
+                    const count = parseInt(totalForms.value);
+                    let html = document.getElementById(`${prefix}-empty`).innerHTML.replace(/__prefix__/g, count);
+                    container.insertAdjacentHTML('beforeend', html);
+                    const newRow = container.lastElementChild;
+                    const input = newRow.querySelector('input[name$="-title"]');
+                    if (input) {
+                        if (prefix === 'sections') input.value = 'Секция ' + (count + 1);
+                        if (prefix === 'floors') input.value = 'Этаж ' + (count + 1);
+                    }
+                    totalForms.value = count + 1;
+                    filterStaffChoices();
+                }
+
+                const delBtn = e.target.closest('.delete-row');
+                if (delBtn) {
+                    const row = delBtn.closest('.formset-row');
+                    const tab = row.closest('.tab-pane');
+                    const prefix = tab.id.replace('tab-', '');
+                    const idInput = row.querySelector(`input[name$="-id"]`);
+                    if (idInput && idInput.value) {
+                        const delCheck = row.querySelector(`input[name$="-DELETE"]`);
+                        if (delCheck) delCheck.checked = true;
+                        row.style.display = 'none';
+                        const select = row.querySelector('.user-select');
+                        if (select) select.value = "";
+                    } else {
+                        row.remove();
+                        const total = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
+                        total.value = parseInt(total.value) - 1;
+                    }
+                    filterStaffChoices();
                 }
             });
 
-            const existingSelects = staffContainer.querySelectorAll('select[name*="staff"][name*="-user"]');
-            existingSelects.forEach(select => {
-                updateRoleField(select);
+            document.addEventListener('change', function (e) {
+                if (e.target.classList.contains('user-select')) {
+                    updateRole(e.target);
+                    filterStaffChoices();
+                }
             });
 
-            function readURL(input, previewId) {
+            document.querySelectorAll('.user-select').forEach(updateRole);
+            filterStaffChoices();
+
+            function readURL(input, id) {
                 if (input.files && input.files[0]) {
-                    var reader = new FileReader();
-                    reader.onload = function (e) {
-                        var preview = document.getElementById(previewId);
-                        if (preview) {
-                            preview.src = e.target.result;
-                        }
-                    };
+                    const reader = new FileReader();
+                    reader.onload = e => document.getElementById(id).src = e.target.result;
                     reader.readAsDataURL(input.files[0]);
                 }
             }
 
             for (let i = 1; i <= 5; i++) {
-                const inputId = 'id_image' + i;
-                const previewId = 'img-preview' + i;
-                const inputElement = document.getElementById(inputId);
-
-                if (inputElement) {
-                    inputElement.addEventListener('change', function () {
-                        readURL(this, previewId);
-                    });
-                }
-            }
-        });
-        document.addEventListener('click', function (e) {
-            if (e.target.classList.contains('add-formset-row') || e.target.closest('.add-formset-row')) {
-                const button = e.target.classList.contains('add-formset-row') ? e.target : e.target.closest('.add-formset-row');
-                const prefix = button.dataset.prefix;
-                const container = document.getElementById(button.dataset.container);
-                const totalForms = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
-                const count = parseInt(totalForms.value);
-
-                let newRow = document.getElementById(`${prefix}-empty`).innerHTML;
-                newRow = newRow.replace(/__prefix__/g, count);
-
-                container.insertAdjacentHTML('beforeend', newRow);
-                totalForms.value = count + 1;
-
-                const newInput = container.lastElementChild.querySelector('input[type="text"]');
-                if (newInput && prefix === 'sections') {
-                    newInput.value = `Секция ${count + 1}`;
-                } else if (newInput && prefix === 'floors') {
-                    newInput.value = `Этаж ${count + 1}`;
-                }
-            }
-
-            if (e.target.classList.contains('delete-row') || e.target.closest('.delete-row')) {
-                const button = e.target.classList.contains('delete-row') ? e.target : e.target.closest('.delete-row');
-                const row = button.closest('.formset-row');
-                const checkbox = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
-                if (checkbox) {
-                    checkbox.checked = true;
-                    row.style.display = 'none';
-                } else {
-                    row.remove();
-                }
+                const el = document.getElementById('id_image' + i);
+                if (el) el.addEventListener('change', function () {
+                    readURL(this, 'img-preview' + i);
+                });
             }
         });
     </script>

@@ -74,7 +74,44 @@ class ArticleList(ListView):
     model = Article
     template_name = "article_list.html"
     context_object_name = "articles"
-    ordering = ["-title"]
+
+
+class ArticleAjaxTable(AjaxDatatableView):
+    model = Article
+    title = "Статьи"
+    column_defs = [
+        {
+            "name": "title",
+            "title": "Название",
+            "visible": True,
+            "searchable": False,
+            "orderable": False,
+        },
+        {
+            "name": "type",
+            "title": "Приход/расход",
+            "visible": True,
+            "searchable": False,
+            "orderable": True,
+        },
+        {"name": "actions", "visible": True, "searchable": False, "orderable": False},
+    ]
+
+    def customize_row(self, row, obj):
+        detail_url = reverse("settings:article-edit", args=[obj.id])
+        row["DT_RowAttr"] = {"data-href": detail_url, "style": "cursor: pointer;"}
+
+        edit_url = reverse("settings:article-edit", args=[obj.id])
+        delete_url = reverse("settings:article-delete", args=[obj.id])
+
+        row["actions"] = format_html(
+            '<div class="btn-group btn-group-sm">'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-pencil"></i></a>'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-trash"></i></a>'
+            "</div>",
+            edit_url,
+            delete_url,
+        )
 
 
 class ArticleEdit(UpdateView):
