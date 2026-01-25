@@ -22,6 +22,8 @@ from .views import (
     CreateBankBook,
     BankBookListView,
     BankBookAjaxTable,
+    UpdateBankBook,
+    DeleteBankBook,
 )
 
 app_name = "admin"
@@ -52,4 +54,6 @@ urlpatterns = [
     path("bankbook/create/", CreateBankBook.as_view(), name="create-bankbook"),
     path("bankbook/list/", BankBookListView.as_view(), name="bankbook-list"),
     path("banbook/table/", BankBookAjaxTable.as_view(), name="bankbook-ajax-table"),
+    path("bankbook/edit/<int:pk>/", UpdateBankBook.as_view(), name="bankbook-edit"),
+    path("bankbook/delete/<int:pk>/", DeleteBankBook.as_view(), name="bankbook-delete"),
 ]

@@ -572,6 +572,22 @@ class BankBookListView(ListView):
         return context
 
 
+class UpdateBankBook(UpdateView):
+    model = BankBook
+    template_name = "bankbook.html"
+    form_class = BankBookForm
+    success_url = reverse_lazy("admin:bankbook-list")
+
+
+class DeleteBankBook(DeleteView):
+    model = BankBook
+
+    def get(self, request, pk):
+        bankbook = get_object_or_404(BankBook, pk=pk)
+        bankbook.delete()
+        return redirect("admin:bankbook-list")
+
+
 class BankBookAjaxTable(AjaxDatatableView):
     model = BankBook
     # initial_order = [['id', 'asc']]
@@ -611,7 +627,7 @@ class BankBookAjaxTable(AjaxDatatableView):
                 "searchable": False,
             },
             {
-                "name": "action",
+                "name": "actions",
                 "title": "",
                 "searchable": False,
             },
@@ -633,8 +649,8 @@ class BankBookAjaxTable(AjaxDatatableView):
         if obj.apartment.owner:
             row["owner"] = obj.apartment.owner.fullname
 
-        edit_url = "#"
-        delete_url = "#"
+        edit_url = reverse("admin:bankbook-edit", args=[obj.id])
+        delete_url = reverse("admin:bankbook-delete", args=[obj.id])
 
         row["actions"] = format_html(
             '<div class="btn-group btn-group-sm">'

@@ -59,6 +59,23 @@
             </div>
         </div>
     </section>
+    <style>
+        .select2-container .select2-selection--single {
+            border: 1px solid #d2d6de !important;
+            border-radius: 0 !important;
+            height: 32px;
+        }
+
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 32px !important;
+            padding-left: 12px !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 32px !important;
+        }
+    </style>
 {% endblock content %}
 {% block extra_js %}
     <script>

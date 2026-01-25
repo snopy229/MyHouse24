@@ -47,6 +47,9 @@ class Apartment(models.Model):
     )
     tariff = models.ForeignKey(Tariffs, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return str(self.number)
+
 
 class BankBook(models.Model):
     number = models.IntegerField(unique=True)

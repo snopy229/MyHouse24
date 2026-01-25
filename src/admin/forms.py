@@ -147,7 +147,7 @@ class ApartmentForm(forms.ModelForm):
         owner = self.cleaned_data["owner"]
         tariff = self.cleaned_data["tariff"]
         new_bank_book = None
-        DEFAULT_STATUS_FOR_NEW = "NEW"
+        DEFAULT_STATUS_FOR_NEW = "ACTIVE"
 
         if input_num:
             new_bank_book, created = BankBook.objects.update_or_create(
