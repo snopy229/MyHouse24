@@ -92,6 +92,43 @@
                             </table>
                         </div>
                     </div>
+                    {% if owner.apartment_set %}
+                        <h4>Квартиры</h4>
+                        <div class="table-responsive no-padding margin-top-15">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Дом</th>
+                                        <th>Секция</th>
+                                        <th>Квартира</th>
+                                        <th>Лицевой счет</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for apartment in owner.apartment_set.all %}
+                                        <tr role="row">
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>
+                                                <a href="{% url 'admin:detail-house' pk=apartment.house.id %}">{{ apartment.house.title }}</a>
+                                            </td>
+                                            <td>{{ apartment.section.title | default:'не указано' }}</td>
+                                            <td>
+                                                <a href="{% url 'admin:flat-detail' pk=apartment.id %}">{{ apartment.number }}</a>
+                                            </td>
+                                            <td>
+                                                {% if apartment.bankbook_set %}
+                                                    <a href="">{{ apartment.bankbook_set.number }}</a>
+                                                {% else %}
+                                                    не указано
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

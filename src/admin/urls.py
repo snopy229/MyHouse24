@@ -19,6 +19,9 @@ from .views import (
     OwnerAjaxTable,
     DeleteOwner,
     FlatDetail,
+    CreateBankBook,
+    BankBookListView,
+    BankBookAjaxTable,
 )
 
 app_name = "admin"
@@ -45,4 +48,8 @@ urlpatterns = [
     path("owner/detail/<int:pk>/", DetailOwner.as_view(), name="detail-owner"),
     path("owner/ajax/table/", OwnerAjaxTable.as_view(), name="owner-ajax-table"),
     path("owner/delete/<int:pk>/", DeleteOwner.as_view(), name="delete-owner"),
+    # BankBook
+    path("bankbook/create/", CreateBankBook.as_view(), name="create-bankbook"),
+    path("bankbook/list/", BankBookListView.as_view(), name="bankbook-list"),
+    path("banbook/table/", BankBookAjaxTable.as_view(), name="bankbook-ajax-table"),
 ]

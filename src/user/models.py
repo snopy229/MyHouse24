@@ -75,5 +75,10 @@ class User(AbstractUser):
     REQUIRED_FIELDS = []
     objects = MyUserManager()
 
+    @property
+    def fullname(self):
+        parts = [self.second_name, self.first_name, self.last_name]
+        return " ".join(filter(None, parts))
+
     def __str__(self):
         return f"{self.first_name} {self.second_name}"

@@ -17,6 +17,7 @@ from django.views.generic import (
 
 from src.user.models import User
 from src.user.choices import Status
+from .choices import StatusBankBook
 from .forms import (
     FloorFormSet,
     StaffFormSet,
@@ -24,8 +25,9 @@ from .forms import (
     HouseForm,
     SectionFormSet,
     OwnerForm,
+    BankBookForm,
 )
-from src.admin.models import House, Apartment
+from src.admin.models import House, Apartment, BankBook
 
 
 class CreateHouse(CreateView):
@@ -549,3 +551,118 @@ class DeleteOwner(DeleteView):
         house = get_object_or_404(House, pk=pk)
         house.delete()
         return redirect("admin:owner-list")
+
+
+class CreateBankBook(CreateView):
+    model = BankBook
+    template_name = "bankbook.html"
+    form_class = BankBookForm
+
+
+class BankBookListView(ListView):
+    model = BankBook
+    template_name = "bankbooks.html"
+    context_object_name = "bankbook"
+    form_class = BankBookForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["form"] = self.form_class()
+
+        return context
+
+
+class BankBookAjaxTable(AjaxDatatableView):
+    model = BankBook
+    # initial_order = [['id', 'asc']]
+    template_name = "bankbook.html"
+
+    def get_column_defs(self, request=None):
+        columns = [
+            {"name": "number", "title": "№", "searchable": True},
+            {
+                "name": "status",
+                "title": "Статус",
+                "searchable": True,
+                "choices": StatusBankBook.choices,
+            },
+            {
+                "name": "apartment",
+                "foreign_field": "apartment__number",
+                "title": "Квартира",
+                "searchable": True,
+            },
+            {
+                "name": "house",
+                "foreign_field": "house__title",
+                "title": "Дом",
+                "searchable": False,
+            },
+            {
+                "name": "section",
+                "foreign_field": "section__title",
+                "title": "Секция",
+                "searchable": False,
+            },
+            {
+                "name": "owner",
+                "foreign_field": "apartment__owner__last_name",
+                "title": "Владелец",
+                "searchable": False,
+            },
+            {
+                "name": "action",
+                "title": "",
+                "searchable": False,
+            },
+        ]
+        return columns
+
+    def customize_row(self, row, obj):
+        status = obj.get_status_display()
+        css_class = "label label-default"
+        if obj.status == StatusBankBook.ACTIVE:
+            css_class = "label label-success"
+        elif obj.status == StatusBankBook.INACTIVE:
+            css_class = "label label-danger"
+        row["status"] = f'<small class="{css_class}">{status}</small>'
+
+        detail_url = "#"
+        row["DT_RowAttr"] = {"data-href": detail_url, "style": "cursor: pointer;"}
+
+        if obj.apartment.owner:
+            row["owner"] = obj.apartment.owner.fullname
+
+        edit_url = "#"
+        delete_url = "#"
+
+        row["actions"] = format_html(
+            '<div class="btn-group btn-group-sm">'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-pencil"></i></a>'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-trash"></i></a>'
+            "</div>",
+            edit_url,
+            delete_url,
+        )
+
+        for key in row:
+            if row[key] is None or row[key] == "":
+                row[key] = '<span class="text-muted">(не задано)</span>'
+
+        return row
+
+    def get_initial_queryset(self, request=None):
+        qs = super().get_initial_queryset().order_by("id")
+
+        house = self.request.POST.get("house")
+        section = self.request.POST.get("section")
+        owner = self.request.POST.get("owner")
+
+        if house:
+            qs = qs.filter(house__id=house)
+        if section:
+            qs = qs.filter(section__id=section)
+        if owner:
+            qs = qs.filter(apartment__owner__fullname=owner)
+
+        return qs

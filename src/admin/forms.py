@@ -263,3 +263,35 @@ class OwnerForm(forms.ModelForm):
             if commit:
                 user.save()
             return user
+
+
+class BankBookForm(forms.ModelForm):
+    owner = forms.ModelChoiceField(
+        widget=Select2Widget, required=False, queryset=User.objects.all()
+    )
+
+    class Meta:
+        model = BankBook
+        fields = [
+            "number",
+            "status",
+            "apartment",
+            "house",
+            "section",
+        ]
+        widgets = {
+            "number": forms.NumberInput(attrs={"class": "form-control"}),
+            "status": forms.Select(attrs={"class": "form-control"}),
+            "apartment": Select2Widget(attrs={"class": "form-control"}),
+            "house": Select2Widget(attrs={"class": "form-control"}),
+            "section": Select2Widget(attrs={"class": "form-control"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.instance.pk:
+            last_book = BankBook.objects.last()
+            if last_book:
+                self.fields["number"].initial = last_book.number + 1
+            else:
+                self.fields["number"].initial = 1

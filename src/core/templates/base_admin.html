@@ -104,74 +104,75 @@
                             <a href="#"><i class="fa fa-files-o"></i> <span>Квитанции на оплату</span></a>
                         </li>
                         <li>
-                            <a href="#"><i class="fa fa-credit-card"></i> <span>Лицевые счета</span></a>
-                        </li>
-                        <li>
-                            <a href="{% url 'admin:flat-list' %}"><i class="fa fa-key"></i> <span>Квартиры</span></a>
-                        </li>
-                        {# Удален ошибочный вложенный блок HTML #}
-                        <li>
-                        <a href="{% url 'admin:owner-list' %}"><i class="fa fa-users"></i>
-                        <span>Владельцы квартир</span></a>
+                        <a href="{% url 'admin:bankbook-list' %}"><i class="fa fa-credit-card"></i>
+                        <span>Лицевые счета</span></a>
                 </li>
                 <li>
-                    <a href="{% url 'admin:house-list' %}"><i class="fa fa-building"></i> <span>Дома</span></a>
+                    <a href="{% url 'admin:flat-list' %}"><i class="fa fa-key"></i> <span>Квартиры</span></a>
+                </li>
+                {# Удален ошибочный вложенный блок HTML #}
+                <li>
+                <a href="{% url 'admin:owner-list' %}"><i class="fa fa-users"></i>
+                <span>Владельцы квартир</span></a>
+        </li>
+        <li>
+            <a href="{% url 'admin:house-list' %}"><i class="fa fa-building"></i> <span>Дома</span></a>
+        </li>
+        <li>
+            <a href="#"><i class="fa fa-envelope-o"></i> <span>Сообщения</span></a>
+        </li>
+        <li>
+            <a href="#"><i class="fa fa-wrench"></i> <span>Заявки мастера</span></a>
+        </li>
+        <li>
+            <a href="#"><i class="fa fa-dashboard"></i> <span>Показания счетчиков</span></a>
+        </li>
+        <li class="treeview">
+            <a href="#!"><i class="fa fa-desktop"></i> <span>Управление сайтом</span> <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span></a>
+            <ul class="treeview-menu">
+                <li>
+                    <a href="{% url 'managements:edit-main-page' %}"><i class="fa fa-circle-o"></i> <span>Главная страница</span></a>
                 </li>
                 <li>
-                    <a href="#"><i class="fa fa-envelope-o"></i> <span>Сообщения</span></a>
+                    <a href="{% url 'managements:edit-about-us' %}"><i class="fa fa-circle-o"></i> <span>О нас</span></a>
                 </li>
                 <li>
-                    <a href="#"><i class="fa fa-wrench"></i> <span>Заявки мастера</span></a>
+                    <a href="{% url 'managements:edit-services' %}"><i class="fa fa-circle-o"></i> <span>Услуги</span></a>
                 </li>
                 <li>
-                    <a href="#"><i class="fa fa-dashboard"></i> <span>Показания счетчиков</span></a>
-                </li>
-                <li class="treeview">
-                    <a href="#!"><i class="fa fa-desktop"></i> <span>Управление сайтом</span> <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span></a>
-                    <ul class="treeview-menu">
-                        <li>
-                            <a href="{% url 'managements:edit-main-page' %}"><i class="fa fa-circle-o"></i> <span>Главная страница</span></a>
-                        </li>
-                        <li>
-                            <a href="{% url 'managements:edit-about-us' %}"><i class="fa fa-circle-o"></i> <span>О нас</span></a>
-                        </li>
-                        <li>
-                            <a href="{% url 'managements:edit-services' %}"><i class="fa fa-circle-o"></i> <span>Услуги</span></a>
-                        </li>
-                        <li>
-                            <a href="{% url 'managements:edit-tariffs' %}"><i class="fa fa-circle-o"></i> <span>Тарифы</span></a>
-                        </li>
-                        <li>
-                            <a href="{% url 'managements:edit-contacts' %}"><i class="fa fa-circle-o"></i> <span>Контакты</span></a>
-                        </li>
-                    </ul>
-                </li>
-                <li class="active treeview">
-                    <a href="#!"><i class="fa fa-cogs"></i> <span>Настройки системы</span>
-                        <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span></a>
-                    <ul class="treeview-menu treeview-menu-visible">
-                        <li class="active">
-                            <a href="{% url 'settings:edit-services' %}"><i class="fa fa-briefcase"></i> <span>Услуги</span></a>
-                        </li>
-                        <li>
-                        <a href="{% url 'settings:tariff-list' %}"><i class="fa fa-money"></i>
-                        <span>Тарифы</span></a>
+                    <a href="{% url 'managements:edit-tariffs' %}"><i class="fa fa-circle-o"></i> <span>Тарифы</span></a>
                 </li>
                 <li>
-                    <a href="#"><i class="fa fa-user"></i> <span>Роли</span></a>
-                </li>
-                <li>
-                    <a href="{% url 'settings:users-list' %}"><i class="fa fa-user-plus"></i> <span>Пользователи</span></a>
-                </li>
-                <li>
-                    <a href="{% url 'settings:requisite-edit' %}"><i class="fa fa-credit-card"></i> <span>Платежные реквизиты</span></a>
-                </li>
-                <li>
-                    <a href="{% url 'settings:article-list' %}"><i class="fa fa-list-ol"></i> <span>Статьи платежей</span></a>
+                    <a href="{% url 'managements:edit-contacts' %}"><i class="fa fa-circle-o"></i> <span>Контакты</span></a>
                 </li>
             </ul>
         </li>
+        <li class="active treeview">
+            <a href="#!"><i class="fa fa-cogs"></i> <span>Настройки системы</span>
+                <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span></a>
+            <ul class="treeview-menu treeview-menu-visible">
+                <li class="active">
+                    <a href="{% url 'settings:edit-services' %}"><i class="fa fa-briefcase"></i> <span>Услуги</span></a>
+                </li>
+                <li>
+                <a href="{% url 'settings:tariff-list' %}"><i class="fa fa-money"></i>
+                <span>Тарифы</span></a>
+        </li>
+        <li>
+            <a href="#"><i class="fa fa-user"></i> <span>Роли</span></a>
+        </li>
+        <li>
+            <a href="{% url 'settings:users-list' %}"><i class="fa fa-user-plus"></i> <span>Пользователи</span></a>
+        </li>
+        <li>
+            <a href="{% url 'settings:requisite-edit' %}"><i class="fa fa-credit-card"></i> <span>Платежные реквизиты</span></a>
+        </li>
+        <li>
+            <a href="{% url 'settings:article-list' %}"><i class="fa fa-list-ol"></i> <span>Статьи платежей</span></a>
+        </li>
     </ul>
+</li>
+</ul>
 </section>
 </aside>
 <div class="content-wrapper">

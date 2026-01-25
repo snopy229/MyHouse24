@@ -1,12 +1,11 @@
 from django.core.paginator import Paginator
+from django.urls import reverse
 from ninja import Router, Query
 
 from src.settings.models import Tariffs
 from src.user.models import User
 from .models import House, Floor, Section, BankBook, Apartment
 from .schemas import Select2Response
-
-# from .schemas import SectionSchema, FloorSchema, HouseSchema
 
 router = Router()
 
@@ -20,7 +19,7 @@ def get_select2_result(page, qs):
 
 @router.get("/house", response=Select2Response)
 def list_house(request, q: str = Query(None), page: int = 1):
-    qs = House.objects.all()
+    qs = House.objects.all().order_by("id")
     if q:
         qs = qs.filter(title__icontains=q)
 
@@ -66,8 +65,7 @@ def list_owner(request, q: str = Query(None), page: int = 1):
     current_page = paginator.get_page(page)
 
     result = [
-        {"id": item.id, "text": f"{item.first_name} {item.second_name}"}
-        for item in current_page.object_list
+        {"id": item.id, "text": f"{item.fullname}"} for item in current_page.object_list
     ]
     return {"results": result, "pagination": {"more": current_page.has_next()}}
 
@@ -105,3 +103,21 @@ def list_flat(
         {"id": item.id, "text": str(item.number)} for item in current_page.object_list
     ]
     return {"results": result, "pagination": {"more": current_page.has_next()}}
+
+
+@router.get("/apartment/{apartment_id}/owner")
+def apartment_owner(request, apartment_id: int):
+    apartment = Apartment.objects.select_related("owner").get(id=apartment_id)
+
+    if not apartment.owner:
+        return {
+            "fullname": "не указано",
+            "phone_number": "не указано",
+            "url": None,
+        }
+
+    return {
+        "fullname": apartment.owner.fullname,
+        "phone_number": apartment.owner.phone_number,
+        "url": reverse("admin:detail-owner", args=(apartment.owner.id,)),
+    }

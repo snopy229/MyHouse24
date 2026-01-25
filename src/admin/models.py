@@ -1,6 +1,6 @@
 from django.db import models
 
-from src.admin.choices import Status
+from src.admin.choices import StatusBankBook
 from src.settings.models import Tariffs
 from src.user.models import User
 
@@ -9,11 +9,11 @@ from src.user.models import User
 class House(models.Model):
     title = models.CharField(max_length=100)
     address = models.CharField()
-    image1 = models.ImageField(upload_to="images/")
-    image2 = models.ImageField(upload_to="images/")
-    image3 = models.ImageField(upload_to="images/")
-    image4 = models.ImageField(upload_to="images/")
-    image5 = models.ImageField(upload_to="images/")
+    image1 = models.ImageField(upload_to="images/", blank=True, null=True)
+    image2 = models.ImageField(upload_to="images/", blank=True, null=True)
+    image3 = models.ImageField(upload_to="images/", blank=True, null=True)
+    image4 = models.ImageField(upload_to="images/", blank=True, null=True)
+    image5 = models.ImageField(upload_to="images/", blank=True, null=True)
     owner = models.ManyToManyField(User, related_name="owner")
 
     def __str__(self):
@@ -42,16 +42,17 @@ class Apartment(models.Model):
     house = models.ForeignKey(House, on_delete=models.CASCADE)
     floor = models.ForeignKey(Floor, on_delete=models.CASCADE)
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    owner = models.ForeignKey(
+        User, on_delete=models.CASCADE, limit_choices_to={"is_staff": False}
+    )
     tariff = models.ForeignKey(Tariffs, on_delete=models.CASCADE)
 
 
 class BankBook(models.Model):
     number = models.IntegerField(unique=True)
-    status = models.CharField(choices=Status, max_length=10, blank=True, null=True)
+    status = models.CharField(
+        choices=StatusBankBook, max_length=10, blank=True, null=True
+    )
     apartment = models.ForeignKey(Apartment, on_delete=models.CASCADE)
     house = models.ForeignKey(House, on_delete=models.CASCADE)
-    floor = models.ForeignKey(Floor, on_delete=models.CASCADE)
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE)
-    tariff = models.ForeignKey(Tariffs, on_delete=models.CASCADE)
