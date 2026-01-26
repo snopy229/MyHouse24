@@ -1,0 +1,84 @@
+{% extends "base_admin.html" %}
+{% block content %}
+    <section class="content">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-xs-12 col-md-7 col-lg-6">
+                    <div class="page-header-spec">
+                        <div class="form-group field-counterdata-uid required">
+                            <div class="input-group">
+                                <div class="input-group-addon">№</div>
+                                {{ form.number }}
+                            </div>
+                        </div>
+                        <span class="label-mid">от</span>
+                        <div class="form-group field-counterdata-uid_date">
+                            <div id="counterdata-uid_date-kvdate" class="input-group date">
+                                <span class="input-group-addon kv-date-calendar" title="Выбрать дату"><i class="glyphicon glyphicon-calendar"></i></span>{{ form.date }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="box">
+                <div class="box-body">
+                    <input type="hidden" id="counterdata-id" name="CounterData[id]">
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-6">
+                            <div class="form-group">
+                                <label for="house_id">Дом</label>
+                                {{ form.house }}
+                            </div>
+                            <div class="form-group">
+                                <label for="section_id">Секция</label>
+                                {{ form.section }}
+                            </div>
+                            <div class="form-group field-counterdata-flat_id required">
+                                <label class="control-label" for="counterdata-flat_id">Квартира</label>
+                                {{ form.apartment }}
+                                <div class="help-block"></div>
+                            </div>
+                            <div class="form-group field-counterdata-service_id">
+                                <label class="control-label" for="counterdata-service_id">Счетчик</label>
+                                {{ form.service }}
+                                <div class="help-block"></div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6">
+                            <div class="form-group field-counterdata-status">
+                                <label class="control-label" for="counterdata-status">Статус</label>
+                                {{ form.status }}
+                                <div class="help-block"></div>
+                            </div>
+                            <input type="hidden"
+                                   id="counterdata-isautosetlast"
+                                   name="CounterData[isAutoSetLast]"
+                                   value="1">
+                            <div class="form-group field-counterdata-amount_total">
+                                <label class="control-label" for="counterdata-amount_total">Показания счетчика</label>
+                                {{ form.readings }}
+                                <div class="help-block"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 text-right">
+                            <div class="form-group">
+                                <a href="#" class="btn btn-default margin-bottom-15">Отменить</a>
+                                <input type="submit"
+                                       class="btn btn-success margin-bottom-15"
+                                       name="action_save"
+                                       value="Сохранить">
+                                <input type="submit"
+                                       class="btn btn-success margin-bottom-15 bg-green-active"
+                                       name="action_save_add"
+                                       value="Сохранить и добавить новые показания">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </section>
+{% endblock content %}

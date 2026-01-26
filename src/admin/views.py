@@ -28,6 +28,7 @@ from .forms import (
     SectionFormSet,
     OwnerForm,
     BankBookForm,
+    CounterForm,
 )
 from src.admin.models import House, Apartment, BankBook, Counter
 
@@ -747,3 +748,11 @@ class BankBookAjaxTable(AjaxDatatableView):
 
 class CreateCounter(CreateView):
     model = Counter
+    form_class = CounterForm
+    success_url = reverse_lazy("admin:counter-list")
+
+
+class CounterList(ListView):
+    model = Counter
+    form_class = CounterForm
+    context_object_name = "counters"

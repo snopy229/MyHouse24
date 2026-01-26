@@ -5,7 +5,7 @@ from django.forms import inlineformset_factory
 from django_select2.forms import Select2Widget
 
 from src.user.models import User
-from .models import House, Section, Floor, Apartment, BankBook
+from .models import House, Section, Floor, Apartment, BankBook, Counter
 
 
 class HouseForm(forms.ModelForm):
@@ -293,5 +293,29 @@ class BankBookForm(forms.ModelForm):
             last_book = BankBook.objects.last()
             if last_book:
                 self.fields["number"].initial = last_book.number + 1
+            else:
+                self.fields["number"].initial = 1
+
+
+class CounterForm(forms.ModelForm):
+    class Meta:
+        fields = "__all__"
+        widgets = {
+            "number": forms.NumberInput(attrs={"class": "form-control"}),
+            "date": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+            "status": forms.Select(attrs={"class": "form-control"}),
+            "house": Select2Widget(attrs={"class": "form-control"}),
+            "section": Select2Widget(attrs={"class": "form-control"}),
+            "apartment": Select2Widget(attrs={"class": "form-control"}),
+            "service": Select2Widget(attrs={"class": "form-control"}),
+            "readings": forms.NumberInput(attrs={"class": "form-control"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.instance.pk:
+            last_counter = Counter.objects.last()
+            if last_counter:
+                self.fields["number"].initial = last_counter.number + 1
             else:
                 self.fields["number"].initial = 1
