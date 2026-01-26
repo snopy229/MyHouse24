@@ -1,7 +1,7 @@
 from django.db import models
 
-from src.admin.choices import StatusBankBook
-from src.settings.models import Tariffs
+from src.admin.choices import StatusBankBook, StatusCounter
+from src.settings.models import Tariffs, Service
 from src.user.models import User
 
 
@@ -40,10 +40,16 @@ class Apartment(models.Model):
     number = models.IntegerField()
     area = models.IntegerField()
     house = models.ForeignKey(House, on_delete=models.CASCADE)
-    floor = models.ForeignKey(Floor, on_delete=models.CASCADE)
-    section = models.ForeignKey(Section, on_delete=models.CASCADE)
+    floor = models.ForeignKey(Floor, on_delete=models.CASCADE, blank=True, null=True)
+    section = models.ForeignKey(
+        Section, on_delete=models.CASCADE, blank=True, null=True
+    )
     owner = models.ForeignKey(
-        User, on_delete=models.CASCADE, limit_choices_to={"is_staff": False}
+        User,
+        on_delete=models.CASCADE,
+        limit_choices_to={"is_staff": False},
+        blank=True,
+        null=True,
     )
     tariff = models.ForeignKey(Tariffs, on_delete=models.CASCADE)
 
@@ -56,6 +62,17 @@ class BankBook(models.Model):
     status = models.CharField(
         choices=StatusBankBook, max_length=10, blank=True, null=True
     )
-    apartment = models.ForeignKey(Apartment, on_delete=models.CASCADE)
+    apartment = models.OneToOneField(Apartment, on_delete=models.CASCADE)
     house = models.ForeignKey(House, on_delete=models.CASCADE)
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
+
+
+class Counter(models.Model):
+    number = models.IntegerField(unique=True)
+    created_at = models.DateField(auto_now_add=True)
+    status = models.CharField(choices=StatusCounter, default="NEW")
+    house = models.ForeignKey(House, on_delete=models.CASCADE)
+    apartment = models.ForeignKey(Apartment, on_delete=models.CASCADE)
+    section = models.ForeignKey(Section, on_delete=models.CASCADE)
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    readings = models.FloatField()

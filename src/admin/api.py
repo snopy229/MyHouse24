@@ -11,6 +11,7 @@ router = Router()
 
 
 def get_select2_result(page, qs):
+    qs = qs.order_by("id")
     paginator = Paginator(qs, 10)
     current_page = paginator.get_page(page)
     result = [{"id": item.id, "text": item.title} for item in current_page.object_list]

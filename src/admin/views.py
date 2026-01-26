@@ -27,7 +27,7 @@ from .forms import (
     OwnerForm,
     BankBookForm,
 )
-from src.admin.models import House, Apartment, BankBook
+from src.admin.models import House, Apartment, BankBook, Counter
 
 
 class CreateHouse(CreateView):
@@ -183,7 +183,31 @@ class CreateFlat(CreateView):
     model = Apartment
     template_name = "flat.html"
     form_class = ApartmentForm
-    success_url = reverse_lazy("admin:flat-list")
+
+    def form_valid(self, form):
+        self.object = form.save()
+
+        if "save_and_copy" in self.request.POST:
+            saved_data = {
+                "house": self.object.house.id,
+                "section": self.object.section.id,
+                "floor": self.object.floor.id,
+                "tariff": self.object.tariff.id,
+            }
+            self.request.session["copied_data"] = saved_data
+
+            return redirect("admin:create-flat")
+
+        return redirect("admin:flat-list")
+
+    def get_initial(self):
+        initial = super().get_initial()
+
+        copied_data = self.request.session.pop("copied_data", None)
+        if copied_data:
+            initial.update(copied_data)
+
+        return initial
 
 
 class ListFlat(TemplateView):
@@ -335,6 +359,9 @@ class ListOwner(ListView):
         context["form"] = self.form_class()
 
         return context
+
+    def get_queryset(self):
+        return User.objects.filter(is_staff=False)
 
 
 class DetailOwner(DetailView):
@@ -557,6 +584,7 @@ class CreateBankBook(CreateView):
     model = BankBook
     template_name = "bankbook.html"
     form_class = BankBookForm
+    success_url = reverse_lazy("admin:bankbook-list")
 
 
 class BankBookListView(ListView):
@@ -682,3 +710,7 @@ class BankBookAjaxTable(AjaxDatatableView):
             qs = qs.filter(apartment__owner__fullname=owner)
 
         return qs
+
+
+class CreateCounter(CreateView):
+    model = Counter

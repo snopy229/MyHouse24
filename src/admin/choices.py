@@ -5,3 +5,10 @@ from django.utils.translation import gettext_lazy as _
 class StatusBankBook(models.TextChoices):
     ACTIVE = "ACTIVE", _("Активен")
     INACTIVE = "INACTIVE", _("Неактивен")
+
+
+class StatusCounter(models.TextChoices):
+    NEW = "NEW", _("Новое")
+    TAKEN = "TAKEN", _("Учтено")
+    TAKEN_AND_PAID = "TAKEN_AND_PAID", _("Учтено и оплочено")
+    NULLABLE = "NULLABLE", _("Нулевое")
