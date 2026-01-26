@@ -24,6 +24,7 @@ from .views import (
     BankBookAjaxTable,
     UpdateBankBook,
     DeleteBankBook,
+    download_xlsx,
 )
 
 app_name = "admin"
@@ -56,4 +57,5 @@ urlpatterns = [
     path("banbook/table/", BankBookAjaxTable.as_view(), name="bankbook-ajax-table"),
     path("bankbook/edit/<int:pk>/", UpdateBankBook.as_view(), name="bankbook-edit"),
     path("bankbook/delete/<int:pk>/", DeleteBankBook.as_view(), name="bankbook-delete"),
+    path("bankbook/download/", download_xlsx, name="bankbook-download"),
 ]

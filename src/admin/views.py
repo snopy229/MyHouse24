@@ -3,6 +3,7 @@ from django.core.mail import send_mail
 from django.db import transaction
 from django.db.models import CharField, Value
 from django.db.models.functions import Concat
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 from django.utils.html import format_html
@@ -14,6 +15,7 @@ from django.views.generic import (
     DetailView,
     ListView,
 )
+from openpyxl import Workbook
 
 from src.user.models import User
 from src.user.choices import Status
@@ -605,6 +607,37 @@ class UpdateBankBook(UpdateView):
     template_name = "bankbook.html"
     form_class = BankBookForm
     success_url = reverse_lazy("admin:bankbook-list")
+
+
+def download_xlsx(request):
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "XLSX"
+
+    columns = ["Лицевой счет", "Статус", "Дом", "Секция", "Квартира", "Владелец"]
+    ws.append(columns)
+    qs = BankBook.objects.select_related("house", "apartment", "section").all()
+
+    for book in qs:
+        row = [
+            book.number,
+            book.get_status_display()
+            if hasattr(book, "get_status_display")
+            else book.status,
+            book.house.title if book.house else "",
+            book.section.title if book.section else "",
+            book.apartment.number if book.apartment else "",
+            book.apartment.owner.fullname if book.apartment.owner else "",
+        ]
+        ws.append(row)
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    response["Content-Disposition"] = 'attachment; filename="bank_books.xlsx"'
+    wb.save(response)
+
+    return response
 
 
 class DeleteBankBook(DeleteView):
