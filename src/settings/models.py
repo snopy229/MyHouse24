@@ -17,6 +17,9 @@ class Service(models.Model):
     is_showing = models.BooleanField("Показывать", default=False)
     units_of_measure = models.ForeignKey(UnitsOfMeasurement, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return self.title
+
 
 class Requisite(models.Model):
     title = models.CharField(max_length=200)

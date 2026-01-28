@@ -1,0 +1,204 @@
+{% extends "base_admin.html" %}
+{% block content %}
+    <style>
+        #counter-table tbody td.rows {
+            background-color: #DFD5;
+            font-weight: normal
+        }
+    </style>
+    <section class="content">
+        <div id="hidden-filters" class="invisible">
+            {{ form.house }}
+            {{ form.section }}
+            {{ form.service }}
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="pull-right margin-bottom">
+                    <a class="btn btn-success" href="{% url 'admin:counter-create' %}">Добавить показание</a>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box">
+                    <div class="box-header with-border">
+                        <h3 class="box-title"></h3>
+                        <div class="box-tools">
+                            <button id="clear-table-filters" class="btn btn-default btn-sm">
+                                <span class="hidden-xs">Очистить</span><i class="fa fa-eraser visible-xs" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="w0" class="grid-view">
+                        <div class="box-body table-responsive no-padding">
+                            <table id="counter-table"
+                                   class="table table-bordered table-hover table-striped linkedRow">
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <style>
+        #clear-table-filters {
+            margin-right: 5px;
+        }
+
+        #counter-table thead tr.filters th {
+            padding: 4px 8px !important;
+            vertical-align: middle;
+        }
+
+        #counter-table thead input,
+        #counter-table thead select {
+            background: white;
+            width: 100% !important;
+            height: 29px !important;
+            padding: 2px 5px !important;
+            font-size: 12px !important;
+            border: 1px solid #d2d6de !important;
+            border-radius: 3px !important;
+            box-sizing: border-box !important;
+        }
+
+        #counter-table thead tr.filters th:after,
+        #counter-table thead tr.filters th:before {
+            display: none !important;
+        }
+
+        .select2-container .select2-selection--single {
+            border: 1px solid #d2d6de !important;
+            border-radius: 0 !important;
+        }
+
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 32px !important;
+            padding-left: 12px !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 32px !important;
+        }
+    </style>
+{% endblock content %}
+{% block extra_js %}
+    <script>
+        $(document).ready(function () {
+            AjaxDatatableViewUtils.initialize_table(
+                $('#counter-table'),
+                "{% url 'admin:counter-ajax-table' %}",
+                {
+                    processing: true,
+                    autoWidth: false,
+                    scrollX: false,
+                    lengthChange: false,
+                    pageLength: 50,
+                    searching: true,
+                    pagingType: 'numbers',
+                    showing: false,
+                    ordering: false,
+                    dom: '<"box-body"t><"box-footer clearfix"p>',
+                    info: false,
+                    bFilter: true,
+                    initComplete: function (settings, json) {
+                        var api = this.api();
+
+                        function setupColumnFilter(colName, selectId, ajaxUrl, dependentDataFunc) {
+                            var column = api.column(colName + ':name');
+                            if (column.index() !== undefined) {
+                                var $cell = $(column.footer());
+
+                                if ($cell.length === 0 || $cell.is(':empty')) {
+                                    $cell = $('#counter-table thead tr:eq(1) th').eq(column.index());
+                                }
+
+                                $cell.empty();
+
+                                var $select = $(selectId);
+                                $select.appendTo($cell);
+
+                                $select.select2({
+                                    width: '100%',
+                                    placeholder: "Все",
+                                    allowClear: true,
+                                    ajax: {
+                                        url: ajaxUrl,
+                                        dataType: 'json',
+                                        delay: 250,
+                                        data: function (params) {
+                                            var query = {
+                                                q: params.term,
+                                                page: params.page
+                                            };
+
+                                            if (dependentDataFunc) {
+                                                $.extend(query, dependentDataFunc());
+                                            }
+
+                                            return query;
+                                        }
+                                    }
+                                });
+
+                                $cell.on('click', function (e) {
+                                    e.stopPropagation();
+                                });
+                            }
+                        }
+
+                        setupColumnFilter('house', '#id_house', '/api/admin/house', null);
+
+                        setupColumnFilter('section', '#id_section', '/api/admin/section', function () {
+                            return {
+                                house_id: $('#id_house').val()
+                            };
+                        });
+
+                        setupColumnFilter('service', '#id_service', '/api/admin/services', null);
+
+                        $('#id_house, #id_section').on('change.select2', function () {
+                            $('#counter-table').DataTable().ajax.reload();
+                        });
+
+                        $('#id_house').on('change', function () {
+                            $('#id_section').val(null).trigger('change.select2');
+                        });
+                    }
+                },
+                {
+                    house: function () {
+                        return $('#id_house').val();
+                    },
+                    section: function () {
+                        return $('#id_section').val();
+                    },
+                }
+            );
+            $('body').on('click', 'tr[data-href]', function (e) {
+
+
+                if ($(e.target).closest('a, button, .btn').length) {
+                    return;
+                }
+
+                window.location = $(this).data('href');
+            });
+
+            $('.box-tools a').on('click', function (e) {
+                e.preventDefault();
+                $('#id_house').val(null).trigger('change');
+                $('#id_section').val(null).trigger('change');
+            });
+            $('#clear-table-filters').on('click', function () {
+                var datatable = $('#counter-table').DataTable();
+                $('#id_house, #id_section, #id_service').val(null).trigger('change.select2');
+                datatable.search('').columns().search('');
+                $('#counter-table_wrapper').find('input').val('');
+                datatable.ajax.reload();
+            });
+        });
+    </script>
+{% endblock extra_js %}

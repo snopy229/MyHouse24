@@ -2,7 +2,7 @@ from django.core.paginator import Paginator
 from django.urls import reverse
 from ninja import Router, Query
 
-from src.settings.models import Tariffs
+from src.settings.models import Tariffs, Service
 from src.user.models import User
 from .models import House, Floor, Section, BankBook, Apartment
 from .schemas import Select2Response
@@ -122,3 +122,17 @@ def apartment_owner(request, apartment_id: int):
         "phone_number": apartment.owner.phone_number,
         "url": reverse("admin:detail-owner", args=(apartment.owner.id,)),
     }
+
+
+@router.get("/services", response=Select2Response)
+def list_service(request, q: str = Query(None), page: int = 1):
+    qs = Service.objects.filter(is_showing=True).select_related("units_of_measure")
+    if q:
+        qs = qs.filter(title__icontains=q)
+    paginator = Paginator(qs, 10)
+    current_page = paginator.get_page(page)
+    result = [
+        {"id": item.id, "text": f"{item.title} ({item.units_of_measure.units})"}
+        for item in current_page.object_list
+    ]
+    return {"results": result, "pagination": {"more": current_page.has_next()}}

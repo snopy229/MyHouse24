@@ -25,6 +25,14 @@ from .views import (
     UpdateBankBook,
     DeleteBankBook,
     download_xlsx,
+    CounterAjaxTable,
+    CounterList,
+    CreateCounter,
+    CounterSpecificList,
+    CounterSpecificAjaxTable,
+    CounterEdit,
+    CounterDetail,
+    DeleteCounter,
 )
 
 app_name = "admin"
@@ -58,4 +66,21 @@ urlpatterns = [
     path("bankbook/edit/<int:pk>/", UpdateBankBook.as_view(), name="bankbook-edit"),
     path("bankbook/delete/<int:pk>/", DeleteBankBook.as_view(), name="bankbook-delete"),
     path("bankbook/download/", download_xlsx, name="bankbook-download"),
+    # Counter
+    path("counter/table", CounterAjaxTable.as_view(), name="counter-ajax-table"),
+    path("counter/list/", CounterList.as_view(), name="counter-list"),
+    path("counter/create/", CreateCounter.as_view(), name="counter-create"),
+    path(
+        "counter/list-specific/",
+        CounterSpecificList.as_view(),
+        name="counter-specific-list",
+    ),
+    path(
+        "counter/specific-table/",
+        CounterSpecificAjaxTable.as_view(),
+        name="counter-specific-ajax-table",
+    ),
+    path("counter/edit/<int:pk>/", CounterEdit.as_view(), name="counter-edit"),
+    path("counter/detail/<int:pk>/", CounterDetail.as_view(), name="counter-detail"),
+    path("counter/delete/<int:pk>/", DeleteCounter.as_view(), name="counter-delete"),
 ]

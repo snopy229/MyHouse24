@@ -19,7 +19,7 @@ from openpyxl import Workbook
 
 from src.user.models import User
 from src.user.choices import Status
-from .choices import StatusBankBook
+from .choices import StatusBankBook, StatusCounter
 from .forms import (
     FloorFormSet,
     StaffFormSet,
@@ -749,10 +749,268 @@ class BankBookAjaxTable(AjaxDatatableView):
 class CreateCounter(CreateView):
     model = Counter
     form_class = CounterForm
+    template_name = "counter.html"
     success_url = reverse_lazy("admin:counter-list")
+
+    def get_initial(self):
+        initial = super().get_initial()
+        source_id = self.request.GET.get("source_id")
+
+        if source_id:
+            try:
+                original = Counter.objects.get(pk=source_id)
+                initial.update(
+                    {
+                        "house": original.house,
+                        "section": original.section,
+                        "apartment": original.apartment,
+                        "service": original.service,
+                    }
+                )
+            except Counter.DoesNotExist:
+                pass
+        return initial
 
 
 class CounterList(ListView):
     model = Counter
     form_class = CounterForm
+    template_name = "counters.html"
     context_object_name = "counters"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["form"] = self.form_class()
+
+        return context
+
+
+class CounterAjaxTable(AjaxDatatableView):
+    model = Counter
+    title = "Счетчики"
+    initial_order = [[2, "asc"]]
+
+    def get_column_defs(self, request):
+        columns = [
+            {
+                "name": "house",
+                "title": "Дом",
+                "foreign_field": "house__title",
+                "searchable": False,
+                "orderable": False,
+            },
+            {
+                "name": "section",
+                "title": "Секция",
+                "foreign_field": "section__title",
+                "searchable": False,
+                "orderable": False,
+            },
+            {
+                "name": "apartment",
+                "title": "№ квартиры",
+                "foreign_field": "apartment__number",
+                "searchable": True,
+                "orderable": True,
+            },
+            {
+                "name": "service",
+                "title": "Счетчик",
+                "foreign_field": "service__title",
+                "searchable": False,
+                "orderable": False,
+            },
+            {
+                "name": "readings",
+                "title": "Текущие показания",
+                "searchable": False,
+                "orderable": False,
+                "className": "rows",
+            },
+            {
+                "name": "units",
+                "foreign_field": "service__units_of_measure__units",
+                "title": "Текущие показания",
+                "className": "rows",
+                "searchable": False,
+                "orderable": False,
+            },
+            {
+                "name": "actions",
+                "searchable": False,
+                "orderable": False,
+            },
+        ]
+        return columns
+
+    def customize_row(self, row, obj):
+        detail_url = (
+            reverse("admin:counter-specific-list") + f"?apartment_id={obj.apartment.id}"
+        )
+        row["DT_RowAttr"] = {"data-href": detail_url, "style": "cursor: pointer;"}
+
+        duplicate_url = reverse("admin:counter-create") + f"?source_id={obj.pk}"
+        story_url = (
+            reverse("admin:counter-specific-list") + f"?apartment_id={obj.apartment.id}"
+        )
+
+        row["actions"] = format_html(
+            '<div class="btn-group btn-group-sm">'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-dashboard"></i></a>'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-eye"></i></a>'
+            "</div>",
+            duplicate_url,
+            story_url,
+        )
+
+        for key in row:
+            if row[key] is None or row[key] == "":
+                row[key] = '<span class="text-muted">(не задано)</span>'
+
+        return row
+
+    def get_initial_queryset(self, request=None):
+        qs = super().get_initial_queryset().order_by("id")
+
+        house = self.request.POST.get("house")
+        section = self.request.POST.get("section")
+        service = self.request.POST.get("service")
+        if house:
+            qs = qs.filter(house__id=house)
+        if section:
+            qs = qs.filter(section__id=section)
+        if service:
+            qs = qs.filter(service__id=service)
+
+        return qs
+
+
+class CounterSpecificList(ListView):
+    model = Counter
+    form_class = CounterForm
+    template_name = "counter_specific.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["form"] = self.form_class()
+
+        return context
+
+
+class CounterSpecificAjaxTable(AjaxDatatableView):
+    model = Counter
+    title = "Счетчики"
+    initial_order = [[2, "des"]]
+
+    def get_column_defs(self, request):
+        columns = [
+            {
+                "name": "number",
+                "title": "№",
+                "searchable": True,
+                "orderable": False,
+            },
+            {
+                "name": "status",
+                "title": "Статус",
+                "searchable": True,
+                "orderable": False,
+                "choices": StatusCounter.choices,
+            },
+            {
+                "name": "date",
+                "title": "Дата",
+                "orderable": True,
+                "searchable": True,
+            },
+            {
+                "name": "service",
+                "foreign_field": "service__title",
+                "searchable": False,
+                "orderable": False,
+            },
+            {
+                "name": "readings",
+                "title": "Показания",
+                "searchable": False,
+                "orderable": False,
+                "className": "rows",
+            },
+            {
+                "name": "units",
+                "foreign_field": "service__units_of_measure__units",
+                "searchable": False,
+                "orderable": False,
+                "className": "rows",
+            },
+            {
+                "name": "actions",
+                "searchable": False,
+                "orderable": False,
+            },
+        ]
+        return columns
+
+    def customize_row(self, row, obj):
+        status = obj.get_status_display()
+        css_class = "label label-default"
+        if obj.status == StatusCounter.NEW:
+            css_class = "label label-warning"
+        elif obj.status == StatusBankBook.TAKEN:
+            css_class = "label label-success"
+        elif obj.status == StatusBankBook.TAKEN_AND_PAID:
+            css_class = "label label-success"
+        elif obj.status == StatusBankBook.NULLABLE:
+            css_class = "label label-primary"
+        row["status"] = f'<small class="{css_class}">{status}</small>'
+
+        detail_url = reverse("admin:counter-detail", args=[obj.id])
+        row["DT_RowAttr"] = {"data-href": detail_url, "style": "cursor: pointer;"}
+
+        edit_url = reverse("admin:counter-edit", args=[obj.id])
+        delete_url = reverse("admin:counter-delete", args=[obj.id])
+
+        row["actions"] = format_html(
+            '<div class="btn-group btn-group-sm">'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-pencil"></i></a>'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-trash"></i></a>'
+            "</div>",
+            edit_url,
+            delete_url,
+        )
+
+        for key in row:
+            if row[key] is None or row[key] == "":
+                row[key] = '<span class="text-muted">(не задано)</span>'
+        return row
+
+    def get_initial_queryset(self, request=None):
+        qs = super().get_initial_queryset(request)
+        apartment_id = (
+            self.request.POST.get("apartment_id")
+            or self.request.GET.get("apartment_id")
+            or self.request.POST.get("extra_data[apartment_id]")
+        )
+        return qs.filter(apartment_id=apartment_id)
+
+
+class CounterDetail(DetailView):
+    model = Counter
+    template_name = "counter_detail.html"
+    context_object_name = "counter"
+
+
+class CounterEdit(UpdateView):
+    model = Counter
+    form_class = CounterForm
+    template_name = "counter.html"
+    success_url = reverse_lazy("admin:counter-list")
+
+
+class DeleteCounter(DeleteView):
+    model = Counter
+
+    def get(self, request, pk):
+        counter = get_object_or_404(Counter, pk=pk)
+        counter.delete()
+        return redirect("admin:counter-list")

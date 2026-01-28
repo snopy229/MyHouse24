@@ -69,7 +69,7 @@ class BankBook(models.Model):
 
 class Counter(models.Model):
     number = models.IntegerField(unique=True)
-    date = models.DateField(auto_now_add=True)
+    date = models.DateField()
     status = models.CharField(choices=StatusCounter, default="NEW")
     house = models.ForeignKey(House, on_delete=models.CASCADE)
     apartment = models.ForeignKey(Apartment, on_delete=models.CASCADE)

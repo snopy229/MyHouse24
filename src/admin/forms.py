@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
+from django.utils import timezone
 from django_select2.forms import Select2Widget
 
 from src.user.models import User
@@ -299,6 +300,7 @@ class BankBookForm(forms.ModelForm):
 
 class CounterForm(forms.ModelForm):
     class Meta:
+        model = Counter
         fields = "__all__"
         widgets = {
             "number": forms.NumberInput(attrs={"class": "form-control"}),
@@ -308,14 +310,24 @@ class CounterForm(forms.ModelForm):
             "section": Select2Widget(attrs={"class": "form-control"}),
             "apartment": Select2Widget(attrs={"class": "form-control"}),
             "service": Select2Widget(attrs={"class": "form-control"}),
-            "readings": forms.NumberInput(attrs={"class": "form-control"}),
+            "readings": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "step": "0.1",
+                    "min": "0",
+                }
+            ),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if not self.instance.pk:
+            self.fields["date"].initial = timezone.now().date().strftime("%Y-%m-%d")
             last_counter = Counter.objects.last()
             if last_counter:
                 self.fields["number"].initial = last_counter.number + 1
             else:
                 self.fields["number"].initial = 1
+        else:
+            if self.instance.date:
+                self.initial["date"] = self.instance.date.strftime("%Y-%m-%d")

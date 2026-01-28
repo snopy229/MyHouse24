@@ -4,18 +4,21 @@
         <form method="post">
             {% csrf_token %}
             <div class="row">
-                <div class="col-xs-12 col-md-7 col-lg-6">
+                <div class="col-xs-12">
                     <div class="page-header-spec">
-                        <div class="form-group field-counterdata-uid required">
+                        <div class="form-group flex-form-group">
                             <div class="input-group">
                                 <div class="input-group-addon">№</div>
                                 {{ form.number }}
                             </div>
                         </div>
-                        <span class="label-mid">от</span>
-                        <div class="form-group field-counterdata-uid_date">
-                            <div id="counterdata-uid_date-kvdate" class="input-group date">
-                                <span class="input-group-addon kv-date-calendar" title="Выбрать дату"><i class="glyphicon glyphicon-calendar"></i></span>{{ form.date }}
+                        <span class="header-date-separator">от</span>
+                        <div class="form-group flex-form-group">
+                            <div class="input-group date">
+                                <span class="input-group-addon">
+                                    <i class="glyphicon glyphicon-calendar"></i>
+                                </span>
+                                {{ form.date }}
                             </div>
                         </div>
                     </div>
@@ -81,4 +84,125 @@
             </div>
         </form>
     </section>
+    <style>
+        .page-header-spec {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+
+        .flex-form-group {
+            margin-bottom: 0 !important;
+        }
+
+        .header-date-separator {
+            margin: 0 10px;
+            font-weight: 400;
+        }
+
+        .select2-container .select2-selection--single {
+            border: 1px solid #d2d6de !important;
+            border-radius: 0 !important;
+            height: 34px;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 32px !important;
+            padding-left: 12px !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 32px !important;
+        }
+
+        .margin-bottom-15 {
+            margin-bottom: 15px;
+        }
+    </style>
 {% endblock content %}
+{% block extra_js %}
+    <script>
+        $(document).ready(function () {
+            $('#id_house').select2({
+                width: '100%',
+                placeholder: "Выберите...",
+                ajax: {
+                    url: '/api/admin/house',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {q: params.term, page: params.page};
+                    }
+                }
+            });
+
+            $('#id_section').select2({
+                width: '100%',
+                placeholder: "Выберите...",
+                ajax: {
+                    url: '/api/admin/section',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term,
+                            page: params.page,
+                            house_id: $('#id_house').val()
+                        };
+                    }
+                }
+            });
+
+            $('#id_apartment').select2({
+                width: '100%',
+                placeholder: "Выберите...",
+                ajax: {
+                    url: '/api/admin/flat',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term,
+                            page: params.page,
+                            house_id: $('#id_house').val()
+                        };
+                    }
+                }
+            });
+
+            $('#id_service').select2({
+                width: '100%',
+                placeholder: "Выберите...",
+                ajax: {
+                    url: '/api/admin/services',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term,
+                            page: params.page,
+                        };
+                    }
+                }
+            });
+
+            $('#id_tariff').select2({
+                width: '100%',
+                placeholder: "Выберите...",
+                ajax: {
+                    url: '/api/admin/tariff',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {q: params.term, page: params.page};
+                    }
+                }
+            });
+
+            $('#id_house').on('change', function () {
+                $('#id_section, #id_apartment').val(null).trigger('change');
+            });
+        });
+    </script>
+{% endblock extra_js %}
