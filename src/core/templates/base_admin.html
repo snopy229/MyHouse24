@@ -44,7 +44,7 @@
     <body class="hold-transition skin-black-light sidebar-mini">
         <div class="wrapper">
             <header class="main-header">
-                <a href="{% url 'managements:statistic' %}" class="logo">
+                <a href="{% url 'admin:statistic' %}" class="logo">
                     <span class="logo-mini">
                         <img src="https://myhouse24.demodev.cc/logo-mini.svg"
                              class="img-responsive"
@@ -107,7 +107,7 @@
                 <section class="sidebar">
                     <ul class="sidebar-menu" data-widget="tree">
                         <li class="{% if 'statistic' in request.path %}active{% endif %}">
-                            <a href="{% url 'managements:statistic' %}"><i class="fa fa-line-chart"></i><span>Статистика</span></a>
+                            <a href="{% url 'admin:statistic' %}"><i class="fa fa-line-chart"></i><span>Статистика</span></a>
                         </li>
                         <li>
                             <a href="#"><i class="fa fa-dollar"></i> <span>Касса</span></a>
@@ -133,55 +133,56 @@
             <a href="#"><i class="fa fa-envelope-o"></i> <span>Сообщения</span></a>
         </li>
         <li>
-            <a href="#"><i class="fa fa-wrench"></i> <span>Заявки мастера</span></a>
-        </li>
-        <li class="{% if 'counter' in request.path %}active{% endif %}">
-            <a href="{% url 'admin:counter-list' %}"><i class="fa fa-dashboard"></i> <span>Показания счетчиков</span></a>
-        </li>
-        <li class="treeview {% if 'managements' in request.path %}active{% endif %}">
-            <a href="#!"><i class="fa fa-desktop"></i> <span>Управление сайтом</span> <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span></a>
-            <ul class="treeview-menu">
-                <li>
-                    <a href="{% url 'managements:edit-main-page' %}"><i class="fa fa-circle-o"></i> <span>Главная страница</span></a>
-                </li>
-                <li>
-                    <a href="{% url 'managements:edit-about-us' %}"><i class="fa fa-circle-o"></i> <span>О нас</span></a>
-                </li>
-                <li>
-                    <a href="{% url 'managements:edit-services' %}"><i class="fa fa-circle-o"></i> <span>Услуги</span></a>
-                </li>
-                <li>
-                    <a href="{% url 'managements:edit-tariffs' %}"><i class="fa fa-circle-o"></i> <span>Тарифы</span></a>
-                </li>
-                <li>
-                    <a href="{% url 'managements:edit-contacts' %}"><i class="fa fa-circle-o"></i> <span>Контакты</span></a>
-                </li>
-            </ul>
-        </li>
-        <li class="treeview {% if 'settings' in request.path %}active{% endif %}">
-            <a href="#"><i class="fa fa-cogs"></i> <span>Настройки системы</span>
-                <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span></a>
-            <ul class="treeview-menu">
-                <li>
-                    <a href="{% url 'settings:edit-services' %}"><i class="fa fa-briefcase"></i> <span>Услуги</span></a>
-                </li>
-                <li>
-                <a href="{% url 'settings:tariff-list' %}"><i class="fa fa-money"></i>
-                <span>Тарифы</span></a>
+        <a href="{% url 'admin:master-call-list' %}"><i class="fa fa-wrench"></i>
+        <span>Заявки мастера</span></a>
+</li>
+<li class="{% if 'counter' in request.path %}active{% endif %}">
+    <a href="{% url 'admin:counter-list' %}"><i class="fa fa-dashboard"></i> <span>Показания счетчиков</span></a>
+</li>
+<li class="treeview {% if 'managements' in request.path %}active{% endif %}">
+    <a href="#!"><i class="fa fa-desktop"></i> <span>Управление сайтом</span> <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span></a>
+    <ul class="treeview-menu">
+        <li>
+            <a href="{% url 'managements:edit-main-page' %}"><i class="fa fa-circle-o"></i> <span>Главная страница</span></a>
         </li>
         <li>
-            <a href="#"><i class="fa fa-user"></i> <span>Роли</span></a>
+            <a href="{% url 'managements:edit-about-us' %}"><i class="fa fa-circle-o"></i> <span>О нас</span></a>
         </li>
         <li>
-            <a href="{% url 'settings:users-list' %}"><i class="fa fa-user-plus"></i> <span>Пользователи</span></a>
+            <a href="{% url 'managements:edit-services' %}"><i class="fa fa-circle-o"></i> <span>Услуги</span></a>
         </li>
         <li>
-            <a href="{% url 'settings:requisite-edit' %}"><i class="fa fa-credit-card"></i> <span>Платежные реквизиты</span></a>
+            <a href="{% url 'managements:edit-tariffs' %}"><i class="fa fa-circle-o"></i> <span>Тарифы</span></a>
         </li>
         <li>
-            <a href="{% url 'settings:article-list' %}"><i class="fa fa-list-ol"></i> <span>Статьи платежей</span></a>
+            <a href="{% url 'managements:edit-contacts' %}"><i class="fa fa-circle-o"></i> <span>Контакты</span></a>
         </li>
     </ul>
+</li>
+<li class="treeview {% if 'settings' in request.path %}active{% endif %}">
+    <a href="#"><i class="fa fa-cogs"></i> <span>Настройки системы</span>
+        <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span></a>
+    <ul class="treeview-menu">
+        <li>
+            <a href="{% url 'settings:edit-services' %}"><i class="fa fa-briefcase"></i> <span>Услуги</span></a>
+        </li>
+        <li>
+        <a href="{% url 'settings:tariff-list' %}"><i class="fa fa-money"></i>
+        <span>Тарифы</span></a>
+</li>
+<li>
+    <a href="#"><i class="fa fa-user"></i> <span>Роли</span></a>
+</li>
+<li>
+    <a href="{% url 'settings:users-list' %}"><i class="fa fa-user-plus"></i> <span>Пользователи</span></a>
+</li>
+<li>
+    <a href="{% url 'settings:requisite-edit' %}"><i class="fa fa-credit-card"></i> <span>Платежные реквизиты</span></a>
+</li>
+<li>
+    <a href="{% url 'settings:article-list' %}"><i class="fa fa-list-ol"></i> <span>Статьи платежей</span></a>
+</li>
+</ul>
 </li>
 </ul>
 </section>

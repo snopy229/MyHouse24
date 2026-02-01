@@ -2,7 +2,6 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.urls import reverse, reverse_lazy
 from django.views.generic import (
-    TemplateView,
     UpdateView,
     DetailView,
     DeleteView,
@@ -74,11 +73,6 @@ class EditMainPage(UpdateView):
         return reverse("managements:statistic")
 
 
-class Statistic(TemplateView):
-    model = "ModelName"
-    template_name = "admin/statistic.html"
-
-
 class MainPageDetail(DetailView):
     model = "MainPage"
     template_name = "site/main_page.html"
@@ -128,7 +122,7 @@ class EditContactsPage(UpdateView):
             return self.render_to_response(self.get_context_data(form=form))
 
     def get_success_url(self):
-        return reverse("managements:statistic")
+        return reverse("admin:statistic")
 
 
 class ContactsDetail(DetailView):
@@ -187,7 +181,7 @@ class EditServicesPage(UpdateView):
         return self.render_to_response(self.get_context_data(form=form))
 
     def get_success_url(self):
-        return reverse("managements:statistic")
+        return reverse("admin:statistic")
 
 
 class DeleteServiceView(DeleteView):
@@ -248,7 +242,7 @@ class EditTariffsPage(UpdateView):
             print(f"ERRORS: {tariffs_formset.errors}")
 
     def get_success_url(self):
-        return reverse("managements:statistic")
+        return reverse("admin:statistic")
 
 
 class DeleteTariffView(DeleteView):
@@ -304,12 +298,12 @@ class EditAboutUsPage(UpdateView):
             print(f"ERRORS: {document_formset.errors}")
 
     def get_success_url(self):
-        return reverse("managements:statistic")
+        return reverse("admin:statistic")
 
 
 class DeleteImageView(DeleteView):
     model = Images
-    success_url = reverse_lazy("managements:statistic")
+    success_url = reverse_lazy("admin:statistic")
 
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()

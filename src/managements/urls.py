@@ -2,7 +2,6 @@ from django.urls import path
 
 from .views import (
     EditMainPage,
-    Statistic,
     MainPageDetail,
     EditContactsPage,
     ContactsDetail,
@@ -21,7 +20,6 @@ app_name = "managements"
 urlpatterns = [
     # admin
     path("admin/main-page/", EditMainPage.as_view(), name="edit-main-page"),
-    path("admin/statistic/", Statistic.as_view(), name="statistic"),
     path("admin/contacts/", EditContactsPage.as_view(), name="edit-contacts"),
     path("admin/services/", EditServicesPage.as_view(), name="edit-services"),
     path("admin/tariffs", EditTariffsPage.as_view(), name="edit-tariffs"),

@@ -1,49 +1,11 @@
 {% extends "base_admin.html" %}
-{% block title %}
-    Владельцы квартир
-{% endblock title %}
-{% block content_header %}
-    Владельцы квартир
-{% endblock content_header %}
-{% block content_url %}
-    <li>
-        <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
-    </li>
-    <li class="active">Владельцы квартир</li>
-{% endblock content_url %}
 {% block content %}
-    <style>
-        .invisible {
-            display: none;
-        }
-    </style>
     <section class="content">
-        <div id="hidden-filters" class="invisible">
-            {{ form.house }}
-            {{ form.apartment }}
-        </div>
+        {{ form.master }}
         <div class="row">
             <div class="col-xs-12">
-                <div class="btn-group pull-right margin-bottom">
-                    <button type="button"
-                            class="btn btn-success dropdown-toggle"
-                            data-toggle="dropdown"
-                            aria-haspopup="true"
-                            aria-expanded="false">
-                        Выберите действие <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li>
-                            <a href="{% url 'admin:create-owner' %}">Добавить владельца квартиры</a>
-                        </li>
-                        <li>
-                            <a href="#">Отправить сообщение
-                            должникам</a>
-                        </li>
-                        <li>
-                            <a href="#">Отправить приглашение</a>
-                        </li>
-                    </ul>
+                <div class="pull-right margin-bottom">
+                    <a class="btn btn-success" href="{% url 'admin:create-master-call' %}">Добавить заявку</a>
                 </div>
             </div>
         </div>
@@ -60,15 +22,11 @@
                     </div>
                     <div id="w0" class="grid-view">
                         <div class="box-body table-responsive no-padding">
-                            <table id="owner-table"
+                            <table id="master-call-table"
                                    class="table table-bordered table-hover table-striped linkedRow">
                             </table>
                         </div>
-                        <div class="box-footer">
-                            <div>
-                                Количество владельцев: <span class="text-bold">{{ owner.count }}</span>
-                            </div>
-                        </div>
+                        <div class="box-footer clearfix"></div>
                     </div>
                 </div>
             </div>
@@ -79,13 +37,14 @@
             margin-right: 5px;
         }
 
-        #owner-table thead tr.filters th {
+        #master-call-table thead tr.filters th {
             padding: 4px 8px !important;
             vertical-align: middle;
         }
 
-        #owner-table thead input,
-        #owner-table thead select {
+        #master-call-table thead input,
+        #master-call-table thead select {
+            background: white;
             width: 100% !important;
             height: 29px !important;
             padding: 2px 5px !important;
@@ -95,8 +54,8 @@
             box-sizing: border-box !important;
         }
 
-        #owner-table thead tr.filters th:after,
-        #owner-table thead tr.filters th:before {
+        #master-call-table thead tr.filters th:after,
+        #master-call-table thead tr.filters th:before {
             display: none !important;
         }
 
@@ -118,11 +77,13 @@
     </style>
 {% endblock content %}
 {% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
     <script>
         $(document).ready(function () {
             AjaxDatatableViewUtils.initialize_table(
-                $('#owner-table'),
-                "{% url 'admin:owner-ajax-table' %}",
+                $('#master-call-table'),
+                "{% url 'admin:master-call-ajax-table' %}",
                 {
                     processing: true,
                     autoWidth: false,
@@ -132,6 +93,7 @@
                     searching: true,
                     pagingType: 'numbers',
                     showing: false,
+                    ordering: false,
                     dom: '<"box-body"t><"box-footer clearfix"p>',
                     info: false,
                     bFilter: true,
@@ -144,7 +106,7 @@
                                 var $cell = $(column.footer());
 
                                 if ($cell.length === 0 || $cell.is(':empty')) {
-                                    $cell = $('#owner-table thead tr:eq(1) th').eq(column.index());
+                                    $cell = $('#master-call-table thead tr:eq(1) th').eq(column.index());
                                 }
 
                                 $cell.empty();
@@ -181,68 +143,64 @@
                             }
                         }
 
-                        function setupDateFilter(colName) {
+                        function setupRangeFilter(colName) {
                             var column = api.column(colName + ':name');
                             if (column.index() !== undefined) {
-                                var $cell = $('#owner-table thead tr:eq(1) th').eq(column.index());
+                                var $cell = $('#master-call-table thead tr:eq(1) th').eq(column.index());
                                 $cell.empty();
 
-                                var $input = $('<input>')
-                                    .attr('type', 'date')
-                                    .attr('id', 'date_joined_picker')
-                                    .addClass('form-control input-sm')
-                                    .css('width', '100%');
+                                var $input = $('<input>', {
+                                    type: 'text',
+                                    id: 'date_range',
+                                    class: 'form-control input-sm',
+                                });
 
                                 $input.appendTo($cell);
-
-                                $input.on('change', function () {
-                                    $('#owner-table').DataTable().ajax.reload();
+                                $input.daterangepicker({
+                                    autoUpdateInput: false,
+                                });
+                                $input.on('apply.daterangepicker', function (ev, picker) {
+                                    $(this).val(
+                                        picker.startDate.format('YYYY-MM-DD') +
+                                        ' - ' +
+                                        picker.endDate.format('YYYY-MM-DD')
+                                    );
+                                    $('#master-call-table').DataTable().ajax.reload();
                                 });
 
-                                $input.on('click', function (e) {
-                                    e.stopPropagation();
-                                });
+                                $input.on('cancel.daterangepicker', function () {
+                                    $(this).val('');
+                                    $('#master-call-table').DataTable().ajax.reload();
+                                })
                             }
+
                         }
 
-                        setupDateFilter('date_joined');
+                        setupColumnFilter('master', '#id_master', '/api/admin/master', null);
+                        setupRangeFilter('date')
 
-                        setupColumnFilter('virtual_house', '#id_house', '/api/admin/house', null);
-
-                        setupColumnFilter('virtual_apartment', '#id_apartment', '/api/admin/flat', function () {
-                            return {
-                                house_id: $('#id_house').val()
-                            };
-                        });
-
-                        $('#id_house, #id_apartment').on('change.select2', function () {
-                            $('#owner-table').DataTable().ajax.reload();
-                        });
-
-                        $('#id_house').on('change', function () {
-                            $('#id_apartment').val(null).trigger('change.select2');
+                        $('#id_master').on('change.select2', function () {
+                            $('#master-call-table').DataTable().ajax.reload();
                         });
                     }
                 },
-
                 {
-                    house: function () {
-                        return $('#id_house').val();
+                    master: function () {
+                        return $('#id_master').val();
                     },
-                    apartment: function () {
-                        return $('#id_apartment').val();
+                    date_from: function () {
+                        var val = $('#date_range').val();
+                        if (!val) return null;
+                        return val.split(' - ')[0];
                     },
-                    date_joined: function () {
-                        return $('#date_joined_picker').val();
-                    }
+                    date_to: function () {
+                        var val = $('#date_range').val();
+                        if (!val) return null;
+                        return val.split(' - ')[1];
+                    },
                 }
-            );
-
-            $('.box-tools a').on('click', function (e) {
-                e.preventDefault();
-                $('#id_house').val(null).trigger('change');
-                $('#owner-table').DataTable().search('').columns().search('').draw();
-            });
+            )
+            ;
             $('body').on('click', 'tr[data-href]', function (e) {
 
 
@@ -251,6 +209,12 @@
                 }
 
                 window.location = $(this).data('href');
+            });
+
+            $('.box-tools a').on('click', function (e) {
+                e.preventDefault();
+                $('#id_house').val(null).trigger('change');
+                $('#id_section').val(null).trigger('change');
             });
         });
     </script>

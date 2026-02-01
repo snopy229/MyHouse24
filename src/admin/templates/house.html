@@ -24,7 +24,7 @@
 {% block content_url %}
     {% if 'create' in request.path %}
         <li>
-            <a href="{% url 'managements:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+            <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
         </li>
         <li>
             <a href="{% url 'admin:house-list' %}">Дома</a>
@@ -32,7 +32,7 @@
         <li class="active">Новый дом</li>
     {% elif 'edit' in request.path %}
         <li>
-            <a href="{% url 'managements:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+            <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
         </li>
         <li>
             <a href="{% url 'admin:house-list' %}">Дома</a>

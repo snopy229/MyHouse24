@@ -16,25 +16,25 @@
 {% block content_url %}
     {% if 'create' in request.path %}
         <li>
-            <a href="{% url 'managements:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+            <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
         </li>
         <li>
-            <a href="{% url 'managements:counter-list' %}"><i class="fa fa-home"></i> Счетчики</a>
+            <a href="{% url 'admin:counter-list' %}"><i class="fa fa-home"></i> Счетчики</a>
         </li>
         <li class="active">Новое показание</li>
     {% elif 'edit' in request.path %}
         <li>
-            <a href="{% url 'managements:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+            <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
         </li>
         <li>
-            <a href="{% url 'managements:counter-list' %}">Счетчики</a>
+            <a href="{% url 'admin:counter-list' %}">Счетчики</a>
         </li>
         <li>
             <a href="{% url "admin:counter-specific-list" %}?apartment_id={{ counter.apartment.id }}"> Показания
             счетчиков, кв.{{ counter.apartment.number }}</a>
         </li>
         <li>
-            <a href="{% url 'managements:counter-detail' counter.apartment.id %}"><i class="fa fa-home"></i> Главная</a>
+            <a href="{% url 'admin:counter-detail' counter.apartment.id %}"><i class="fa fa-home"></i> Главная</a>
         </li>
         <li class="active">Показание счетчикa №{{ counter.number }}</li>
     {% endif %}

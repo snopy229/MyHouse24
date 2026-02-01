@@ -9,7 +9,6 @@ from .forms import (
 )
 from django.contrib.auth.views import LoginView
 
-
 # Create your views here.
 User = get_user_model()
 
@@ -52,4 +51,4 @@ class LogInStaff(LoginView):
         return super().get_context_data(**kwargs)
 
     def get_success_url(self):
-        return reverse_lazy("managements:statistic")
+        return reverse_lazy("admin:statistic")

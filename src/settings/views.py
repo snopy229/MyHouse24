@@ -60,7 +60,7 @@ class EditServicesView(TemplateView):
         if services_formset.is_valid() and units_formset.is_valid():
             services_formset.save()
             units_formset.save()
-            return redirect("managements:statistic")  # Ваш редирект
+            return redirect("admin:statistic")  # Ваш редирект
 
         return self.render_to_response(
             self.get_context_data(
@@ -139,7 +139,7 @@ class RequisiteEdit(UpdateView):
     model = Requisite
     form_class = RequisiteForm
     template_name = "requisite.html"
-    success_url = reverse_lazy("managements:statistic")
+    success_url = reverse_lazy("admin:settings")
 
     def get_object(self, **kwargs):
         obj = Requisite.objects.first()
@@ -239,7 +239,7 @@ class EditUsersPageView(UpdateView):
     form_class = UserForm
     context_object_name = "user"
     template_name = "edit_user.html"
-    success_url = reverse_lazy("managements:statistic")
+    success_url = reverse_lazy("settings:users-list")
 
     def form_valid(self, form):
         raw_password = form.cleaned_data.get("password1")

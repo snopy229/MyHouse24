@@ -19,7 +19,7 @@ from openpyxl import Workbook
 
 from src.user.models import User
 from src.user.choices import Status
-from .choices import StatusBankBook, StatusCounter
+from .choices import StatusBankBook, StatusCounter, MasterType, StatusCall
 from .forms import (
     FloorFormSet,
     StaffFormSet,
@@ -32,6 +32,11 @@ from .forms import (
     MasterCallForm,
 )
 from src.admin.models import House, Apartment, BankBook, Counter, MasterCall
+
+
+class Statistic(TemplateView):
+    model = "ModelName"
+    template_name = "statistic.html"
 
 
 class CreateHouse(CreateView):
@@ -560,7 +565,7 @@ class OwnerAjaxTable(AjaxDatatableView):
 
         house_id = self.request.POST.get("house")
         apartment_id = self.request.POST.get("apartment")
-        created_at = self.request.POST.get("created_at")
+        date_joined = self.request.POST.get("date_joined")
 
         if house_id:
             qs = qs.filter(apartment__house__id=house_id)
@@ -568,8 +573,8 @@ class OwnerAjaxTable(AjaxDatatableView):
         if apartment_id:
             qs = qs.filter(apartment__id=apartment_id)
 
-        if created_at:
-            qs = qs.filter(date_joined__date=created_at)
+        if date_joined:
+            qs = qs.filter(date_joined__date=date_joined)
 
         if house_id or apartment_id:
             qs = qs.distinct()
@@ -1025,4 +1030,170 @@ class CreateMasterCall(CreateView):
     model = MasterCall
     form_class = MasterCallForm
     template_name = "master_call.html"
-    success_url = reverse_lazy("managements:statistic")
+    success_url = reverse_lazy("admin:statistic")
+
+
+class MasterCallList(ListView):
+    model = MasterCall
+    form_class = MasterCallForm
+    template_name = "master_calls.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["form"] = self.form_class()
+
+        return context
+
+
+class MasterCallAjaxDataTable(AjaxDatatableView):
+    model = MasterCall
+    title = "Заявки вызова мастера"
+    initial_order = [[0, "desc"]]
+
+    def get_column_defs(self, request):
+        columns = [
+            {
+                "name": "id",
+                "title": "№ заявки",
+                "orderable": True,
+                "searchable": True,
+            },
+            {
+                "name": "date",
+                "title": "Удобное время",
+                "orderable": True,
+                "searchable": True,
+            },
+            {
+                "name": "master_type",
+                "title": "Тип мастера",
+                "orderable": True,
+                "searchable": True,
+                "choices": MasterType.choices,
+            },
+            {
+                "name": "description",
+                "title": "Описание",
+                "orderable": False,
+                "searchable": True,
+            },
+            {
+                "name": "apartment",
+                "title": "Квартира",
+                "orderable": False,
+                "searchable": True,
+            },
+            {
+                "name": "owner",
+                "title": "Владелец",
+                "orderable": False,
+                "searchable": True,
+            },
+            {
+                "name": "phone_number",
+                "foreign_field": "master__phone_number",
+                "title": "Телефон",
+                "orderable": False,
+                "searchable": True,
+            },
+            {
+                "name": "master",
+                "title": "Мастер",
+                "orderable": False,
+                "searchable": False,
+            },
+            {
+                "name": "status",
+                "title": "Статус",
+                "orderable": False,
+                "searchable": True,
+                "choices": StatusCall.choices,
+            },
+            {
+                "name": "actions",
+                "searchable": False,
+                "orderable": False,
+            },
+        ]
+        return columns
+
+    def customize_row(self, row, obj):
+        apartment_url = reverse("admin:flat-detail", args=[obj.apartment.id])
+        row["apartment"] = format_html(
+            '<a href="{}">Кв.{}, {} </a>',
+            apartment_url,
+            obj.apartment.number,
+            obj.apartment.house.title,
+        )
+
+        owner_url = reverse("admin:detail-owner", args=[obj.owner.id])
+        row["owner"] = format_html('<a href="{}">{}</a>', owner_url, obj.owner.fullname)
+        master_url = reverse("settings:user-detail", args=[obj.master.id])
+        row["master"] = format_html(
+            '<a href="{}">{}-{}</a>',
+            master_url,
+            obj.master.role.title,
+            obj.master.fullname,
+        )
+
+        status = obj.get_call_status_display()
+
+        css_class = "label label-default"
+        if obj.call_status == StatusCall.IN_WORK:
+            css_class = "label label-warning"
+        elif obj.call_status == StatusCall.COMPLETED:
+            css_class = "label label-success"
+        elif obj.call_status == StatusCall.NEW:
+            css_class = "label label-primary"
+        row["status"] = f'<small class="{css_class}">{status}</small>'
+
+        edit_url = reverse("admin:master-call-edit", args=[obj.id])
+        delete_url = reverse("admin:master-call-delete", args=[obj.id])
+
+        row["actions"] = format_html(
+            '<div class="btn-group btn-group-sm">'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-pencil"></i></a>'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-trash"></i></a>'
+            "</div>",
+            edit_url,
+            delete_url,
+        )
+
+        for key in row:
+            if row[key] is None or row[key] == "":
+                row[key] = '<span class="text-muted">(не задано)</span>'
+        return row
+
+    def get_initial_queryset(self, request=None):
+        qs = super().get_initial_queryset().order_by("id")
+
+        master = self.request.POST.get("master")
+        date_from = self.request.POST.get("date_from")
+        date_to = self.request.POST.get("date_to")
+
+        if master:
+            qs = qs.filter(master_id=master)
+
+        if date_to:
+            qs = qs.filter(date__lte=date_to)
+
+        if date_from:
+            qs = qs.filter(date__gte=date_from)
+
+        return qs
+
+
+class EditMasterCall(UpdateView):
+    model = MasterCall
+    form_class = MasterCallForm
+    template_name = "master_call.html"
+    success_url = reverse_lazy("admin:master-call-list")
+
+
+class DeleteMasterCall(DeleteView):
+    model = MasterCall
+
+    def get(self, request, pk):
+        master_call = get_object_or_404(MasterCall, pk=pk)
+        master_call.delete()
+        return redirect("admin:master-call-list")

@@ -230,7 +230,7 @@ def list_master(request, q: str = Query(None), page: int = 1):
     result = [
         {
             "id": item.id,
-            "text": f"{item.role.title} {item.fullname if item.fullname else item.email}",
+            "text": f"{item.role.title}-{item.fullname if item.fullname else item.email}",
         }
         for item in current_page.object_list
     ]

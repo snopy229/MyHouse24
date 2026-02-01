@@ -34,11 +34,17 @@ from .views import (
     CounterDetail,
     DeleteCounter,
     CreateMasterCall,
+    MasterCallAjaxDataTable,
+    MasterCallList,
+    Statistic,
+    EditMasterCall,
+    DeleteMasterCall,
 )
 
 app_name = "admin"
 
 urlpatterns = [
+    path("statistic/", Statistic.as_view(), name="statistic"),
     # House
     path("house/create/", CreateHouse.as_view(), name="create-house"),
     path("house/ajax/table/", HouseAjaxTable.as_view(), name="house-ajax-table"),
@@ -86,4 +92,18 @@ urlpatterns = [
     path("counter/delete/<int:pk>/", DeleteCounter.as_view(), name="counter-delete"),
     # Master call
     path("master-call/create/", CreateMasterCall.as_view(), name="create-master-call"),
+    path(
+        "master-call/table/",
+        MasterCallAjaxDataTable.as_view(),
+        name="master-call-ajax-table",
+    ),
+    path("master-call/list/", MasterCallList.as_view(), name="master-call-list"),
+    path(
+        "master-call/edit/<int:pk>/", EditMasterCall.as_view(), name="master-call-edit"
+    ),
+    path(
+        "master-call/delete/<int:pk>/",
+        DeleteMasterCall.as_view(),
+        name="master-call-delete",
+    ),
 ]
