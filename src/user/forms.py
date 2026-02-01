@@ -1,5 +1,4 @@
 from django import forms
-from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from hcaptcha_field import hCaptchaField
@@ -41,9 +40,9 @@ class UserRegistrationForm(UserCreationForm):
 
 class AuthenticationOwnerForm(AuthenticationForm):
     hcaptcha = hCaptchaField()
-    username = forms.CharField(
+    username = forms.EmailField(
         label="Email или ID пользователя",
-        widget=forms.TextInput(
+        widget=forms.EmailInput(
             attrs={"class": "form-control", "placeholder": "E-mail или ID"}
         ),
     )

@@ -2,28 +2,43 @@
 {% load static %}
 {% block structure %}
     <style>
-        .edit-admin-panel {
-            float: left;
-            padding: 15px 15px;
-            font-size: 18px;
-            color: #333;
+        li.active {
+            background-color: #e2f3e9;
+            border-radius: 4px;
         }
 
-        .logo-lg-img {
-            max-height: 45px;
-            margin: auto;
+        li.active a {
+            color: #002b41 !important;
+            font-weight: 600;
         }
 
-        .user-header-img {
-            font-size: 90px;
-            height: 90px;
-            width: 90px;
-            line-height: 90px;
-            background-color: #fff !important;
+        li.active i {
+            color: #000;
         }
 
-        .treeview-menu-visible {
-            display: block;
+        .sidebar-menu li.active > a {
+            background-color: #e2f3e9 !important;
+        }
+
+        .sidebar-menu li.active {
+            background-color: #e2f3e9;
+            border-radius: 4px;
+        }
+
+        .sidebar-menu li.active a {
+            color: #002b41 !important;
+            font-weight: 600;
+            background-color: transparent !important;
+        }
+
+        .sidebar-menu li.active i {
+            color: #000;
+        }
+
+
+        .breadcrumb li.active {
+            background-color: transparent;
+            color: #777;
         }
     </style>
     <body class="hold-transition skin-black-light sidebar-mini">
@@ -69,10 +84,7 @@
                                 <ul class="dropdown-menu">
                                     <li class="user-header bg-yellow">
                                         <i class="fa fa-user-circle text-purple bg-gray-light img-circle user-header-img"></i>
-                                        <p>
-                                            {{ user.first_name }} {{ user.second_name }}({{ user.role }})
-                                            {# {% if user.role %}<small>({{ user.role }})</small>{% endif %} #}
-                                        </p>
+                                        <p>{{ user.first_name }} {{ user.second_name }}({{ user.role }})</p>
                                     </li>
                                     <li class="user-footer">
                                         <div class="pull-left">
@@ -94,7 +106,7 @@
             <aside class="main-sidebar">
                 <section class="sidebar">
                     <ul class="sidebar-menu" data-widget="tree">
-                        <li>
+                        <li class="{% if 'statistic' in request.path %}active{% endif %}">
                             <a href="{% url 'managements:statistic' %}"><i class="fa fa-line-chart"></i><span>Статистика</span></a>
                         </li>
                         <li>
@@ -103,19 +115,18 @@
                         <li>
                             <a href="#"><i class="fa fa-files-o"></i> <span>Квитанции на оплату</span></a>
                         </li>
-                        <li>
+                        <li class="{% if 'bankbook' in request.path %}active{% endif %}">
                         <a href="{% url 'admin:bankbook-list' %}"><i class="fa fa-credit-card"></i>
                         <span>Лицевые счета</span></a>
                 </li>
-                <li>
+                <li class="{% if 'flat' in request.path %}active{% endif %}">
                     <a href="{% url 'admin:flat-list' %}"><i class="fa fa-key"></i> <span>Квартиры</span></a>
                 </li>
-                {# Удален ошибочный вложенный блок HTML #}
-                <li>
+                <li class="{% if 'owner' in request.path %}active{% endif %}">
                 <a href="{% url 'admin:owner-list' %}"><i class="fa fa-users"></i>
                 <span>Владельцы квартир</span></a>
         </li>
-        <li>
+        <li class="{% if 'house' in request.path %}active{% endif %}">
             <a href="{% url 'admin:house-list' %}"><i class="fa fa-building"></i> <span>Дома</span></a>
         </li>
         <li>
@@ -124,10 +135,10 @@
         <li>
             <a href="#"><i class="fa fa-wrench"></i> <span>Заявки мастера</span></a>
         </li>
-        <li>
+        <li class="{% if 'counter' in request.path %}active{% endif %}">
             <a href="{% url 'admin:counter-list' %}"><i class="fa fa-dashboard"></i> <span>Показания счетчиков</span></a>
         </li>
-        <li class="treeview">
+        <li class="treeview {% if 'managements' in request.path %}active{% endif %}">
             <a href="#!"><i class="fa fa-desktop"></i> <span>Управление сайтом</span> <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span></a>
             <ul class="treeview-menu">
                 <li>
@@ -147,11 +158,11 @@
                 </li>
             </ul>
         </li>
-        <li class="active treeview">
-            <a href="#!"><i class="fa fa-cogs"></i> <span>Настройки системы</span>
+        <li class="treeview {% if 'settings' in request.path %}active{% endif %}">
+            <a href="#"><i class="fa fa-cogs"></i> <span>Настройки системы</span>
                 <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span></a>
-            <ul class="treeview-menu treeview-menu-visible">
-                <li class="active">
+            <ul class="treeview-menu">
+                <li>
                     <a href="{% url 'settings:edit-services' %}"><i class="fa fa-briefcase"></i> <span>Услуги</span></a>
                 </li>
                 <li>
@@ -179,9 +190,12 @@
     <section class="content-header">
         <h1>
             {% block content_header %}
-                Редактирование услуг
             {% endblock content_header %}
         </h1>
+        <ul class="breadcrumb">
+            {% block content_url %}
+            {% endblock content_url %}
+        </ul>
     </section>
     <section class="content">
         {% block content %}

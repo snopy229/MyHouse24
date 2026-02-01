@@ -1,0 +1,72 @@
+{% extends "base_owner.html" %}
+{% block content %}
+    <section class="content-header">
+        <h1>Профиль</h1>
+        <ul class="breadcrumb">
+            <li>
+                <a href="#"><i class="fa fa-home"></i> Главная</a>
+            </li>
+            <li class="active">Профиль</li>
+        </ul>
+    </section>
+    <section class="content">
+        <div class="row">
+            <div class="col-lg-3">
+                <div class="row">
+                    <div class="col-md-6 col-lg-12">
+                        <div class="box">
+                            <div class="box-body box-profile">
+                                <img class="profile-user-img img-responsive img-circle"
+                                     src="https://myhouse24.demodev.cc/site/glide?path=%2Fupload%2Fplaceholder.jpg&w=160&h=160&fit=crop"
+                                     width="160"
+                                     height="160"
+                                     alt="Аватар">
+                                <h3 class="profile-username text-center">{{ user.email }}</h3>
+                                <p class="text-muted text-center">Владелец квартиры</p>
+                                <ul class="list-group list-group-unbordered">
+                                    <li class="list-group-item">
+                                        <span>Телефон</span>
+                                        <span class="pull-right">{{ user.phone_number|default:'' }}</span>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <span>Viber</span>
+                                        <span class="pull-right">{{ user.viber|default:'' }}</span>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <span>Telegram</span>
+                                        <span class="pull-right">{{ user.telegram|default:'' }}</span>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <span>Email</span>
+                                        <span class="pull-right">{{ user.email }}</span>
+                                    </li>
+                                </ul>
+                                <a href="#" class="btn btn-primary btn-block">Изменить</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-12">
+                        <h3 class="page-header">Обо мне (заметки)</h3>
+                        <div class="box">
+                            <div class="box-body box-profile">
+                                {% if not user.about_owner %}
+                                    Нет заметок
+                                {% else %}
+                                    {{ user.about_owner }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-9">
+                <h2 class="page-header">Мои квартиры</h2>
+                <div class="box">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Квартиры пока не добавлены</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock content %}

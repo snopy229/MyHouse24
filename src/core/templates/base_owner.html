@@ -1,0 +1,166 @@
+{% extends "base_static.html" %}
+{% block structure %}
+    <style>
+        .sidebar-menu .treeview.active > .treeview-menu {
+            display: block;
+        }
+    </style>
+    <body class="hold-transition skin-black-light sidebar-mini fixed">
+        <div class="wrapper">
+            <header class="main-header">
+                <a href="{% url 'managements:statistic' %}" class="logo">
+                    <span class="logo-mini">
+                        <img src="https://myhouse24.demodev.cc/logo-mini.svg"
+                             class="img-responsive"
+                             width="50"
+                             height="50"
+                             alt="Logo">
+                    </span>
+                    <span class="logo-lg">
+                        <img src="https://myhouse24.demodev.cc/logo.svg"
+                             class="img-responsive logo-lg-img"
+                             width="150"
+                             height="45"
+                             alt="Logo">
+                    </span>
+                </a>
+                <nav class="navbar navbar-static-top">
+                    <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
+                        <span class="sr-only">Toggle navigation</span>
+                    </a>
+                    <div class="header-title">Личный кабинет</div>
+                    <div class="navbar-custom-menu">
+                        <ul class="nav navbar-nav">
+                            <li class="dropdown notifications-menu">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                    <i class="fa fa-bell"></i>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li class="header">Нет новых сообщений</li>
+                                    <li class="footer">
+                                        <a href="{% url 'cabinet:message-list' %}">Перейти в раздел сообщений</a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="dropdown user user-menu">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                    <img src="https://myhouse24.demodev.cc/site/glide?path=%2Fupload%2FUser%2F2%2Favatar.jpg&w=25&h=25&fit=crop"
+                                         class="user-image"
+                                         width="25"
+                                         height="25"
+                                         alt="Феечка Винкс">
+                                    <span class="hidden-xs">Феечка Винкс</span>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li class="user-header">
+                                        <img src="https://myhouse24.demodev.cc/site/glide?path=%2Fupload%2FUser%2F2%2Favatar.jpg&w=160&h=160&fit=crop"
+                                             class="img-circle"
+                                             width="160"
+                                             height="160"
+                                             alt="Феечка Винкс">
+                                        <p>Феечка Винкс</p>
+                                    </li>
+                                    <li class="user-footer">
+                                        <div class="pull-left">
+                                            <a class="btn btn-default btn-flat"
+                                               href="{% url 'cabinet:profile-view' %}">Профиль</a>
+                                        </div>
+                                        <div class="pull-right">
+                                            <a class="btn btn-default btn-flat"
+                                               href="{% url 'cabinet:logout' %}"
+                                               data-method="post">Выход</a>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </header>
+            <aside class="main-sidebar">
+                <section class="sidebar">
+                    <ul class="sidebar-menu">
+                        {% if user.apartment_set.exists %}
+                            <li class="active treeview">
+                                <a href="#"><i class="fa fa-line-chart"></i> <span>Сводка</span>
+                                    <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span></a>
+                                <ul class="treeview-menu">
+                                    {% for apartment in user.apartment_set.all %}
+                                        <li>
+                                        <a href="{% url 'cabinet:summary' %}?flat_id={{ apartment.id }}"><i class="fa fa-file-text-o"></i>
+                                        <span>{{ apartment.house.title }}, кв.{{ apartment.number }}</span></a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    <li class="treeview">
+                        <a href="#"><i class="fa fa-files-o"></i> <span>Квитанции</span> <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span></a>
+                        <ul class="treeview-menu">
+                            {% for apartment in user.apartment_set.all %}
+                                <li>
+                                <a href="{% url 'cabinet:invoices' %}?flat_id={{ apartment.id }}"><i class="fa fa-file-text-o"></i>
+                                <span>{{ apartment.house.title }}, кв.{{ apartment.number }}</span></a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </li>
+            <li class="treeview">
+            <a href="#"><i class="fa fa-money"></i>
+            <span>Тарифы</span>
+            <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span></a>
+        <ul class="treeview-menu">
+            {% for apartment in user.apartment_set.all %}
+                <li>
+                <a href="{% url 'cabinet:tariffs' %}?flat_id={{ apartment.id }}"><i class="fa fa-file-text-o"></i>
+                <span>{{ apartment.house.title }}, кв.{{ apartment.number }}</span></a>
+        </li>
+    {% endfor %}
+</ul>
+</li>
+<li>
+<a href="{% url 'cabinet:message-list' %}"><i class="fa fa-envelope-o"></i>
+<span>Сообщения</span></a>
+</li>
+<li>
+<a href="{% url 'cabinet:master-request-list' %}"><i class="fa fa-wrench"></i>
+<span>Вызов мастера</span></a>
+</li>
+{% else %}
+<li class="disabled"
+    onclick="alert('Раздел станет доступным после добавления квартиры.'); return false;">
+    <a href="#"><i class="fa fa-line-chart"></i> <span>Сводка</span></a>
+</li>
+<li class="disabled"
+    onclick="alert('Раздел станет доступным после добавления квартиры.'); return false;">
+    <a href="#"><i class="fa fa-files-o"></i> <span>Квитанции</span></a>
+</li>
+<li class="disabled"
+    onclick="alert('Раздел станет доступным после добавления квартиры.'); return false;">
+    <a href="#"><i class="fa fa-money"></i> <span>Тарифы</span></a>
+</li>
+<li class="disabled"
+    onclick="alert('Раздел станет доступным после добавления квартиры.'); return false;">
+    <a href="#"><i class="fa fa-envelope-o"></i> <span>Сообщения</span></a>
+</li>
+<li class="disabled"
+    onclick="alert('Раздел станет доступным после добавления квартиры.'); return false;">
+    <a href="#"><i class="fa fa-wrench"></i> <span>Вызов мастера</span></a>
+</li>
+{% endif %}
+<li>
+<a href="{% url 'cabinet:profile-view' %}"><i class="fa fa-user-circle-o"></i>
+<span>Профиль</span></a>
+</li>
+</ul>
+</section>
+</aside>
+<div class="content-wrapper">
+    {% block content %}
+    {% endblock content %}
+</div>
+<footer class="main-footer">
+    Разработано <a href="https://avada-media.ua/">AVADA-MEDIA</a>. На базе системы управления <a href="https://avada-media.ua/moydom24/">"МойДом24"</a>.
+</footer>
+</div>
+</body>
+{% endblock structure %}

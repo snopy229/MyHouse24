@@ -1,4 +1,5 @@
 from django.core.paginator import Paginator
+from django.db.models import Q
 from django.urls import reverse
 from ninja import Router, Query
 
@@ -66,7 +67,8 @@ def list_owner(request, q: str = Query(None), page: int = 1):
     current_page = paginator.get_page(page)
 
     result = [
-        {"id": item.id, "text": f"{item.fullname}"} for item in current_page.object_list
+        {"id": item.id, "text": f"{item.fullname if item.fullname else item.email}"}
+        for item in current_page.object_list
     ]
     return {"results": result, "pagination": {"more": current_page.has_next()}}
 
@@ -93,7 +95,32 @@ def list_flat(
     if not house_id:
         return {"results": [], "pagination": {"more": False}}
 
-    qs = Apartment.objects.filter(house_id=house_id).order_by("number")
+    if house_id:
+        qs = Apartment.objects.filter(house_id=house_id).order_by("number")
+    if q:
+        qs = qs.filter(number__icontains=q)
+
+    paginator = Paginator(qs, 10)
+    current_page = paginator.get_page(page)
+
+    result = [
+        {"id": item.id, "text": str(item.number)} for item in current_page.object_list
+    ]
+    return {"results": result, "pagination": {"more": current_page.has_next()}}
+
+
+@router.get("/flat/master", response=Select2Response)
+def list_flat_master(
+    request,
+    owner_id: str | int | None = Query(None),
+    q: str = Query(None),
+    page: int = 1,
+):
+    if not owner_id:
+        qs = Apartment.objects.all().order_by("number")
+
+    if owner_id:
+        qs = Apartment.objects.filter(owner_id=owner_id).order_by("number")
     if q:
         qs = qs.filter(number__icontains=q)
 
@@ -118,7 +145,9 @@ def apartment_owner(request, apartment_id: int):
         }
 
     return {
-        "fullname": apartment.owner.fullname,
+        "fullname": apartment.owner.fullname
+        if apartment.owner.fullname
+        else apartment.owner.email,
         "phone_number": apartment.owner.phone_number,
         "url": reverse("admin:detail-owner", args=(apartment.owner.id,)),
     }
@@ -133,6 +162,76 @@ def list_service(request, q: str = Query(None), page: int = 1):
     current_page = paginator.get_page(page)
     result = [
         {"id": item.id, "text": f"{item.title} ({item.units_of_measure.units})"}
+        for item in current_page.object_list
+    ]
+    return {"results": result, "pagination": {"more": current_page.has_next()}}
+
+
+@router.get("/owner-with-apartments", response=Select2Response)
+def list_owner_with_apartments(
+    request,
+    q: str = Query(None),
+    page: int = 1,
+    apartment_id: str | int | None = Query(None),
+):
+    if apartment_id:
+        apartment = (
+            Apartment.objects.select_related("owner").filter(id=apartment_id).first()
+        )
+
+        if not apartment or not apartment.owner:
+            return {"results": [], "pagination": {"more": False}}
+
+        owner = apartment.owner
+
+        return {
+            "results": [
+                {
+                    "id": owner.id,
+                    "text": owner.fullname if owner.fullname else owner.email,
+                }
+            ],
+            "pagination": {"more": False},
+        }
+
+    qs = User.objects.filter(apartment__isnull=False).distinct()
+
+    if q:
+        qs = qs.filter(
+            Q(username__icontains=q)
+            | Q(first_name__icontains=q)
+            | Q(last_name__icontains=q)
+        )
+
+    paginator = Paginator(qs, 10)
+    current_page = paginator.get_page(page)
+
+    result = [
+        {"id": item.id, "text": f"{item.fullname if item.fullname else item.email}"}
+        for item in current_page.object_list
+    ]
+    return {"results": result, "pagination": {"more": current_page.has_next()}}
+
+
+@router.get("/master", response=Select2Response)
+def list_master(request, q: str = Query(None), page: int = 1):
+    qs = User.objects.filter(is_staff=True)
+    if q:
+        qs = qs.filter(
+            Q(username__icontains=q)
+            | Q(first_name__icontains=q)
+            | Q(last_name__icontains=q)
+            | Q(role_title__icontains=q)
+        )
+
+    paginator = Paginator(qs, 10)
+    current_page = paginator.get_page(page)
+
+    result = [
+        {
+            "id": item.id,
+            "text": f"{item.role.title} {item.fullname if item.fullname else item.email}",
+        }
         for item in current_page.object_list
     ]
     return {"results": result, "pagination": {"more": current_page.has_next()}}

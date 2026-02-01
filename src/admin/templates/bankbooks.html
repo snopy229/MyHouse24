@@ -1,4 +1,16 @@
 {% extends "base_admin.html" %}
+{% block title %}
+    Лицевые счета
+{% endblock title %}
+{% block content_header %}
+    Лицевые счета
+{% endblock content_header %}
+{% block content_url %}
+    <li>
+        <a href="{% url 'managements:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+    </li>
+    <li class="active">Лицевые счета</li>
+{% endblock content_url %}
 {% block content %}
     <section class="content">
         <div class="row">

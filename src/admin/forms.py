@@ -6,7 +6,7 @@ from django.utils import timezone
 from django_select2.forms import Select2Widget
 
 from src.user.models import User
-from .models import House, Section, Floor, Apartment, BankBook, Counter
+from .models import House, Section, Floor, Apartment, BankBook, Counter, MasterCall
 
 
 class HouseForm(forms.ModelForm):
@@ -100,15 +100,11 @@ class ApartmentForm(forms.ModelForm):
                 }
             ),
             "area": forms.NumberInput(attrs={"class": "form-control"}),
-            "house": Select2Widget(
-                attrs={
-                    "class": "form-control",
-                }
-            ),
             "section": Select2Widget(attrs={"class": "form-control"}),
             "floor": Select2Widget(attrs={"class": "form-control"}),
             "owner": Select2Widget(attrs={"class": "form-control"}),
             "tariff": Select2Widget(attrs={"class": "form-control"}),
+            "house": Select2Widget(attrs={"class": "form-control"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -230,40 +226,40 @@ class OwnerForm(forms.ModelForm):
                 }
             ),
             "phone_number": forms.NumberInput(attrs={"class": "form-control"}),
-            "viber": forms.Select(attrs={"class": "form-control"}),
-            "telegram": forms.Select(attrs={"class": "form-control"}),
+            "viber": forms.TextInput(attrs={"class": "form-control"}),
+            "telegram": forms.TextInput(attrs={"class": "form-control"}),
             "email": forms.EmailInput(attrs={"class": "form-control"}),
             "id_user": forms.TextInput(attrs={"class": "form-control"}),
             "status": forms.Select(attrs={"class": "form-control"}),
             "about_owner": forms.Textarea(attrs={"class": "form-control"}),
         }
 
-        def clean_password1(self):
-            password1 = self.cleaned_data.get("password1")
-            if password1:
-                validate_password(password1, user=self.instance)
-            return password1
+    def clean_password1(self):
+        password1 = self.cleaned_data.get("password1")
+        if password1:
+            validate_password(password1, user=self.instance)
+        return password1
 
-        def clean(self):
-            cleaned_data = super().clean()
-            password1 = cleaned_data.get("password1")
-            password2 = cleaned_data.get("password2")
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get("password1")
+        password2 = cleaned_data.get("password2")
 
-            if password1 or password2:
-                if password1 != password2:
-                    self.add_error("password2", "Пароли не совпадают.")
-            return cleaned_data
+        if password1 or password2:
+            if password1 != password2:
+                self.add_error("password2", "Пароли не совпадают.")
+        return cleaned_data
 
-        def save(self, commit=True):
-            user = super().save(commit=False)
-            password1 = self.cleaned_data.get("password1")
-            password2 = self.cleaned_data.get("password2")
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        password1 = self.cleaned_data.get("password1")
+        password2 = self.cleaned_data.get("password2")
 
-            if password1 and password1 == password2:
-                user.set_password(password1)
-            if commit:
-                user.save()
-            return user
+        if password1 and password1 == password2:
+            user.set_password(password1)
+        if commit:
+            user.save()
+        return user
 
 
 class BankBookForm(forms.ModelForm):
@@ -331,3 +327,40 @@ class CounterForm(forms.ModelForm):
         else:
             if self.instance.date:
                 self.initial["date"] = self.instance.date.strftime("%Y-%m-%d")
+
+
+class MasterCallForm(forms.ModelForm):
+    comment = forms.CharField(
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control",
+                "rows": 5,
+                "style": "width: 100%; min-width: 100%;",
+            }
+        )
+    )
+
+    class Meta:
+        model = MasterCall
+        fields = "__all__"
+
+        widgets = {
+            "date": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+            "time": forms.TimeInput(attrs={"class": "form-control", "type": "time"}),
+            "description": forms.Textarea(attrs={"class": "form-control"}),
+            "call_status": forms.Select(attrs={"class": "form-control"}),
+            "master_type": forms.Select(attrs={"class": "form-control"}),
+            "owner": Select2Widget(attrs={"class": "form-control"}),
+            "master": Select2Widget(attrs={"class": "form-control"}),
+            "apartment": Select2Widget(attrs={"class": "form-control"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.instance.pk:
+            self.fields["date"].initial = timezone.now().date().strftime("%Y-%m-%d")
+            self.fields["time"].initial = timezone.now().time().strftime("%H:%M")
+        else:
+            if self.instance.date:
+                self.initial["date"] = self.instance.date.strftime("%Y-%m-%d")
+                self.fields["time"].initial = timezone.now().time().strftime("%H:%M")

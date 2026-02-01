@@ -1,5 +1,16 @@
 {% extends "base_admin.html" %}
-{% load static %}
+{% block title %}
+    Дома
+{% endblock title %}
+{% block content_header %}
+    Дома
+{% endblock content_header %}
+{% block content_url %}
+    <li>
+        <a href="{% url 'managements:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+    </li>
+    <li class="active">Дома</li>
+{% endblock content_url %}
 {% block content %}
     <section class="content">
         <div class="row">

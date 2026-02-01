@@ -314,12 +314,7 @@ class CreateUser(CreateView):
                     from_email=None,
                     recipient_list=[user_email],
                 )
-        except Exception as e:
-            print(f"ОШИБКА: {e}")
-            import traceback
-
-            traceback.print_exc()
-            form.add_error(None, f"Ошибка: {e}")
+        except Exception:
             return self.form_invalid(form)
 
         return HttpResponseRedirect(reverse_lazy("settings:users-list"))

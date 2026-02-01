@@ -1,4 +1,19 @@
 {% extends "base_admin.html" %}
+{% block title %}
+    Показания счетчиков, кв.{{ request.GET.apartment_id }}
+{% endblock title %}
+{% block content_header %}
+    Показания счетчиков, кв.{{ request.GET.apartment_id }}
+{% endblock content_header %}
+{% block content_url %}
+    <li>
+        <a href="{% url 'managements:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+    </li>
+    <li>
+        <a href="{% url 'managements:counter-list' %}"><i class="fa fa-home"></i> Счетчики</a>
+    </li>
+    <li class="active">Счетчики</li>
+{% endblock content_url %}
 {% block content %}
     <style>
         #counter-table tbody td.rows {

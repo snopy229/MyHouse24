@@ -1,4 +1,44 @@
 {% extends "base_admin.html" %}
+{% block title %}
+    {% if 'create' in request.path %}
+        Новое показание
+    {% elif 'edit' in request.path %}
+        Показание счетчикa
+    {% endif %}
+{% endblock title %}
+{% block content_header %}
+    {% if 'create' in request.path %}
+        Новое показание
+    {% elif 'edit' in request.path %}
+        Показание счетчикa
+    {% endif %}
+{% endblock content_header %}
+{% block content_url %}
+    {% if 'create' in request.path %}
+        <li>
+            <a href="{% url 'managements:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+        </li>
+        <li>
+            <a href="{% url 'managements:counter-list' %}"><i class="fa fa-home"></i> Счетчики</a>
+        </li>
+        <li class="active">Новое показание</li>
+    {% elif 'edit' in request.path %}
+        <li>
+            <a href="{% url 'managements:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+        </li>
+        <li>
+            <a href="{% url 'managements:counter-list' %}">Счетчики</a>
+        </li>
+        <li>
+            <a href="{% url "admin:counter-specific-list" %}?apartment_id={{ counter.apartment.id }}"> Показания
+            счетчиков, кв.{{ counter.apartment.number }}</a>
+        </li>
+        <li>
+            <a href="{% url 'managements:counter-detail' counter.apartment.id %}"><i class="fa fa-home"></i> Главная</a>
+        </li>
+        <li class="active">Показание счетчикa №{{ counter.number }}</li>
+    {% endif %}
+{% endblock content_url %}
 {% block content %}
     <section class="content">
         <form method="post">
@@ -202,6 +242,71 @@
 
             $('#id_house').on('change', function () {
                 $('#id_section, #id_apartment').val(null).trigger('change');
+            });
+        });
+    </script>
+    <script>
+        $(function () {
+            $.validator.setDefaults({
+
+                ignore: []
+            });
+            $('#quickForm').validate({
+                onfocusout: function (element) {
+                    $(element).valid();
+                },
+                rules: {
+                    number: {
+                        required: true,
+                    },
+                    house: {
+                        required: true,
+                    },
+                },
+                errorPlacement: function (error, element) {
+                    if (element.hasClass('select2-hidden-accessible')) {
+                        error.insertAfter(element.next('.select2-container'));
+                    } else {
+                        error.insertAfter(element);
+                    }
+                },
+                messages: {
+                    number: {
+                        required: "Необходимо заполнить «Номер квартиры».",
+                    },
+                    house: {
+                        required: "Необходимо заполнить «Дом».",
+                    },
+                },
+                errorClass: 'is-invalid',
+                validClass: 'is-valid',
+                errorElement: 'span',
+
+                highlight: function (element, errorClass, validClass) {
+                    $(element).addClass(errorClass).removeClass(validClass);
+
+                    $(element).closest('.form-group')
+                        .find('label')
+                        .addClass('text-danger')
+                        .removeClass('text-success')
+
+                },
+
+                unhighlight: function (element, errorClass, validClass) {
+                    $(element).removeClass(errorClass).addClass(validClass);
+
+                    $(element).closest('.form-group')
+                        .find('label')
+                        .addClass('text-success')
+                        .removeClass('text-danger')
+                },
+
+                submitHandler: function (form) {
+                    form.submit();
+                }
+            });
+            $('select').on('select2:select select2:unselect select2:close', function (e) {
+                $(this).valid();
             });
         });
     </script>

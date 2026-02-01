@@ -1,4 +1,57 @@
 {% extends "base_admin.html" %}
+{% block title %}
+    {% if 'create' in request.path %}
+        Новая квартира
+    {% elif 'edit' in request.path %}
+        Квартира №{{ apartment.number }},
+        {% if apartment.house.title %}
+            {{ apartment.house.title }}
+        {% else %}
+            Дом {{ apartment.house.id }}
+        {% endif %}
+    {% endif %}
+{% endblock title %}
+{% block content_header %}
+    {% if 'create' in request.path %}
+        Новый дом
+    {% elif 'edit' in request.path %}
+        Квартира №{{ apartment.number }},
+        {% if apartment.house.title %}
+            {{ apartment.house.title }}
+        {% else %}
+            Дом {{ apartment.house.id }}
+        {% endif %}
+    {% endif %}
+{% endblock content_header %}
+{% block content_url %}
+    {% if 'create' in request.path %}
+        <li>
+            <a href="{% url 'managements:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+        </li>
+        <li>
+            <a href="{% url 'admin:flat-list' %}">Квартиры</a>
+        </li>
+        <li class="active">Новая квартира</li>
+    {% elif 'edit' in request.path %}
+        <li>
+            <a href="{% url 'managements:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+        </li>
+        <li>
+            <a href="{% url 'admin:flat-list' %}">Квартиры</a>
+        </li>
+        <li>
+            <a href="{% url 'admin:flat-detail' apartment %}">
+                Квартира №{{ apartment.number }},
+                {% if apartment.house.title %}
+                    {{ apartment.house.title }}
+                {% else %}
+                    Дом {{ apartment.house.id }}
+                {% endif %}
+            </a>
+        </li>
+        <li class="active">Редактировать</li>
+    {% endif %}
+{% endblock content_url %}
 {% block extra_css %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
@@ -8,7 +61,7 @@
     <section class="content">
         <div class="box">
             <div class="box-body">
-                <form method="post" novalidate>
+                <form method="post" id="quickForm">
                     {% csrf_token %}
                     {{ form.media }}
                     <div class="row">
@@ -82,7 +135,6 @@
             border: 1px solid #d2d6de !important;
             border-radius: 0 !important;
         }
-
 
         .select2-container--default .select2-selection--single .select2-selection__rendered {
             line-height: 32px !important;
@@ -194,6 +246,57 @@
             $('#id_bank_book_select').on('select2:select', function (e) {
                 var data = e.params.data;
                 $('#id_bank_book_input').val(data.text);
+            });
+        });
+
+        $(function () {
+            $.validator.setDefaults({
+                ignore: []
+            });
+            $('#quickForm').validate({
+                onfocusout: function (element) {
+                    $(element).valid();
+                },
+                rules: {
+                    number: {
+                        required: true,
+                    },
+                    house: {
+                        required: true,
+                    },
+                },
+                errorPlacement: function (error, element) {
+                    if (element.hasClass('select2-hidden-accessible')) {
+                        error.insertAfter(element.next('.select2-container'));
+                    } else {
+                        error.insertAfter(element);
+                    }
+                },
+                messages: {
+                    number: {
+                        required: "Необходимо заполнить «Номер квартиры».",
+                    },
+                    house: {
+                        required: "Необходимо заполнить «Дом».",
+                    },
+                },
+                errorClass: 'is-invalid',
+                validClass: 'is-valid',
+                errorElement: 'span',
+                highlight: function (element, errorClass, validClass) {
+                    $(element).addClass(errorClass).removeClass(validClass);
+                    $(element).closest('.form-group').find('label').addClass('text-danger').removeClass('text-success');
+                },
+                unhighlight: function (element, errorClass, validClass) {
+                    $(element).removeClass(errorClass).addClass(validClass);
+                    $(element).closest('.form-group').find('label').addClass('text-success').removeClass('text-danger');
+                },
+                submitHandler: function (form) {
+                    form.submit();
+                }
+            });
+            $('select').on('select2:select select2:unselect select2:close', function (e) {
+                $(this).valid();
             });
         });
     </script>

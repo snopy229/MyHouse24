@@ -1,4 +1,40 @@
 {% extends "base_admin.html" %}
+{% block title %}
+    {% if 'create' in request.path %}
+        Новый лицевой счет
+    {% elif 'edit' in request.path %}
+        Профиль владельца
+    {% endif %}
+{% endblock title %}
+{% block content_header %}
+    {% if 'create' in request.path %}
+        Новый лицевой счет
+    {% elif 'edit' in request.path %}
+        Профиль владельца
+    {% endif %}
+{% endblock content_header %}
+{% block content_url %}
+    {% if 'create' in request.path %}
+        <li>
+            <a href="{% url 'managements:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+        </li>
+        <li>
+            <a href="{% url 'admin:bankbook-list' %}">Лицевые счета</a>
+        </li>
+        <li class="active">Новый лицевой счет</li>
+    {% elif 'edit' in request.path %}
+        <li>
+            <a href="{% url 'managements:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+        </li>
+        <li>
+            <a href="{% url 'admin:bankbook-list' %}">Лицевые счета</a>
+        </li>
+        <li>
+            <a href="#">Лицевой счет №{{ bankbook.number }}</a>
+        </li>
+        <li class="active">Редактированиеь</li>
+    {% endif %}
+{% endblock content_url %}
 {% block content %}
     <section class="content">
         <form method="post">

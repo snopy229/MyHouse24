@@ -33,6 +33,7 @@ from .views import (
     CounterEdit,
     CounterDetail,
     DeleteCounter,
+    CreateMasterCall,
 )
 
 app_name = "admin"
@@ -83,4 +84,6 @@ urlpatterns = [
     path("counter/edit/<int:pk>/", CounterEdit.as_view(), name="counter-edit"),
     path("counter/detail/<int:pk>/", CounterDetail.as_view(), name="counter-detail"),
     path("counter/delete/<int:pk>/", DeleteCounter.as_view(), name="counter-delete"),
+    # Master call
+    path("master-call/create/", CreateMasterCall.as_view(), name="create-master-call"),
 ]

@@ -3,7 +3,7 @@ from django.core.mail import send_mail
 from django.db import transaction
 from django.db.models import CharField, Value
 from django.db.models.functions import Concat
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 from django.utils.html import format_html
@@ -29,8 +29,9 @@ from .forms import (
     OwnerForm,
     BankBookForm,
     CounterForm,
+    MasterCallForm,
 )
-from src.admin.models import House, Apartment, BankBook, Counter
+from src.admin.models import House, Apartment, BankBook, Counter, MasterCall
 
 
 class CreateHouse(CreateView):
@@ -381,20 +382,22 @@ class CreateOwner(CreateView):
     success_url = reverse_lazy("admin:flat-list")
 
     def form_valid(self, form):
+        user = form.save(commit=False)
+        user.is_staff = False
         raw_password = form.cleaned_data.get("password1")
         user_email = form.cleaned_data.get("email")
-        if len(raw_password) != 0:
-            try:
-                send_mail(
-                    subject="Создания пароля",
-                    message=f"Новый пароль: {raw_password}",
-                    from_email=None,
-                    recipient_list=[user_email],
-                )
-            except Exception as e:
-                print(f"Ошибка отправки: {e}")
 
-        return super().form_valid(form)
+        try:
+            send_mail(
+                subject="Создания пароля",
+                message=f"Новый пароль: {raw_password}",
+                from_email=None,
+                recipient_list=[user_email],
+            )
+        except Exception as e:
+            print(f"Ошибка отправки: {e}")
+
+        return HttpResponseRedirect(reverse_lazy("admin:owner-list"))
 
     def form_invalid(self, form):
         print(">>> ОШИБКИ В ФОРМЕ:", form.errors)
@@ -496,7 +499,7 @@ class OwnerAjaxTable(AjaxDatatableView):
         row["DT_RowAttr"] = {"data-href": detail_url, "style": "cursor: pointer;"}
 
         edit_url = reverse("admin:edit-owner", args=[obj.id])
-        delete_url = reverse("admin:edit-owner", args=[obj.id])
+        delete_url = reverse("admin:delete-owner", args=[obj.id])
 
         row["actions"] = format_html(
             '<div class="btn-group btn-group-sm">'
@@ -578,7 +581,7 @@ class DeleteOwner(DeleteView):
     model = User
 
     def get(self, request, pk):
-        house = get_object_or_404(House, pk=pk)
+        house = get_object_or_404(User, pk=pk)
         house.delete()
         return redirect("admin:owner-list")
 
@@ -607,6 +610,7 @@ class UpdateBankBook(UpdateView):
     model = BankBook
     template_name = "bankbook.html"
     form_class = BankBookForm
+    context_object_name = "bankbook"
     success_url = reverse_lazy("admin:bankbook-list")
 
 
@@ -1005,6 +1009,7 @@ class CounterEdit(UpdateView):
     form_class = CounterForm
     template_name = "counter.html"
     success_url = reverse_lazy("admin:counter-list")
+    context_object_name = "counter"
 
 
 class DeleteCounter(DeleteView):
@@ -1014,3 +1019,10 @@ class DeleteCounter(DeleteView):
         counter = get_object_or_404(Counter, pk=pk)
         counter.delete()
         return redirect("admin:counter-list")
+
+
+class CreateMasterCall(CreateView):
+    model = MasterCall
+    form_class = MasterCallForm
+    template_name = "master_call.html"
+    success_url = reverse_lazy("managements:statistic")

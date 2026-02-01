@@ -12,3 +12,16 @@ class StatusCounter(models.TextChoices):
     TAKEN = "TAKEN", _("Учтено")
     TAKEN_AND_PAID = "TAKEN_AND_PAID", _("Учтено и оплочено")
     NULLABLE = "NULLABLE", _("Нулевое")
+
+
+class StatusCall(models.TextChoices):
+    NEW = "NEW", _("Новое")
+    IN_WORK = "IN WORK", _("В работе")
+    COMPLETED = "COMPLETED", _("Выполнена")
+
+
+class MasterType(models.TextChoices):
+    PLUMBER = "PL", _("Сантехник")
+    ELECTRICIAN = "EL", _("Электрик")
+    LOCKSMITH = "LS", _("Слесарь")
+    ANY = "ANY", _("Любой специалист")

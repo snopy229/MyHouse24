@@ -1,4 +1,36 @@
 {% extends "base_admin.html" %}
+{% block title %}
+    Квартира №{{ apartment.number }},
+    {% if apartment.house.title %}
+        {{ apartment.house.title }}
+    {% else %}
+        Дом {{ apartment.house.id }}
+    {% endif %}
+{% endblock title %}
+{% block content_header %}
+    Квартира №{{ apartment.number }},
+    {% if apartment.house.title %}
+        {{ apartment.house.title }}
+    {% else %}
+        Дом {{ apartment.house.id }}
+    {% endif %}
+{% endblock content_header %}
+{% block content_url %}
+    <li>
+        <a href="{% url 'managements:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+    </li>
+    <li>
+        <a href="{% url 'admin:flat-list' %}">Квартиры</a>
+    </li>
+    <li class="active">
+        Квартира №{{ apartment.number }},
+        {% if apartment.house.title %}
+            {{ apartment.house.title }}
+        {% else %}
+            Дом {{ apartment.house.id }}
+        {% endif %}
+    </li>
+{% endblock content_url %}
 {% block content %}
     <section class="content">
         <div class="box">
@@ -72,7 +104,7 @@
                         </table>
                         <div>
                             <p>
-                                <a href="#">Посмотреть
+                                <a href="{% url "admin:counter-specific-list" %}?apartment_id={{ apartment.id }}">Посмотреть
                                 показания счетчиков</a>
                             </p>
                             <p>

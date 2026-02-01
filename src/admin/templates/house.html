@@ -1,4 +1,54 @@
 {% extends "base_admin.html" %}
+{% block title %}
+    {% if 'create' in request.path %}
+        Новый дом
+    {% elif 'edit' in request.path %}
+        {% if house.title %}
+            {{ house.title }}
+        {% else %}
+            Дом {{ house.id }}
+        {% endif %}
+    {% endif %}
+{% endblock title %}
+{% block content_header %}
+    {% if 'create' in request.path %}
+        Новый дом
+    {% elif 'edit' in request.path %}
+        {% if house.title %}
+            {{ house.title }}
+        {% else %}
+            Дом {{ house.id }}
+        {% endif %}
+    {% endif %}
+{% endblock content_header %}
+{% block content_url %}
+    {% if 'create' in request.path %}
+        <li>
+            <a href="{% url 'managements:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+        </li>
+        <li>
+            <a href="{% url 'admin:house-list' %}">Дома</a>
+        </li>
+        <li class="active">Новый дом</li>
+    {% elif 'edit' in request.path %}
+        <li>
+            <a href="{% url 'managements:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+        </li>
+        <li>
+            <a href="{% url 'admin:house-list' %}">Дома</a>
+        </li>
+        <li>
+            <a href="{% url 'admin:detail-house' house.id %}">
+                {% if house.title %}
+                    {{ house.title }}
+                {% else %}
+                    Дом {{ house.id }}
+                {% endif %}
+            </a>
+        </li>
+        <li class="active">Редактировать</li>
+    {% endif %}
+{% endblock content_url %}
 {% block content %}
     <style>
         .mb-15 {
@@ -380,3 +430,45 @@
         });
     </script>
 {% endblock content %}
+{% block extra_js %}
+    <script>
+        $(function () {
+            $('#house-form').validate({
+                onfocusout: function (element) {
+                    $(element).valid();
+                },
+                errorClass: 'is-invalid',
+                validClass: 'is-valid',
+                errorElement: 'span',
+
+                errorPlacement: function (error, element) {
+                    error.addClass('invalid-feedback');
+                    element.closest('.form-group').append(error);
+                },
+
+                highlight: function (element, errorClass, validClass) {
+                    $(element).addClass(errorClass).removeClass(validClass);
+
+                    $(element).closest('.form-group')
+                        .find('label')
+                        .addClass('text-danger')
+                        .removeClass('text-success')
+
+                },
+
+                unhighlight: function (element, errorClass, validClass) {
+                    $(element).removeClass(errorClass).addClass(validClass);
+
+                    $(element).closest('.form-group')
+                        .find('label')
+                        .addClass('text-success')
+                        .removeClass('text-danger')
+                },
+
+                submitHandler: function (form) {
+                    form.submit();
+                }
+            });
+        });
+    </script>
+{% endblock extra_js %}

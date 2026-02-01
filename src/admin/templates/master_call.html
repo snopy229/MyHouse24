@@ -1,0 +1,203 @@
+{% extends "base_admin.html" %}
+{% block content %}
+    <section class="content">
+        <form id="quickForm" method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-xs-12 col-md-7 col-lg-6">
+                    <div class="page-header-spec">
+                        <div class="form-group field-masterrequest-date_request">
+                            <div id="masterrequest-date_request-kvdate" class="input-group  date">
+                                {{ form.date }}
+                                <span class="input-group-addon kv-date-calendar" title="Выбрать дату"><i class="glyphicon glyphicon-calendar"></i></span>
+                            </div>
+                        </div>
+                        <span class="label-mid">от</span>
+                        <div class="form-group field-masterrequest-time_request">
+                            <div class="input-group bootstrap-timepicker">
+                                {{ form.time }}
+                                <div class="input-group-addon">
+                                    <i class="fa fa-clock-o"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="box">
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-xs-12 col-md-6">
+                            <div class="form-group">
+                                <label for="user_id">Владелец квартиры</label>
+                                <div class="kv-plugin-loading loading-w1">&nbsp;</div>
+                                {{ form.owner }}
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-md-6"></div>
+                        <div class="clearfix"></div>
+                        <div class="col-xs-12 col-sm-6">
+                            <div class="form-group field-masterrequest-description required">
+                                <label class="control-label" for="masterrequest-description">Описание</label>
+                                {{ form.description }}
+                                <div class="help-block"></div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6">
+                            <div class="form-group field-masterrequest-flat_id required">
+                                <label class="control-label" for="masterrequest-flat_id">Квартира</label>
+                                {{ form.apartment }}
+                                <div class="help-block"></div>
+                            </div>
+                            <div class="form-group field-masterrequest-type">
+                                <label class="control-label" for="masterrequest-type">Тип мастера</label>
+                                {{ form.master_type }}
+                                <div class="help-block"></div>
+                            </div>
+                            <div class="form-group field-masterrequest-status required">
+                                <label class="control-label" for="masterrequest-status">Статус</label>
+                                {{ form.call_status }}
+                                <div class="help-block"></div>
+                            </div>
+                            <div class="form-group field-masterrequest-user_admin_id">
+                                <label class="control-label" for="masterrequest-user_admin_id">Мастер</label>
+                                {{ form.master }}
+                                <div class="help-block"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div class="form-group field-masterrequest-comment">
+                                <label class="control-label" for="masterrequest-comment">Комментарий</label>
+                                {{ form.comment }}
+                                <div class="help-block"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 text-right">
+                            <div class="form-group">
+                                <button type="type" class="btn btn-default">Отменить</button>
+                                <button type="submit" class="btn btn-success">Сохранить</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </section>
+    <style>
+        .select2-container .select2-selection--single {
+            border: 1px solid #d2d6de !important;
+            border-radius: 0 !important;
+            height: 32px;
+        }
+
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 32px !important;
+            padding-left: 12px !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 32px !important;
+        }
+    </style>
+    <script>
+        $(document).ready(function () {
+            $('#id_owner').select2({
+                width: '100%',
+                placeholder: "Выберите...",
+                ajax: {
+                    url: '/api/admin/owner-with-apartments',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term,
+                            page: params.page,
+                            apartment_id: $('#id_apartment').val()
+                        };
+                    }
+                }
+            });
+
+            $('#id_master').select2({
+                width: '100%',
+                placeholder: "Выберите...",
+                ajax: {
+                    url: '/api/admin/master',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term,
+                            page: params.page
+                        };
+                    }
+                }
+            });
+            $('#id_apartment').select2({
+                width: '100%',
+                placeholder: "Выберите...",
+                ajax: {
+                    url: '/api/admin/flat/master',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term,
+                            page: params.page,
+                            owner_id: $('#id_owner').val()
+                        };
+                    }
+                }
+            });
+            $('#id_apartment').on('select2:select', function (e) {
+                let apartmentId = e.params.data.id;
+
+                if (apartmentId) {
+                    $.ajax({
+                        url: '/api/admin/owner-with-apartments',
+                        data: {apartment_id: apartmentId},
+                        success: function (data) {
+                            if (data.results && data.results.length > 0) {
+                                let owner = data.results[0];
+                                let newOption = new Option(owner.text, owner.id, true, true);
+                                $('#id_owner').append(newOption).trigger('change');
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+    <script src="https://cdn.ckeditor.com/4.16.0/standard/ckeditor.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var editors = [
+                'id_comment'
+            ];
+
+            editors.forEach(function (id) {
+                if (document.getElementById(id)) {
+                    CKEDITOR.replace(id, {
+                        toolbar: [
+                            ['Format'],
+                            ['Bold', 'Italic', 'Underline', 'Strike'],
+                            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent']
+                        ],
+                        height: 150,
+                        width: '100%',
+                        resize_enabled: false,
+                        removePlugins: 'elementspath',
+                        language: 'ru',
+                        versionCheck: false
+
+                    });
+                }
+            });
+        });
+    </script>
+{% endblock content %}

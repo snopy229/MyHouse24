@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "ckeditor",
     "src.settings",
     "src.admin",
+    "src.owner",
     "anymail",
     "ajax_datatable",
     "django_select2",
@@ -61,6 +62,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "src.admin.middleware.AdminAccessMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -125,7 +127,15 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+}
+
 AUTH_USER_MODEL = "user.User"
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
