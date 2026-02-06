@@ -1,0 +1,58 @@
+{% extends "base_admin.html" %}
+{% block content %}
+    <section class="content">
+        <div class="box">
+            <div class="box-header with-border">
+                <h3 class="box-title"></h3>
+                <div class="box-tools">
+                    <a href="{% url 'settings:tariff-edit' tariff.pk %}"
+                       class="btn btn-primary btn-sm">
+                        <span class="hidden-xs">Редактировать тариф</span><i class="fa fa-pencil visible-xs" aria-hidden="true"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="box-body">
+                <table class="table table-bordered table-striped table-view">
+                    <tbody>
+                        <tr>
+                            <td>Название тарифа</td>
+                            <td>{{ tariff.title }}</td>
+                        </tr>
+                        <tr>
+                            <td>Описание</td>
+                            <td>{{ tariff.description }}</td>
+                        </tr>
+                        <tr>
+                            <td>Дата редактирования</td>
+                            <td>{{ tariff.edited_at|date:"d.m.Y" }} - {{ tariff.edited_at|time:"H:m" }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="table-responsive no-padding margin-top-15">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Услуга</th>
+                                <th>Ед. изм.</th>
+                                <th>Цена за ед., грн</th>
+                                <th>Валюта</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for service in tariff.services.all %}
+                                <tr role="row">
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ service.service.title }}</td>
+                                    <td>{{ service.service.units_of_measure.units }}</td>
+                                    <td>{{ service.cost }}</td>
+                                    <td>грн</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock content %}

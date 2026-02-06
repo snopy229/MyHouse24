@@ -39,6 +39,19 @@ from .views import (
     Statistic,
     EditMasterCall,
     DeleteMasterCall,
+    ReceiptCreate,
+    ReceiptList,
+    get_tariff,
+    get_unit,
+    get_unit_service,
+    get_tariff_services,
+    ReceiptCounterTable,
+    get_counter_readings,
+    ReceiptAjaxDatatable,
+    EditReceipt,
+    DeleteReceipt,
+    mark_counters_taken,
+    DetailReceipt,
 )
 
 app_name = "admin"
@@ -106,4 +119,25 @@ urlpatterns = [
         DeleteMasterCall.as_view(),
         name="master-call-delete",
     ),
+    # receipt
+    path("receipt/list/", ReceiptList.as_view(), name="receipt-list"),
+    path("receipt/create/", ReceiptCreate.as_view(), name="receipt-create"),
+    path(
+        "receipt/counter/table/",
+        ReceiptCounterTable.as_view(),
+        name="receipt-counter-ajax-table",
+    ),
+    path("receipt/table/", ReceiptAjaxDatatable.as_view(), name="receipt-ajax-table"),
+    path("receipt/edit/<int:pk>/", EditReceipt.as_view(), name="receipt-edit"),
+    path("receipt/delete/<int:pk>/", DeleteReceipt.as_view(), name="receipt-delete"),
+    path("receipt/detail/<int:pk>/", DetailReceipt.as_view(), name="receipt-detail"),
+    # endpoints
+    path("api/get_tariff/", get_tariff, name="get_tariff"),
+    path("api/get_unit/", get_unit, name="get_unit"),
+    path("api/get-unit-service/", get_unit_service, name="get_unit_service"),
+    path("api/get-tariff-services/", get_tariff_services, name="get_tariff_services"),
+    path(
+        "api/get-counter-readings/", get_counter_readings, name="get_counter_readings"
+    ),
+    path("api/mark-counters-taken", mark_counters_taken, name="mark_counters_taken"),
 ]

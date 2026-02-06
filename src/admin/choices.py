@@ -25,3 +25,9 @@ class MasterType(models.TextChoices):
     ELECTRICIAN = "EL", _("Электрик")
     LOCKSMITH = "LS", _("Слесарь")
     ANY = "ANY", _("Любой специалист")
+
+
+class StatusReceipt(models.TextChoices):
+    PAID = "PD", _("Оплачена")
+    PART = "PT", _("Частично оплачена")
+    UNPAID = "UPD", _("Неоплачена")

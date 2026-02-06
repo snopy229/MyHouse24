@@ -1,14 +1,9 @@
 {% extends "base_static.html" %}
 {% block structure %}
-    <style>
-        .sidebar-menu .treeview.active > .treeview-menu {
-            display: block;
-        }
-    </style>
     <body class="hold-transition skin-black-light sidebar-mini fixed">
         <div class="wrapper">
             <header class="main-header">
-                <a href="{% url 'managements:statistic' %}" class="logo">
+                <a href="{% url 'owner:profile-detail' %}" class="logo">
                     <span class="logo-mini">
                         <img src="https://myhouse24.demodev.cc/logo-mini.svg"
                              class="img-responsive"
@@ -28,7 +23,7 @@
                     <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
                         <span class="sr-only">Toggle navigation</span>
                     </a>
-                    <div class="header-title">Личный кабинет</div>
+                    <div class="header-title edit-admin-panel">Личный кабинет</div>
                     <div class="navbar-custom-menu">
                         <ul class="nav navbar-nav">
                             <li class="dropdown notifications-menu">
@@ -38,36 +33,44 @@
                                 <ul class="dropdown-menu">
                                     <li class="header">Нет новых сообщений</li>
                                     <li class="footer">
-                                        <a href="{% url 'cabinet:message-list' %}">Перейти в раздел сообщений</a>
+                                        <a href="#">Перейти в раздел сообщений</a>
                                     </li>
                                 </ul>
                             </li>
                             <li class="dropdown user user-menu">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                                    <img src="https://myhouse24.demodev.cc/site/glide?path=%2Fupload%2FUser%2F2%2Favatar.jpg&w=25&h=25&fit=crop"
-                                         class="user-image"
-                                         width="25"
-                                         height="25"
-                                         alt="Феечка Винкс">
-                                    <span class="hidden-xs">Феечка Винкс</span>
+                                    {% if user.photo %}
+                                        <img src="{{ user.photo.url }}"
+                                             class="user-image"
+                                             width="25"
+                                             height="25"
+                                             alt="{{ user.fullname }}">
+                                    {% else %}
+                                        <i class="fa fa-child fa-lg"></i>
+                                    {% endif %}
+                                    <span class="hidden-xs">{{ user.fullname }}</span>
                                 </a>
                                 <ul class="dropdown-menu">
-                                    <li class="user-header">
-                                        <img src="https://myhouse24.demodev.cc/site/glide?path=%2Fupload%2FUser%2F2%2Favatar.jpg&w=160&h=160&fit=crop"
-                                             class="img-circle"
-                                             width="160"
-                                             height="160"
-                                             alt="Феечка Винкс">
-                                        <p>Феечка Винкс</p>
+                                    <li class="user-header bg-yellow">
+                                        {% if user.photo %}
+                                            <img src="{{ user.photo.url }}"
+                                                 class="img-circle"
+                                                 width="160"
+                                                 height="160"
+                                                 alt="{{ user.fullname }}">
+                                        {% else %}
+                                            <i class="fa fa-user-circle text-purple"></i>
+                                        {% endif %}
+                                        <p>{{ user.fullname }}</p>
                                     </li>
                                     <li class="user-footer">
                                         <div class="pull-left">
                                             <a class="btn btn-default btn-flat"
-                                               href="{% url 'cabinet:profile-view' %}">Профиль</a>
+                                               href="{% url 'owner:profile-detail' %}">Профиль</a>
                                         </div>
                                         <div class="pull-right">
                                             <a class="btn btn-default btn-flat"
-                                               href="{% url 'cabinet:logout' %}"
+                                               href="{% url 'user:logout' %}"
                                                data-method="post">Выход</a>
                                         </div>
                                     </li>
@@ -79,7 +82,7 @@
             </header>
             <aside class="main-sidebar">
                 <section class="sidebar">
-                    <ul class="sidebar-menu">
+                    <ul class="sidebar-menu" data-widget="tree">
                         {% if user.apartment_set.exists %}
                             <li class="active treeview">
                                 <a href="#"><i class="fa fa-line-chart"></i> <span>Сводка</span>
@@ -87,7 +90,7 @@
                                 <ul class="treeview-menu">
                                     {% for apartment in user.apartment_set.all %}
                                         <li>
-                                        <a href="{% url 'cabinet:summary' %}?flat_id={{ apartment.id }}"><i class="fa fa-file-text-o"></i>
+                                        <a href="#"><i class="fa fa-file-text-o"></i>
                                         <span>{{ apartment.house.title }}, кв.{{ apartment.number }}</span></a>
                                 </li>
                             {% endfor %}
@@ -98,7 +101,7 @@
                         <ul class="treeview-menu">
                             {% for apartment in user.apartment_set.all %}
                                 <li>
-                                <a href="{% url 'cabinet:invoices' %}?flat_id={{ apartment.id }}"><i class="fa fa-file-text-o"></i>
+                                <a href="#"><i class="fa fa-file-text-o"></i>
                                 <span>{{ apartment.house.title }}, кв.{{ apartment.number }}</span></a>
                         </li>
                     {% endfor %}
@@ -111,18 +114,18 @@
         <ul class="treeview-menu">
             {% for apartment in user.apartment_set.all %}
                 <li>
-                <a href="{% url 'cabinet:tariffs' %}?flat_id={{ apartment.id }}"><i class="fa fa-file-text-o"></i>
+                <a href="#"><i class="fa fa-file-text-o"></i>
                 <span>{{ apartment.house.title }}, кв.{{ apartment.number }}</span></a>
         </li>
     {% endfor %}
 </ul>
 </li>
 <li>
-<a href="{% url 'cabinet:message-list' %}"><i class="fa fa-envelope-o"></i>
+<a href="#"><i class="fa fa-envelope-o"></i>
 <span>Сообщения</span></a>
 </li>
 <li>
-<a href="{% url 'cabinet:master-request-list' %}"><i class="fa fa-wrench"></i>
+<a href="{% url 'owner:master-call-list' %}"><i class="fa fa-wrench"></i>
 <span>Вызов мастера</span></a>
 </li>
 {% else %}
@@ -148,7 +151,7 @@
 </li>
 {% endif %}
 <li>
-<a href="{% url 'cabinet:profile-view' %}"><i class="fa fa-user-circle-o"></i>
+<a href="$"><i class="fa fa-user-circle-o"></i>
 <span>Профиль</span></a>
 </li>
 </ul>
@@ -162,5 +165,9 @@
     Разработано <a href="https://avada-media.ua/">AVADA-MEDIA</a>. На базе системы управления <a href="https://avada-media.ua/moydom24/">"МойДом24"</a>.
 </footer>
 </div>
+<script>
+        console.log('jQuery:', typeof $);
+        console.log('AdminLTE:', typeof $.AdminLTE);
+</script>
 </body>
 {% endblock structure %}

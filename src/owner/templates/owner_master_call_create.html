@@ -1,0 +1,147 @@
+{% extends "base_owner.html" %}
+{% block content %}
+    <section class="content">
+        <div class="box">
+            <div class="box-body">
+                <form id="quickForm" method="post">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="form-group field-masterrequestform-type">
+                            <label class="control-label" for="masterrequestform-type">Тип мастера</label>
+                            {{ form.master_type }}
+                            <div class="help-block"></div>
+                        </div>
+                        <div class="form-group field-masterrequestform-flat_id required">
+                            <label class="control-label" for="masterrequestform-flat_id">Квартира</label>
+                            {{ form.apartment }}
+                            <div class="help-block"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group field-masterrequestform-date_request required">
+                                    <label class="control-label" for="masterrequestform-date_request">Дата работ</label>
+                                    <div id="masterrequestform-date_request-kvdate" class="input-group  date">
+                                        {{ form.date }}
+                                        <span class="input-group-addon kv-date-calendar" title="Выбрать дату"><i class="glyphicon glyphicon-calendar"></i></span>
+                                    </div>
+                                    <div class="help-block"></div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group field-masterrequestform-time_request">
+                                    <label class="control-label" for="masterrequestform-time_request">
+                                        Время
+                                        работ
+                                    </label>
+                                    <div class="input-group bootstrap-timepicker">
+                                        {{ form.time }}
+                                        <div class="input-group-addon">
+                                            <i class="fa fa-clock-o"></i>
+                                        </div>
+                                    </div>
+                                    <div class="help-block"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group field-masterrequestform-description required">
+                            <label class="control-label" for="masterrequestform-description">Описание</label>
+                            {{ form.description }}
+                            <div class="help-block"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Отправить заявку</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+{% endblock content %}
+{% block extra_js %}
+    <script>
+        const CURRENT_USER_ID = {{ request.user.id }};
+        $(document).ready(function () {
+            $('#id_apartment').select2({
+                width: '100%',
+                placeholder: "Выберите...",
+                ajax: {
+                    url: '/api/owner/flat',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term,
+                            page: params.page,
+                            owner_id: CURRENT_USER_ID,
+                        };
+                    }
+                }
+            });
+        });
+    </script>
+    <script>
+        $(function () {
+            $.validator.setDefaults({
+
+                ignore: []
+            });
+            $('#quickForm').validate({
+                onfocusout: function (element) {
+                    $(element).valid();
+                },
+                rules: {
+                    description: {
+                        required: true,
+                    },
+                    apartment: {
+                        required: true,
+                    },
+                },
+                errorPlacement: function (error, element) {
+                    if (element.hasClass('select2-hidden-accessible')) {
+                        error.insertAfter(element.next('.select2-container'));
+                    } else {
+                        error.insertAfter(element);
+                    }
+                },
+                messages: {
+                    apartment: {
+                        required: "Необходимо заполнить «Квартира».",
+                    },
+                    description: {
+                        required: "Необходимо заполнить «Описание».",
+                    },
+                },
+                errorClass: 'is-invalid',
+                validClass: 'is-valid',
+                errorElement: 'span',
+
+                highlight: function (element, errorClass, validClass) {
+                    $(element).addClass(errorClass).removeClass(validClass);
+
+                    $(element).closest('.form-group')
+                        .find('label')
+                        .addClass('text-danger')
+                        .removeClass('text-success')
+
+                },
+
+                unhighlight: function (element, errorClass, validClass) {
+                    $(element).removeClass(errorClass).addClass(validClass);
+
+                    $(element).closest('.form-group')
+                        .find('label')
+                        .addClass('text-success')
+                        .removeClass('text-danger')
+                },
+
+                submitHandler: function (form) {
+                    form.submit();
+                }
+            });
+            $('select').on('select2:select select2:unselect select2:close', function (e) {
+                $(this).valid();
+            });
+        });
+    </script>
+{% endblock extra_js %}

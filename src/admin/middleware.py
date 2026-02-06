@@ -12,6 +12,6 @@ class AdminAccessMiddleware:
 
         if request.path.startswith("/admin/"):
             if not request.user.is_authenticated or not request.user.is_staff:
-                return redirect("managements:main-page")
+                return redirect("home")
 
         return self.get_response(request)

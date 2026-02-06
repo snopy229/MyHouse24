@@ -78,7 +78,6 @@
                             </li>
                             <li class="dropdown user user-menu">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                                    <i class="fa fa-user-circle text-purple"></i>
                                     <span class="hidden-xs">{{ user.first_name }} {{ user.second_name }}</span>
                                 </a>
                                 <ul class="dropdown-menu">
@@ -113,28 +112,29 @@
                             <a href="#"><i class="fa fa-dollar"></i> <span>Касса</span></a>
                         </li>
                         <li>
-                            <a href="#"><i class="fa fa-files-o"></i> <span>Квитанции на оплату</span></a>
-                        </li>
-                        <li class="{% if 'bankbook' in request.path %}active{% endif %}">
-                        <a href="{% url 'admin:bankbook-list' %}"><i class="fa fa-credit-card"></i>
-                        <span>Лицевые счета</span></a>
+                        <a href="{% url 'admin:receipt-list' %}"><i class="fa fa-files-o"></i>
+                        <span>Квитанции на оплату</span></a>
                 </li>
-                <li class="{% if 'flat' in request.path %}active{% endif %}">
-                    <a href="{% url 'admin:flat-list' %}"><i class="fa fa-key"></i> <span>Квартиры</span></a>
-                </li>
-                <li class="{% if 'owner' in request.path %}active{% endif %}">
-                <a href="{% url 'admin:owner-list' %}"><i class="fa fa-users"></i>
-                <span>Владельцы квартир</span></a>
+                <li class="{% if 'bankbook' in request.path %}active{% endif %}">
+                <a href="{% url 'admin:bankbook-list' %}"><i class="fa fa-credit-card"></i>
+                <span>Лицевые счета</span></a>
         </li>
-        <li class="{% if 'house' in request.path %}active{% endif %}">
-            <a href="{% url 'admin:house-list' %}"><i class="fa fa-building"></i> <span>Дома</span></a>
+        <li class="{% if 'flat' in request.path %}active{% endif %}">
+            <a href="{% url 'admin:flat-list' %}"><i class="fa fa-key"></i> <span>Квартиры</span></a>
         </li>
-        <li>
-            <a href="#"><i class="fa fa-envelope-o"></i> <span>Сообщения</span></a>
-        </li>
-        <li>
-        <a href="{% url 'admin:master-call-list' %}"><i class="fa fa-wrench"></i>
-        <span>Заявки мастера</span></a>
+        <li class="{% if 'owner' in request.path %}active{% endif %}">
+        <a href="{% url 'admin:owner-list' %}"><i class="fa fa-users"></i>
+        <span>Владельцы квартир</span></a>
+</li>
+<li class="{% if 'house' in request.path %}active{% endif %}">
+    <a href="{% url 'admin:house-list' %}"><i class="fa fa-building"></i> <span>Дома</span></a>
+</li>
+<li>
+    <a href="#"><i class="fa fa-envelope-o"></i> <span>Сообщения</span></a>
+</li>
+<li>
+<a href="{% url 'admin:master-call-list' %}"><i class="fa fa-wrench"></i>
+<span>Заявки мастера</span></a>
 </li>
 <li class="{% if 'counter' in request.path %}active{% endif %}">
     <a href="{% url 'admin:counter-list' %}"><i class="fa fa-dashboard"></i> <span>Показания счетчиков</span></a>

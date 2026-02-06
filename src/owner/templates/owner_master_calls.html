@@ -1,0 +1,54 @@
+{% extends "base_owner.html" %}
+{% block content %}
+    <section class="content">
+        <div class="row">
+            <!--<div class="col-xs-12 col-sm-6">-->
+            <!--<h2 class="page-header">Вызов мастера</h2>-->
+            <!--</div>-->
+            <div class="col-xs-12">
+                <div class="pull-right margin-bottom">
+                    <a class="btn btn-success" href="{% url 'owner:master-call-create' %}">Создать заявку</a>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box">
+                    <div id="w0" class="grid-view">
+                        <div class="box-body table-responsive no-padding">
+                            <table id="owner-master-call-table"
+                                   class="table table-bordered table-hover table-striped">
+                            </table>
+                        </div>
+                        <div class="box-footer clearfix"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock content %}
+{% block extra_js %}
+    <script>
+        $(document).ready(function () {
+            AjaxDatatableViewUtils.initialize_table(
+                $('#owner-master-call-table'),
+                "{% url 'owner:master-call-ajax-table' %}",
+                {
+                    processing: false,
+                    autoWidth: false,
+                    pageLength: 50,
+                    scrollX: false,
+                    lengthChange: false,
+                    ordering: false,
+                    order: [[0, 'desc']],
+                    pagingType: 'numbers',
+                    showing: false,
+                    dom: '<"box-body"t><"box-footer clearfix"p>',
+                    info: false,
+                    bFilter: true,
+                },
+            )
+            ;
+        });
+    </script>
+{% endblock extra_js %}

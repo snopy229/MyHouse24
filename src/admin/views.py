@@ -1,9 +1,11 @@
+import json
+
 from ajax_datatable import AjaxDatatableView
 from django.core.mail import send_mail
 from django.db import transaction
-from django.db.models import CharField, Value
+from django.db.models import CharField, Value, Sum
 from django.db.models.functions import Concat
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 from django.utils.html import format_html
@@ -16,10 +18,18 @@ from django.views.generic import (
     ListView,
 )
 from openpyxl import Workbook
+from datetime import datetime
 
+from src.settings.models import Tariffs, Service
 from src.user.models import User
 from src.user.choices import Status
-from .choices import StatusBankBook, StatusCounter, MasterType, StatusCall
+from .choices import (
+    StatusBankBook,
+    StatusCounter,
+    MasterType,
+    StatusCall,
+    StatusReceipt,
+)
 from .forms import (
     FloorFormSet,
     StaffFormSet,
@@ -30,8 +40,10 @@ from .forms import (
     BankBookForm,
     CounterForm,
     MasterCallForm,
+    ReceiptForm,
+    ServiceFullCostFormSet,
 )
-from src.admin.models import House, Apartment, BankBook, Counter, MasterCall
+from src.admin.models import House, Apartment, BankBook, Counter, MasterCall, Receipt
 
 
 class Statistic(TemplateView):
@@ -965,11 +977,11 @@ class CounterSpecificAjaxTable(AjaxDatatableView):
         css_class = "label label-default"
         if obj.status == StatusCounter.NEW:
             css_class = "label label-warning"
-        elif obj.status == StatusBankBook.TAKEN:
+        elif obj.status == StatusCounter.TAKEN:
             css_class = "label label-success"
-        elif obj.status == StatusBankBook.TAKEN_AND_PAID:
+        elif obj.status == StatusCounter.TAKEN_AND_PAID:
             css_class = "label label-success"
-        elif obj.status == StatusBankBook.NULLABLE:
+        elif obj.status == StatusCounter.NULLABLE:
             css_class = "label label-primary"
         row["status"] = f'<small class="{css_class}">{status}</small>'
 
@@ -1125,18 +1137,20 @@ class MasterCallAjaxDataTable(AjaxDatatableView):
             obj.apartment.number,
             obj.apartment.house.title,
         )
+        if obj.owner:
+            owner_url = reverse("admin:detail-owner", args=[obj.owner.id])
+            row["owner"] = format_html(
+                '<a href="{}">{}</a>', owner_url, obj.owner.fullname
+            )
 
-        owner_url = reverse("admin:detail-owner", args=[obj.owner.id])
-        row["owner"] = format_html('<a href="{}">{}</a>', owner_url, obj.owner.fullname)
-        master_url = reverse("settings:user-detail", args=[obj.master.id])
-        row["master"] = format_html(
-            '<a href="{}">{}-{}</a>',
-            master_url,
-            obj.master.role.title,
-            obj.master.fullname,
-        )
-
-        status = obj.get_call_status_display()
+        if obj.master:
+            master_url = reverse("settings:user-detail", args=[obj.master.id])
+            row["master"] = format_html(
+                '<a href="{}">{}-{}</a>',
+                master_url,
+                obj.master.role.title,
+                obj.master.fullname,
+            )
 
         css_class = "label label-default"
         if obj.call_status == StatusCall.IN_WORK:
@@ -1145,7 +1159,7 @@ class MasterCallAjaxDataTable(AjaxDatatableView):
             css_class = "label label-success"
         elif obj.call_status == StatusCall.NEW:
             css_class = "label label-primary"
-        row["status"] = f'<small class="{css_class}">{status}</small>'
+        row["status"] = f'<small class="{css_class}">{obj.call_status}</small>'
 
         edit_url = reverse("admin:master-call-edit", args=[obj.id])
         delete_url = reverse("admin:master-call-delete", args=[obj.id])
@@ -1197,3 +1211,463 @@ class DeleteMasterCall(DeleteView):
         master_call = get_object_or_404(MasterCall, pk=pk)
         master_call.delete()
         return redirect("admin:master-call-list")
+
+
+class ReceiptList(ListView):
+    model = Receipt
+    template_name = "receipts.html"
+
+
+class ReceiptCreate(CreateView):
+    model = Receipt
+    form_class = ReceiptForm
+    template_name = "receipt.html"
+    success_url = reverse_lazy("admin:receipt-list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context["services"] = ServiceFullCostFormSet(
+                self.request.POST, prefix="services"
+            )
+        else:
+            context["services"] = ServiceFullCostFormSet(prefix="services")
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        services = context["services"]
+
+        if services.is_valid():
+            with transaction.atomic():
+                self.object = form.save()
+                services.instance = self.object
+                services.save()
+
+            return super().form_valid(form)
+        else:
+            return self.render_to_response(self.get_context_data(form=form))
+
+
+def get_tariff(request):
+    apartment_id = request.GET.get("apartment_id")
+    data = {
+        "tariff_id": None,
+    }
+    if apartment_id:
+        try:
+            tariff = Tariffs.objects.filter(apartment=apartment_id).first()
+            if tariff:
+                data["tariff_id"] = tariff.id
+        except Exception as e:
+            print(f"Error in get_tariff: {e}")
+    return JsonResponse(data)
+
+
+def get_tariff_services(request):
+    tariff_id = request.GET.get("tariff_id")
+
+    if not tariff_id:
+        return JsonResponse({"success": False, "error": "Не указан тариф"})
+
+    try:
+        from .models import Tariffs, ServicesCost
+
+        tariff = Tariffs.objects.get(id=tariff_id)
+
+        services_cost = ServicesCost.objects.filter(tariff=tariff).select_related(
+            "service", "service__units_of_measure"
+        )
+
+        services_data = []
+        for sc in services_cost:
+            service_info = {
+                "service_id": sc.service.id,
+                "service_name": sc.service.name
+                if hasattr(sc.service, "name")
+                else str(sc.service),
+                "unit_id": sc.service.units_of_measure.id
+                if sc.service.units_of_measure
+                else None,
+                "unit_name": sc.service.units_of_measure.name
+                if sc.service.units_of_measure
+                else "",
+                "cost": str(sc.cost),
+            }
+            services_data.append(service_info)
+
+        return JsonResponse({"success": True, "services": services_data})
+
+    except Tariffs.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Тариф не найден"})
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})
+
+
+def get_unit(request):
+    service_id = request.GET.get("service_id")
+    data = {
+        "unit_id": None,
+    }
+    if service_id:
+        try:
+            service = Service.objects.get(id=service_id)
+            if service.units_of_measure:
+                data["unit_id"] = service.units_of_measure.id
+        except (Service.DoesNotExist, AttributeError):
+            pass
+
+    return JsonResponse(data)
+
+
+def get_unit_service(request):
+    service_id = request.GET.get("service_id")
+    data = {
+        "unit_id": None,
+        "cost": None,
+    }
+    if service_id:
+        try:
+            service = Service.objects.get(id=service_id)
+            if service.units_of_measure:
+                data["unit_id"] = service.units_of_measure.id
+            # Если у сервиса есть стандартная цена
+            if hasattr(service, "price") and service.price:
+                data["cost"] = str(service.price)
+        except (Service.DoesNotExist, AttributeError):
+            pass
+
+    return JsonResponse(data)
+
+
+def get_counter_readings(request):
+    apartment_id = request.GET.get("apartment_id")
+    date_from = request.GET.get("date_from")
+    date_to = request.GET.get("date_to")
+
+    if not apartment_id:
+        return JsonResponse({"success": False, "error": "Не указана квартира"})
+
+    try:
+        counters_query = Counter.objects.filter(apartment_id=apartment_id, status="NEW")
+
+        if date_from:
+            try:
+                date_from_obj = datetime.strptime(date_from, "%Y-%m-%d").date()
+                counters_query = counters_query.filter(date__gte=date_from_obj)
+            except ValueError:
+                pass
+
+        if date_to:
+            try:
+                date_to_obj = datetime.strptime(date_to, "%Y-%m-%d").date()
+                counters_query = counters_query.filter(date__lte=date_to_obj)
+            except ValueError:
+                pass
+
+        if not counters_query.exists():
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "Для выбранной квартиры не найдено новых счетчиков в указанном периоде",
+                }
+            )
+
+        counter_readings = []
+
+        services = counters_query.values_list("service", flat=True).distinct()
+
+        for service_id in services:
+            # Получаем все счетчики NEW для этой услуги
+            service_counters = counters_query.filter(service_id=service_id)
+
+            # Считаем сумму показаний (readings) всех NEW счетчиков для этой услуги
+            total_consumption = (
+                service_counters.aggregate(total=Sum("readings"))["total"] or 0
+            )
+
+            first_counter = service_counters.first()
+
+            if first_counter:
+                service = first_counter.service
+
+                counter_ids = list(service_counters.values_list("id", flat=True))
+
+                reading_info = {
+                    "counter_ids": counter_ids,
+                    "service_id": service.id,
+                    "service_name": service.name
+                    if hasattr(service, "name")
+                    else str(service),
+                    "unit_id": service.units_of_measure.id
+                    if hasattr(service, "units_of_measure") and service.units_of_measure
+                    else None,
+                    "consumption": str(total_consumption),
+                    "count": service_counters.count(),
+                }
+                counter_readings.append(reading_info)
+
+        return JsonResponse({"success": True, "readings": counter_readings})
+
+    except Exception as e:
+        return JsonResponse(
+            {"success": False, "error": f"Ошибка при получении показаний: {str(e)}"}
+        )
+
+
+def mark_counters_taken(request):
+    try:
+        data = json.loads(request.body)
+        counter_ids = data.get("counter_ids", [])
+
+        if not counter_ids:
+            return JsonResponse({"success": False, "error": "Не указаны ID счетчиков"})
+
+        updated_count = Counter.objects.filter(id__in=counter_ids, status="NEW").update(
+            status="TAKEN"
+        )
+
+        return JsonResponse({"success": True, "updated_count": updated_count})
+
+    except Exception as e:
+        return JsonResponse(
+            {"success": False, "error": f"Ошибка при обновлении статусов: {str(e)}"}
+        )
+
+
+class ReceiptCounterTable(AjaxDatatableView):
+    model = Counter
+    initial_order = [[0, "asc"]]
+
+    def get_column_defs(self, request):
+        columns = [
+            {
+                "name": "number",
+                "title": "№",
+                "searchable": False,
+                "orderable": True,
+            },
+            {
+                "name": "status",
+                "title": "Статус",
+                "searchable": False,
+                "orderable": True,
+            },
+            {
+                "name": "date",
+                "title": "Дата",
+                "searchable": False,
+                "orderable": False,
+            },
+            {
+                "name": "house",
+                "title": "Дом",
+                "foreign_field": "house__title",
+                "searchable": False,
+                "orderable": False,
+            },
+            {
+                "name": "section",
+                "title": "Секция",
+                "foreign_field": "section__title",
+                "searchable": False,
+                "orderable": False,
+            },
+            {
+                "name": "apartment",
+                "title": "№ квартиры",
+                "foreign_field": "apartment__number",
+                "searchable": False,
+                "orderable": False,
+            },
+            {
+                "name": "service",
+                "title": "Счетчик",
+                "foreign_field": "service__title",
+                "searchable": False,
+                "orderable": False,
+            },
+            {
+                "name": "readings",
+                "title": "Текущие показания",
+                "searchable": False,
+                "orderable": False,
+                "className": "rows",
+            },
+            {
+                "name": "units",
+                "foreign_field": "service__units_of_measure__units",
+                "title": "Текущие показания",
+                "className": "rows",
+                "searchable": False,
+                "orderable": False,
+            },
+        ]
+        return columns
+
+    def customize_row(self, row, obj):
+        status = obj.get_status_display()
+        css_class = "label label-default"
+        if obj.status == StatusCounter.NEW:
+            css_class = "label label-warning"
+        elif obj.status == StatusBankBook.TAKEN:
+            css_class = "label label-success"
+        elif obj.status == StatusBankBook.TAKEN_AND_PAID:
+            css_class = "label label-success"
+        elif obj.status == StatusBankBook.NULLABLE:
+            css_class = "label label-primary"
+        row["status"] = f'<small class="{css_class}">{status}</small>'
+
+        for key in row:
+            if row[key] is None or row[key] == "":
+                row[key] = '<span class="text-muted">(не задано)</span>'
+
+        return row
+
+    def get_initial_queryset(self, request=None):
+        qs = super().get_initial_queryset().order_by("id")
+
+        house = self.request.POST.get("house")
+        apartment = self.request.POST.get("apartment")
+        date_from = self.request.POST.get("date_from")
+        date_to = self.request.POST.get("date_to")
+
+        if house:
+            qs = qs.filter(house__id=house)
+
+        if apartment:
+            qs = qs.filter(apartment__id=apartment)
+
+        if date_to:
+            qs = qs.filter(date__lte=date_to)
+
+        if date_from:
+            qs = qs.filter(date__gte=date_from)
+
+        return qs
+
+
+class EditReceipt(UpdateView):
+    model = Receipt
+    form_class = ReceiptForm
+    template_name = "receipt.html"
+    success_url = reverse_lazy("admin:receipt-list")
+    context_object_name = "receipt"
+
+
+class DeleteReceipt(DeleteView):
+    model = Receipt
+
+    def get(self, request, pk):
+        receipt = get_object_or_404(Receipt, pk=pk)
+        receipt.delete()
+        return redirect("admin:receipt-list")
+
+
+class ReceiptAjaxDatatable(AjaxDatatableView):
+    model = Receipt
+    initial_order = [[2, "asc"]]
+
+    def get_column_defs(self, request):
+        columns = [
+            {
+                "name": "number",
+                "title": "№ квитанции",
+                "searchable": True,
+                "orderable": False,
+            },
+            {
+                "name": "status",
+                "title": "Статус",
+                "searchable": True,
+                "orderable": False,
+                "choices": StatusReceipt.choices,
+            },
+            {
+                "name": "date",
+                "title": "Дата",
+                "searchable": False,
+                "orderable": True,
+            },
+            {
+                "name": "apartment",
+                "title": "Квартира",
+                "searchable": True,
+                "orderable": False,
+            },
+            {
+                "name": "owner",
+                "title": "Владелец",
+                "searchable": True,
+                "orderable": False,
+            },
+            {
+                "name": "is_catch",
+                "title": "Проведена",
+                "searchable": True,
+                "orderable": False,
+            },
+            {
+                "name": "sum",
+                "title": "Сумма (грн)",
+                "searchable": False,
+                "orderable": False,
+            },
+            {
+                "name": "actions",
+                "title": "",
+                "searchable": False,
+                "orderable": False,
+            },
+        ]
+        return columns
+
+    def customize_row(self, row, obj):
+        row["apartment"] = (
+            f"<small>{obj.apartment.number}, {obj.apartment.house.title}</small>"
+        )
+        row["owner"] = f"<small>{obj.apartment.owner.fullname}</small>"
+
+        services_cost = obj.servicefullcost_set.all()
+        services_sum = sum(a.full_cost for a in services_cost)
+        row["sum"] = f"<small>{services_sum}</small>"
+
+        if obj.is_catch:
+            catch = "<small>Проведено</small>"
+        elif not obj.is_catch:
+            catch = "<small>Не проведено</small>"
+
+        row["is_catch"] = catch
+
+        edit_url = reverse("admin:receipt-edit", args=[obj.id])
+        delete_url = reverse("admin:receipt-delete", args=[obj.id])
+
+        row["actions"] = format_html(
+            '<div class="btn-group btn-group-sm">'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-pencil"></i></a>'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-trash"></i></a>'
+            "</div>",
+            edit_url,
+            delete_url,
+        )
+
+        detail_url = reverse("admin:receipt-detail", args=[obj.id])
+        row["DT_RowAttr"] = {"data-href": detail_url, "style": "cursor: pointer;"}
+
+        for key in row:
+            if row[key] is None or row[key] == "":
+                row[key] = '<span class="text-muted">(не задано)</span>'
+
+
+class DetailReceipt(DetailView):
+    model = Receipt
+    template_name = "receipt_detail.html"
+    context_object_name = "receipt"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        receipt = self.object
+        services_cost = receipt.servicefullcost_set.all()
+        context["fullcost"] = sum(a.full_cost for a in services_cost)
+
+        return context

@@ -6,7 +6,17 @@ from django.utils import timezone
 from django_select2.forms import Select2Widget
 
 from src.user.models import User
-from .models import House, Section, Floor, Apartment, BankBook, Counter, MasterCall
+from .models import (
+    House,
+    Section,
+    Floor,
+    Apartment,
+    BankBook,
+    Counter,
+    MasterCall,
+    Receipt,
+    ServiceFullCost,
+)
 
 
 class HouseForm(forms.ModelForm):
@@ -364,3 +374,89 @@ class MasterCallForm(forms.ModelForm):
             if self.instance.date:
                 self.initial["date"] = self.instance.date.strftime("%Y-%m-%d")
                 self.fields["time"].initial = timezone.now().time().strftime("%H:%M")
+
+
+class ReceiptForm(forms.ModelForm):
+    bankbook = forms.IntegerField(
+        widget=forms.NumberInput(attrs={"class": "form-control"}),
+    )
+
+    class Meta:
+        model = Receipt
+        fields = "__all__"
+        widgets = {
+            "number": forms.NumberInput(attrs={"class": "form-control"}),
+            "date": forms.DateInput(
+                attrs={"class": "form-control", "type": "date"}, format="%Y-%m-%d"
+            ),
+            "house": Select2Widget(attrs={"class": "form-control"}),
+            "section": Select2Widget(attrs={"class": "form-control"}),
+            "apartment": Select2Widget(attrs={"class": "form-control"}),
+            "status": forms.Select(attrs={"class": "form-control"}),
+            "tariff": Select2Widget(attrs={"class": "form-control"}),
+            "date_from": forms.DateInput(
+                attrs={"class": "form-control", "type": "date"}, format="%Y-%m-%d"
+            ),
+            "date_to": forms.DateInput(
+                attrs={"class": "form-control", "type": "date"}, format="%Y-%m-%d"
+            ),
+            "is_catch": forms.CheckboxInput(attrs={"class": "form-control-input"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk and self.instance.bankbook:
+            self.initial["bankbook"] = self.instance.bankbook.number
+            self.initial["date"] = self.instance.date
+            self.initial["date_from"] = self.instance.date_from
+            self.initial["date_to"] = self.instance.date_to
+        if not self.instance.pk:
+            today = timezone.now()
+            date_part = today.strftime("%d%m%y")
+            last_receipt = Receipt.objects.order_by("id").last()
+            next_id = (last_receipt.id + 1) if last_receipt else 1
+            generated_number = f"{date_part}{next_id}"
+
+            self.fields["number"].initial = generated_number
+            self.fields["date"].initial = timezone.now().date().strftime("%Y-%m-%d")
+            self.fields["date_from"].initial = (
+                timezone.now().date().strftime("%Y-%m-%d")
+            )
+            self.fields["date_to"].initial = timezone.now().date().strftime("%Y-%m-%d")
+
+    def clean_bankbook(self):
+        number = self.cleaned_data["bankbook"]
+        try:
+            return BankBook.objects.get(number=number)
+        except BankBook.DoesNotExist:
+            raise forms.ValidationError("Такого лицевого счета не существует")
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.bankbook = self.cleaned_data["bankbook"]
+        if commit:
+            instance.save()
+        return instance
+
+
+class ServiceFullCostForm(forms.ModelForm):
+    class Meta:
+        model = ServiceFullCost
+        fields = "__all__"
+        exclude = ("receipt",)
+        widgets = {
+            "service": forms.Select(attrs={"class": "form-control"}),
+            "cost": forms.NumberInput(attrs={"class": "form-control"}),
+            "unit": forms.Select(attrs={"class": "form-control"}),
+            "full_cost": forms.NumberInput(attrs={"class": "form-control"}),
+            "consumption": forms.NumberInput(attrs={"class": "form-control"}),
+        }
+
+
+ServiceFullCostFormSet = inlineformset_factory(
+    Receipt,
+    ServiceFullCost,
+    form=ServiceFullCostForm,
+    extra=0,
+    can_delete=True,
+)

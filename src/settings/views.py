@@ -421,3 +421,9 @@ class TariffsList(ListView):
     model = Tariffs
     context_object_name = "tariffs"
     template_name = "tariffs.html"
+
+
+class TariffDetail(DetailView):
+    model = Tariffs
+    context_object_name = "tariff"
+    template_name = "tariff_detail.html"

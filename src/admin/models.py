@@ -1,8 +1,15 @@
 from ckeditor.fields import RichTextField
+from django.core.exceptions import ValidationError
 from django.db import models
 
-from src.admin.choices import StatusBankBook, StatusCounter, StatusCall, MasterType
-from src.settings.models import Tariffs, Service
+from .choices import (
+    StatusBankBook,
+    StatusCounter,
+    StatusCall,
+    MasterType,
+    StatusReceipt,
+)
+from src.settings.models import Tariffs, Service, UnitsOfMeasurement
 from src.user.models import User
 
 
@@ -67,6 +74,9 @@ class BankBook(models.Model):
     house = models.ForeignKey(House, on_delete=models.CASCADE)
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return str(self.number)
+
 
 class Counter(models.Model):
     number = models.IntegerField(unique=True)
@@ -94,4 +104,40 @@ class MasterCall(models.Model):
         User, on_delete=models.CASCADE, blank=True, null=True, related_name="master_set"
     )
     apartment = models.ForeignKey(Apartment, on_delete=models.CASCADE)
-    call_status = models.CharField(choices=StatusCall, default="NEW")
+    call_status = models.CharField(
+        choices=StatusCall, blank=True, null=True, default="NEW"
+    )
+
+
+class Receipt(models.Model):
+    number = models.IntegerField()
+    date = models.DateField()
+    house = models.ForeignKey(House, on_delete=models.CASCADE, blank=True, null=True)
+    apartment = models.ForeignKey(Apartment, on_delete=models.CASCADE)
+    section = models.ForeignKey(
+        Section, on_delete=models.CASCADE, blank=True, null=True
+    )
+    status = models.CharField(choices=StatusReceipt, default="UPD", max_length=10)
+    tariff = models.ForeignKey(Tariffs, on_delete=models.CASCADE, blank=True, null=True)
+    date_from = models.DateField()
+    date_to = models.DateField()
+    bankbook = models.ForeignKey(
+        BankBook, on_delete=models.CASCADE, blank=True, null=True
+    )
+    is_catch = models.BooleanField(default=True)
+
+    def clean(self):
+        super().clean()
+        if self.date_from > self.date_to:
+            raise ValidationError(
+                {"date_from": "Дата начала не может быть позже даты окончания."}
+            )
+
+
+class ServiceFullCost(models.Model):
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    cost = models.FloatField(blank=True, null=True)
+    unit = models.ForeignKey(UnitsOfMeasurement, on_delete=models.CASCADE)
+    full_cost = models.FloatField(blank=True, null=True)
+    consumption = models.FloatField(blank=True, null=True)
+    receipt = models.ForeignKey(Receipt, on_delete=models.CASCADE)

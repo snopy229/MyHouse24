@@ -1,25 +1,44 @@
 {% extends "base_admin.html" %}
 {% block content %}
+    <style>
+        .page-header-spec {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .equal-inputs {
+            display: flex;
+        }
+
+        .equal-inputs .input-group {
+            width: 160px;
+        }
+
+        .equal-inputs .form-control {
+            height: 38px !important;
+            line-height: 38px !important;
+        }
+
+        .label-mid {
+            display: flex;
+            align-items: center !important;
+            height: 38px;
+            white-space: nowrap;
+        }
+    </style>
     <section class="content">
         <form id="quickForm" method="post">
             {% csrf_token %}
             <div class="row">
                 <div class="col-xs-12 col-md-7 col-lg-6">
                     <div class="page-header-spec">
-                        <div class="form-group field-masterrequest-date_request">
-                            <div id="masterrequest-date_request-kvdate" class="input-group  date">
-                                {{ form.date }}
-                                <span class="input-group-addon kv-date-calendar" title="Выбрать дату"><i class="glyphicon glyphicon-calendar"></i></span>
-                            </div>
+                        <div class="form-group flex-form-group equal-inputs">
+                            <div class="input-group  date">{{ form.date }}</div>
                         </div>
                         <span class="label-mid">от</span>
-                        <div class="form-group field-masterrequest-time_request">
-                            <div class="input-group bootstrap-timepicker">
-                                {{ form.time }}
-                                <div class="input-group-addon">
-                                    <i class="fa fa-clock-o"></i>
-                                </div>
-                            </div>
+                        <div class="form-group flex-form-group">
+                            <div class="input-group bootstrap-timepicker equal-inputs">{{ form.time }}</div>
                         </div>
                     </div>
                 </div>

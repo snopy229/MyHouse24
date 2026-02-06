@@ -1,6 +1,6 @@
 from django.urls import path
 
-from settings.views import DetailUser, ArticleAjaxTable
+from settings.views import DetailUser, ArticleAjaxTable, TariffUpdateView, TariffDetail
 from src.settings.views import (
     EditServicesView,
     ArticleList,
@@ -36,5 +36,7 @@ urlpatterns = [
     path("user/detail/<int:pk>/", DetailUser.as_view(), name="user-detail"),
     path("user/create_user/", CreateUser.as_view(), name="create-user"),
     path("tariff/list/", TariffsList.as_view(), name="tariff-list"),
-    path("tariff/create", TariffsCreateView.as_view(), name="tariff-create"),
+    path("tariff/create/", TariffsCreateView.as_view(), name="tariff-create"),
+    path("tariff/edit/<int:pk>/", TariffUpdateView.as_view(), name="tariff-edit"),
+    path("tariff/detail/<int:pk>/", TariffDetail.as_view(), name="tariff-detail"),
 ]

@@ -19,6 +19,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+from src.managements.views import MainPageDetail
 from .api import api
 
 urlpatterns = [
@@ -29,6 +30,7 @@ urlpatterns = [
     path("api/", api.urls),
     path("select2/", include("django_select2.urls")),
     path("owner/", include("src.owner.urls")),
+    path("", MainPageDetail.as_view(), name="home"),
 ]
 
 if settings.DEBUG:
