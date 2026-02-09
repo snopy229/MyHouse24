@@ -25,10 +25,10 @@
                 <div class="collapse navbar-collapse" id="menuBtn">
                     <ul class="nav navbar-nav navbar-right">
                         <li class="{% if request.path == '/' %}active{% endif %}">
-                            <a href="{% url 'home' %}">Главная</a>
+                            <a href="{% url 'managements:main-page' %}">Главная</a>
                         </li>
                         <li class="{% if request.path == '/about/' %}active{% endif %}">
-                            <a href="{% url 'about' %}">О нас</a>
+                            <a href="#">О нас</a>
                         </li>
                         <li class="{% if request.path == '/services/' %}active{% endif %}">
                             <a href="{% url 'managements:services' %}">Услуги</a>

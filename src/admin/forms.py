@@ -16,6 +16,7 @@ from .models import (
     MasterCall,
     Receipt,
     ServiceFullCost,
+    Message,
 )
 
 
@@ -460,3 +461,30 @@ ServiceFullCostFormSet = inlineformset_factory(
     extra=0,
     can_delete=True,
 )
+
+
+class MessageForm(forms.ModelForm):
+    message = forms.CharField(
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control",
+                "rows": 5,
+                "style": "width: 100%; min-width: 100%;",
+            }
+        )
+    )
+    for_debtor = forms.BooleanField(required=False)
+
+    class Meta:
+        model = Message
+        fields = "__all__"
+        exclude = [
+            "created_at",
+        ]
+        widgets = {
+            "theme": forms.TextInput(attrs={"class": "form-control"}),
+            "house": Select2Widget(attrs={"class": "form-control"}),
+            "service": Select2Widget(attrs={"class": "form-control"}),
+            "flag": Select2Widget(attrs={"class": "form-control"}),
+            "apartment": Select2Widget(attrs={"class": "form-control"}),
+        }

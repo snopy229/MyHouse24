@@ -9,6 +9,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django.views.generic import (
     CreateView,
     UpdateView,
@@ -42,8 +43,18 @@ from .forms import (
     MasterCallForm,
     ReceiptForm,
     ServiceFullCostFormSet,
+    MessageForm,
 )
-from src.admin.models import House, Apartment, BankBook, Counter, MasterCall, Receipt
+from src.admin.models import (
+    House,
+    Apartment,
+    BankBook,
+    Counter,
+    MasterCall,
+    Receipt,
+    Message,
+    MessageStatus,
+)
 
 
 class Statistic(TemplateView):
@@ -1671,3 +1682,100 @@ class DetailReceipt(DetailView):
         context["fullcost"] = sum(a.full_cost for a in services_cost)
 
         return context
+
+
+class MessageAjaxDatatable(AjaxDatatableView):
+    model = Message
+    initial_order = [[2, "asc"]]
+
+    def get_column_defs(self, request):
+        columns = [
+            {
+                "name": "checkbox",
+                "title": "",
+                "searchable": False,
+                "orderable": False,
+            },
+            {
+                "name": "recipient",
+                "title": "Получатели",
+                "searchable": False,
+                "orderable": False,
+            },
+            {
+                "name": "theme",
+                "title": "Получатели",
+                "searchable": True,
+                "orderable": True,
+            },
+            {
+                "name": "created_at",
+                "title": "Дата",
+                "searchable": False,
+                "orderable": False,
+            },
+        ]
+        return columns
+
+    def customize_row(self, row, obj):
+        row["checkbox"] = mark_safe(
+            f'<input type="checkbox" name="item_ids" value="{obj.id}" class="item-checkbox">'
+        )
+
+        if not obj.house:
+            row["receipent"] = '<span><a href="#">Всем</a></span>'
+        else:
+            row["receipent"] = (
+                f'<span><a href="#">{obj.house.title}{f', {obj.section.title}' if obj.section else ''}{f', {obj.floor.title}' if obj.floor else ''}{f', кв.{obj.apartment.number}' if obj.apartment else ''}</a></span>'
+            )
+
+        row["theme"] = f"<span>{obj.theme}-{obj.message}</span>"
+
+        for key in row:
+            if row[key] is None or row[key] == "":
+                row[key] = '<span class="text-muted">(не задано)</span>'
+
+
+class CreateMessage(CreateView):
+    model = Message
+    form_class = MessageForm
+    template_name = "message.html"
+    success_url = reverse_lazy("admin:receipt-list")
+
+    def form_valid(self, form):
+        message = Message.objects.create(
+            theme=form.cleaned_data["theme"],
+            message=form.cleaned_data["message"],
+            sender=self.request.user,
+        )
+        users = User.objects.filter(is_staff=False)
+        if form.cleaned_data["house"]:
+            users = users.filter(house_set=form.cleaned_data["house"])
+        if form.cleaned_data["section"]:
+            users = users.filter(section_set=form.cleaned_data["section"])
+        if form.cleaned_data["floor"]:
+            users = users.filter(floor_set=form.cleaned_data["floor"])
+        if form.cleaned_data["apartment"]:
+            users = users.filter(apartment=form.cleaned_data["apartment"])
+        if form.cleaned_data["for_debtor"]:
+            target_status = ["UPD", "PT"]
+            users = users.filter(apartment__receipt__status__in=target_status)
+
+        user_messages = [MessageStatus(user=user, message=message) for user in users]
+        MessageStatus.objects.bulk_create(user_messages)
+
+        return super().form_valid(form)
+
+
+class MessageList(ListView):
+    model = Message
+    template_name = "messages.html"
+
+
+def message_bulk_delete(request):
+    if request.method == "POST":
+        item_ids = request.POST.getlist("item_ids")
+        if item_ids:
+            Message.objects.filter(id__in=item_ids).delete()
+
+    return redirect("admin:message-list")

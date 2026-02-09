@@ -1,5 +1,14 @@
 {% extends "base_owner.html" %}
 {% block content %}
+    <style>
+        .profile-img-cover {
+            width: 160px;
+            height: 160px;
+            object-fit: cover; /* Это "магическая" строчка, которая уберет овал */
+            border-radius: 50%;
+            display: block; /* Убираем поведение текста */
+        }
+    </style>
     <section class="content-header">
         <h1>Профиль</h1>
         <ul class="breadcrumb">
@@ -81,35 +90,35 @@
                                 <p>{{ apartment.house.title }}, кв. {{ apartment.number }}</p>
                                 <div class="row">
                                     <div class="col-xs-12 col-md-6">
-                                        <img src=" {% if apartment.house.image1 %}{{ apartment.house.image1.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
+                                        <img src="  {% if apartment.house.image1 %}{{ apartment.house.image1.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
                                              class="img-responsive largeImg margin-bottom-30"
                                              width="500"
                                              height="300"
                                              alt="Фото дома 1">
                                     </div>
                                     <div class="col-xs-6 col-md-3">
-                                        <img src=" {% if apartment.house.image2 %}{{ apartment.house.image2.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
+                                        <img src="  {% if apartment.house.image2 %}{{ apartment.house.image2.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
                                              class="img-responsive smallImg margin-bottom-30"
                                              width="250"
                                              height="150"
                                              alt="Фото дома 2">
                                     </div>
                                     <div class="col-xs-6 col-md-3">
-                                        <img src=" {% if apartment.house.image3 %}{{ apartment.house.image3.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
+                                        <img src="  {% if apartment.house.image3 %}{{ apartment.house.image3.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
                                              class="img-responsive smallImg margin-bottom-30"
                                              width="250"
                                              height="150"
                                              alt="Фото дома 3">
                                     </div>
                                     <div class="col-xs-6 col-md-3">
-                                        <img src=" {% if apartment.house.image4 %}{{ apartment.house.image4.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
+                                        <img src="  {% if apartment.house.image4 %}{{ apartment.house.image4.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
                                              class="img-responsive smallImg margin-bottom-30"
                                              width="250"
                                              height="150"
                                              alt="Фото дома 4">
                                     </div>
                                     <div class="col-xs-6 col-md-3">
-                                        <img src=" {% if apartment.house.image5 %}{{ apartment.house.image5.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
+                                        <img src="  {% if apartment.house.image5 %}{{ apartment.house.image5.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
                                              class="img-responsive smallImg margin-bottom-30"
                                              width="250"
                                              height="150"

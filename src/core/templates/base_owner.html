@@ -31,7 +31,18 @@
                                     <i class="fa fa-bell"></i>
                                 </a>
                                 <ul class="dropdown-menu">
-                                    <li class="header">Нет новых сообщений</li>
+                                    {% if not new_messages %}
+                                        <li class="header">Нет новых сообщений</li>
+                                    {% else %}
+                                        <li class="header">{{ new_messages.count }}</li>
+                                        <ul class="menu">
+                                            {% for new_message in new_messages %}
+                                                <li>
+                                                    <a href="{% url 'owner:message-detail' new_message.id %}">{{ new_message.theme }}</a>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% endif %}
                                     <li class="footer">
                                         <a href="#">Перейти в раздел сообщений</a>
                                     </li>
@@ -121,7 +132,7 @@
 </ul>
 </li>
 <li>
-<a href="#"><i class="fa fa-envelope-o"></i>
+<a href="{% url 'owner:message-list' %}"><i class="fa fa-envelope-o"></i>
 <span>Сообщения</span></a>
 </li>
 <li>
@@ -143,7 +154,8 @@
 </li>
 <li class="disabled"
     onclick="alert('Раздел станет доступным после добавления квартиры.'); return false;">
-    <a href="#"><i class="fa fa-envelope-o"></i> <span>Сообщения</span></a>
+<a href="#"><i class="fa fa-envelope-o"></i>
+<span>Сообщения</span></a>
 </li>
 <li class="disabled"
     onclick="alert('Раздел станет доступным после добавления квартиры.'); return false;">

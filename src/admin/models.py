@@ -141,3 +141,26 @@ class ServiceFullCost(models.Model):
     full_cost = models.FloatField(blank=True, null=True)
     consumption = models.FloatField(blank=True, null=True)
     receipt = models.ForeignKey(Receipt, on_delete=models.CASCADE)
+
+
+class Message(models.Model):
+    theme = models.CharField()
+    message = RichTextField()
+    sender = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    house = models.ForeignKey(House, on_delete=models.CASCADE)
+    section = models.ForeignKey(
+        Section, on_delete=models.CASCADE, blank=True, null=True
+    )
+    floor = models.ForeignKey(Floor, on_delete=models.CASCADE)
+    apartment = models.ForeignKey(Apartment, on_delete=models.CASCADE)
+
+
+class MessageStatus(models.Model):
+    message = models.ForeignKey(Message, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    is_read = models.BooleanField(default=False)
+    is_deleted = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ("message", "user")

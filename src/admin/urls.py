@@ -52,6 +52,10 @@ from .views import (
     DeleteReceipt,
     mark_counters_taken,
     DetailReceipt,
+    CreateMessage,
+    MessageAjaxDatatable,
+    MessageList,
+    message_bulk_delete,
 )
 
 app_name = "admin"
@@ -140,4 +144,11 @@ urlpatterns = [
         "api/get-counter-readings/", get_counter_readings, name="get_counter_readings"
     ),
     path("api/mark-counters-taken", mark_counters_taken, name="mark_counters_taken"),
+    # message
+    path("message/list/", MessageList.as_view(), name="message-list"),
+    path("message/create/", CreateMessage.as_view(), name="message-create"),
+    path(
+        "message/ajax/table/", MessageAjaxDatatable.as_view(), name="message-ajax-table"
+    ),
+    path("message/bulk_delete/", message_bulk_delete, name="message_bulk_delete"),
 ]

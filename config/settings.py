@@ -82,6 +82,8 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "src.core.scripts.context_processors.contacts",
+                "src.core.scripts.context_processors.new_owners",
+                "src.core.scripts.context_processors.new_messages",
             ],
         },
     },
