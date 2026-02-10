@@ -110,25 +110,29 @@
                     <li class="treeview">
                         <a href="#"><i class="fa fa-files-o"></i> <span>Квитанции</span> <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span></a>
                         <ul class="treeview-menu">
-                            {% for apartment in user.apartment_set.all %}
-                                <li>
-                                <a href="#"><i class="fa fa-file-text-o"></i>
-                                <span>{{ apartment.house.title }}, кв.{{ apartment.number }}</span></a>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </li>
-            <li class="treeview">
-            <a href="#"><i class="fa fa-money"></i>
-            <span>Тарифы</span>
-            <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span></a>
-        <ul class="treeview-menu">
-            {% for apartment in user.apartment_set.all %}
-                <li>
-                <a href="#"><i class="fa fa-file-text-o"></i>
-                <span>{{ apartment.house.title }}, кв.{{ apartment.number }}</span></a>
-        </li>
-    {% endfor %}
+                            <li>
+                            <a href="{% url 'owner:receipt-list' %}"><i class="fa fa-file-text-o"></i>
+                            <span>Все квитанции</span></a>
+                    </li>
+                    {% for apartment in user.apartment_set.all %}
+                        <li>
+                        <a href="#"><i class="fa fa-file-text-o"></i>
+                        <span>{{ apartment.house.title }}, кв.{{ apartment.number }}</span></a>
+                </li>
+            {% endfor %}
+        </ul>
+    </li>
+    <li class="treeview">
+    <a href="#"><i class="fa fa-money"></i>
+    <span>Тарифы</span>
+    <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span></a>
+<ul class="treeview-menu">
+    {% for apartment in user.apartment_set.all %}
+        <li>
+        <a href="#"><i class="fa fa-file-text-o"></i>
+        <span>{{ apartment.house.title }}, кв.{{ apartment.number }}</span></a>
+</li>
+{% endfor %}
 </ul>
 </li>
 <li>

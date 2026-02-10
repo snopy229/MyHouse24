@@ -1,7 +1,9 @@
 # Create your views here.
 from ajax_datatable import AjaxDatatableView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponse
 from django.shortcuts import redirect, get_object_or_404
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
@@ -14,10 +16,11 @@ from django.views.generic import (
     ListView,
 )
 from rest_framework.reverse import reverse_lazy
+from weasyprint import HTML
 
-from src.admin.choices import StatusCall
-from owner.forms import MasterCallForm
-from src.admin.models import Apartment, MasterCall, MessageStatus, Message
+from src.admin.choices import StatusCall, StatusReceipt
+from src.owner.forms import MasterCallForm
+from src.admin.models import Apartment, MasterCall, MessageStatus, Message, Receipt
 from src.user.views import User
 
 
@@ -239,3 +242,111 @@ def message_bulk_delete(request):
             )
 
     return redirect("admin:message-list")
+
+
+class ReceiptDetail(DetailView):
+    model = Receipt
+    template_name = "owner_receipt_detail.html"
+    context_object_name = "receipt"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        receipt = self.object
+        services_cost = receipt.servicefullcost_set.all()
+        context["fullcost"] = sum(a.full_cost for a in services_cost)
+
+        return context
+
+
+class ReceiptList(LoginRequiredMixin, ListView):
+    model = Receipt
+    template_name = "owner_receipt_list.html"
+
+
+class ReceiptListConcrete(LoginRequiredMixin, DetailView):
+    model = Receipt
+    template_name = "owner_receipt_list.html"
+
+
+class ReceiptAjaxTable(AjaxDatatableView):
+    model = Receipt
+    initial_order = [[1, "desc"]]
+
+    def get_column_defs(self, request):
+        columns = [
+            {
+                "name": "number",
+                "title": "№",
+                "searchable": False,
+                "orderable": False,
+            },
+            {
+                "name": "date",
+                "title": "Дата",
+                "searchable": True,
+                "orderable": True,
+            },
+            {
+                "name": "status",
+                "title": "Статус",
+                "searchable": True,
+                "orderable": False,
+                "choices": StatusReceipt.choices,
+            },
+            {
+                "name": "sum",
+                "title": "Сумма",
+                "searchable": False,
+                "orderable": False,
+            },
+        ]
+        return columns
+
+    def customize_row(self, row, obj):
+        if obj.status == StatusReceipt.PAID:
+            css_class = "label label-success"
+        elif obj.status == StatusReceipt.PART:
+            css_class = "label label-warning"
+        elif obj.status == StatusReceipt.UNPAID:
+            css_class = "label label-danger"
+        row["status"] = f'<small class="{css_class}">{obj.get_status_display()}</small>'
+
+        detail_url = reverse("owner:receipt-detail", args=[obj.id])
+        row["DT_RowAttr"] = {"data-href": detail_url, "style": "cursor: pointer;"}
+
+        row["sum"] = (
+            f"<small>{sum(a.full_cost for a in obj.servicefullcost_set.all())}</small>"
+        )
+
+    def get_initial_queryset(self, request=None):
+        qs = super().get_initial_queryset()
+        qs = qs.filter(apartment__owner=self.request.user)
+        apartment_id = self.kwargs.get("pk")
+        if apartment_id:
+            return qs.filter(apartment=apartment_id)
+        return qs
+
+
+class ReceiptPrint(DetailView):
+    model = Receipt
+    template_name = "receipt_example.html"
+
+
+def download_receipt(request, pk):
+    receipt = Receipt.objects.get(pk=pk)
+
+    services_cost = receipt.servicefullcost_set.all()
+    fullcost = sum(a.full_cost for a in services_cost)
+    context = {
+        "receipt": receipt,
+        "fullcost": fullcost,
+    }
+
+    html_content = render_to_string("receipt_example.html", context)
+
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{receipt.number}.pdf"'
+
+    HTML(string=html_content).write_pdf(response)
+
+    return response

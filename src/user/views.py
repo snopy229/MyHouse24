@@ -42,6 +42,18 @@ class LogInOwner(LoginView):
         print(form.errors)
         return super().form_invalid(form)
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+
+        remember_me = form.cleaned_data.get("remember_me")
+
+        if not remember_me:
+            self.request.session.set_expiry(0)
+        else:
+            self.request.session.set_expiry(None)
+
+        return response
+
 
 class LogInStaff(LoginView):
     form_class = AuthenticationStaffForm
@@ -52,3 +64,15 @@ class LogInStaff(LoginView):
 
     def get_success_url(self):
         return reverse_lazy("admin:statistic")
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+
+        remember_me = form.cleaned_data.get("remember_me")
+
+        if not remember_me:
+            self.request.session.set_expiry(0)
+        else:
+            self.request.session.set_expiry(None)
+
+        return response

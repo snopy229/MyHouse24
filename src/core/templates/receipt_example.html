@@ -1,0 +1,86 @@
+<style>
+    html {
+        font-family: Arial;
+        font-size: 1.3em;
+    }
+
+    h4 {
+        margin: 0.5em 0;
+    }
+
+    table {
+        font-size: 1.3em;
+    }
+
+    /* Fixed H021: Moved inline styles here */
+    .col-idx {
+        width: 40px;
+        min-width: 40px;
+    }
+
+    .col-unit {
+        width: 80px;
+        min-width: 80px;
+    }
+
+    .pagebreak {
+        page-break-before: always;
+    }
+
+    @page {
+        margin: 0;
+    }
+
+    @media print {
+        @page {
+            margin: 0;
+        }
+
+        body {
+            margin: 1.6cm;
+        }
+    }
+</style>
+<div class="box pagebreak">
+    <h4>Квитанция: #{{ receipt.number }}</h4>
+    <h4>Дата: {{ receipt.date|date:"Y-d-m" }}</h4>
+    <h4>Квартира: {{ receipt.apartment.number }}, {{ receipt.house.title }}</h4>
+    <h4>Получатель: {{ receipt.apartment.owner.fullname }}</h4>
+    <table class="table table-bordered table-hover table-striped">
+        <thead>
+            <tr>
+                <th class="col-idx">#</th>
+                <th>Услуга</th>
+                <th>Количество потребления (расход)</th>
+                <th class="col-unit">Ед. изм.</th>
+                <th>Цена за ед., грн</th>
+                <th>Стоимость, грн</th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <td colspan="5"></td>
+                <td colspan="2">
+                    <b>Итого: {{ fullcost }}</b>
+                </td>
+            </tr>
+        </tfoot>
+        <tbody>
+            {% for service in receipt.servicefullcost_set.all %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ service.service.title }}</td>
+                    <td>{{ service.consumption }}</td>
+                    <td>{{ service.unit }}</td>
+                    <td>{{ service.cost }}</td>
+                    <td>{{ service.full_cost }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script>
+    window.onload = function () {
+        window.print();
+    };
+</script>

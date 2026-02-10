@@ -56,6 +56,7 @@ class AuthenticationOwnerForm(AuthenticationForm):
             }
         ),
     )
+    remember_me = forms.BooleanField(required=False, initial=False)
 
     def confirm_login_allowed(self, user):
         if user.is_staff:
@@ -82,6 +83,7 @@ class AuthenticationStaffForm(AuthenticationForm):
             }
         )
     )
+    remember_me = forms.BooleanField(required=False, initial=False)
 
     def confirm_login_allowed(self, user):
         if not user.is_staff:

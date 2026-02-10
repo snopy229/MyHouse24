@@ -1517,7 +1517,6 @@ class ReceiptCounterTable(AjaxDatatableView):
         return columns
 
     def customize_row(self, row, obj):
-        status = obj.get_status_display()
         css_class = "label label-default"
         if obj.status == StatusCounter.NEW:
             css_class = "label label-warning"
@@ -1527,7 +1526,7 @@ class ReceiptCounterTable(AjaxDatatableView):
             css_class = "label label-success"
         elif obj.status == StatusBankBook.NULLABLE:
             css_class = "label label-primary"
-        row["status"] = f'<small class="{css_class}">{status}</small>'
+        row["status"] = f'<small class="{css_class}">{obj.get_status_display()}</small>'
 
         for key in row:
             if row[key] is None or row[key] == "":

@@ -53,6 +53,10 @@
                                     {{ form.password.errors }}
                                 </div>
                                 <div class="form-group captcha-container">{{ form.hcaptcha }}</div>
+                                <div class="form-group">
+                                    {{ form.remember_me }}
+                                    <label>Заплмнить меня</label>
+                                </div>
                                 <a href="{% url 'user:register' %}">Регистрация</a>
                                 <button type="submit" class="btn btn-primary btn-block">Вход</button>
                             </form>
