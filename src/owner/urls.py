@@ -16,6 +16,10 @@ from .views import (
     ReceiptDetail,
     download_receipt,
     ReceiptPrint,
+    message_bulk_delete,
+    ReceiptPay,
+    ReceiptConcreteAjaxTable,
+    TariffDetail,
 )
 
 app_name = "owner"
@@ -34,19 +38,27 @@ urlpatterns = [
     ),
     path("master/create/", CreateMasterCall.as_view(), name="master-call-create"),
     path(
-        "master/delet/<int:pk>/", DeleteMasterCall.as_view(), name="master-call-delete"
+        "master/delete/<int:pk>/", DeleteMasterCall.as_view(), name="master-call-delete"
     ),
+    path("message/bulk/delete", message_bulk_delete, name="message_bulk_delete"),
     path("message/detail/<int:pk>/", MessageDetail.as_view(), name="message-detail"),
     path("message/list/", MessageList.as_view(), name="message-list"),
-    path("message/teble/", MessageAjaxDatatable.as_view(), name="message-ajax-table"),
+    path("message/table/", MessageAjaxDatatable.as_view(), name="message-ajax-table"),
     path("receipt/table/", ReceiptAjaxTable.as_view(), name="receipt-ajax-table"),
+    path(
+        "receipt/concrete/table/<int:pk>/",
+        ReceiptConcreteAjaxTable.as_view(),
+        name="receipt-concrete-ajax-table",
+    ),
     path("receipt/list/", ReceiptList.as_view(), name="receipt-list"),
     path(
-        "receipt/list/<int:pk>",
+        "receipt/concrete/list/<int:pk>",
         ReceiptListConcrete.as_view(),
         name="receipt-list-concrete",
     ),
+    path("receipt/pay/<int:pk>/", ReceiptPay.as_view(), name="receipt-pay"),
     path("receipt/detail/<int:pk>/", ReceiptDetail.as_view(), name="receipt-detail"),
     path("receipt/download/<int:pk>/", download_receipt, name="download-receipt"),
     path("receipt/print/<int:pk>/", ReceiptPrint.as_view(), name="receipt-print"),
+    path("tariff/<int:pk>/", TariffDetail.as_view(), name="tariff-list"),
 ]

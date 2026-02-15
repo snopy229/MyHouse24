@@ -3,7 +3,7 @@ from django.utils import timezone
 from django import forms
 from django_select2.forms import Select2Widget
 
-from src.admin.models import MasterCall
+from src.admin.models import MasterCall, CashBox
 
 
 class MasterCallForm(forms.ModelForm):
@@ -42,3 +42,19 @@ class MasterCallForm(forms.ModelForm):
             if self.instance.date:
                 self.initial["date"] = self.instance.date.strftime("%Y-%m-%d")
                 self.fields["time"].initial = timezone.now().time().strftime("%H:%M")
+
+
+class CashBoxForm(forms.ModelForm):
+    class Meta:
+        model = CashBox
+        fields = ["sum", "number", "date"]
+        widgets = {
+            "sum": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if "number" in self.fields:
+            self.fields["number"].required = False
+        if "date" in self.fields:
+            self.fields["date"].required = False

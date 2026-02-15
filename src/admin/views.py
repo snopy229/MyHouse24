@@ -3,7 +3,7 @@ import json
 from ajax_datatable import AjaxDatatableView
 from django.core.mail import send_mail
 from django.db import transaction
-from django.db.models import CharField, Value, Sum
+from django.db.models import CharField, Value, Sum, Q
 from django.db.models.functions import Concat
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
@@ -21,7 +21,7 @@ from django.views.generic import (
 from openpyxl import Workbook
 from datetime import datetime
 
-from src.settings.models import Tariffs, Service
+from src.settings.models import Tariffs, Service, ServicesCost
 from src.user.models import User
 from src.user.choices import Status
 from .choices import (
@@ -30,6 +30,7 @@ from .choices import (
     MasterType,
     StatusCall,
     StatusReceipt,
+    StatusCashBox,
 )
 from .forms import (
     FloorFormSet,
@@ -44,6 +45,7 @@ from .forms import (
     ReceiptForm,
     ServiceFullCostFormSet,
     MessageForm,
+    CashBoxForm,
 )
 from src.admin.models import (
     House,
@@ -54,7 +56,24 @@ from src.admin.models import (
     Receipt,
     Message,
     MessageStatus,
+    CashBox,
+    ServiceFullCost,
 )
+
+
+class CommonContextMixin:
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        stats = CashBox.objects.aggregate(
+            total_cm=Sum("sum", filter=Q(status="CM", is_catch=True)),
+            total_og=Sum("sum", filter=Q(status="OG", is_catch=True)),
+        )
+        balance = (stats["total_cm"] or 0) - (stats["total_og"] or 0)
+
+        formatted_balance = "{:,.2f}".format(balance).replace(",", " ")
+
+        context["cashbox_status"] = formatted_balance
+        return context
 
 
 class Statistic(TemplateView):
@@ -684,7 +703,6 @@ class DeleteBankBook(DeleteView):
 
 class BankBookAjaxTable(AjaxDatatableView):
     model = BankBook
-    # initial_order = [['id', 'asc']]
     template_name = "bankbook.html"
 
     def get_column_defs(self, request=None):
@@ -721,6 +739,11 @@ class BankBookAjaxTable(AjaxDatatableView):
                 "searchable": False,
             },
             {
+                "name": "remainder",
+                "title": "Остаток (грн)",
+                "searchable": False,
+            },
+            {
                 "name": "actions",
                 "title": "",
                 "searchable": False,
@@ -742,6 +765,29 @@ class BankBookAjaxTable(AjaxDatatableView):
 
         if obj.apartment.owner:
             row["owner"] = obj.apartment.owner.fullname
+
+        stats = CashBox.objects.filter(bank_book=obj).aggregate(
+            total_cm=Sum("sum", filter=Q(status="CM", is_catch=True)),
+            total_og=Sum("sum", filter=Q(status="OG", is_catch=True)),
+        )
+
+        receipts = Receipt.objects.filter(bankbook=obj)
+
+        receipts_pay = (
+            ServiceFullCost.objects.filter(receipt__in=receipts).aggregate(
+                total=Sum("full_cost")
+            )["total"]
+            or 0
+        )
+
+        balance = (stats["total_cm"] or 0) - receipts_pay - (stats["total_og"] or 0)
+        formatted_balance = "{:,.2f}".format(balance).replace(",", " ")
+        if balance > 0:
+            row["remainder"] = f'<span class="text-success">{formatted_balance}</span>'
+        elif balance < 0:
+            row["remainder"] = f'<span class="text-danger">{formatted_balance}</span>'
+        else:
+            row["remainder"] = "<span>0</span>"
 
         edit_url = reverse("admin:bankbook-edit", args=[obj.id])
         delete_url = reverse("admin:bankbook-delete", args=[obj.id])
@@ -1249,22 +1295,55 @@ class ReceiptCreate(CreateView):
         context = self.get_context_data()
         services = context["services"]
 
-        if services.is_valid():
-            with transaction.atomic():
-                self.object = form.save()
-                services.instance = self.object
-                services.save()
+        if not services.is_valid():
+            return self.form_invalid(form)
 
-            return super().form_valid(form)
-        else:
-            return self.render_to_response(self.get_context_data(form=form))
+        with transaction.atomic():
+            self.object = form.save(commit=False)
+
+            counter_ids_str = self.request.POST.get("counter_ids")
+            if counter_ids_str:
+                try:
+                    self.object.counter_ids = json.loads(counter_ids_str)
+                except (ValueError, TypeError):
+                    self.object.counter_ids = []
+
+            bank_book = form.cleaned_data.get("bankbook")
+            if bank_book:
+                stats = CashBox.objects.filter(bank_book=bank_book).aggregate(
+                    total_cm=Sum("sum", filter=Q(status="CM", is_catch=True)),
+                    total_og=Sum("sum", filter=Q(status="OG", is_catch=True)),
+                )
+
+                receipts_pay = (
+                    ServiceFullCost.objects.filter(
+                        receipt__bankbook=bank_book
+                    ).aggregate(total=Sum("full_cost"))["total"]
+                    or 0
+                )
+
+                balance = (
+                    (stats["total_cm"] or 0) - (stats["total_og"] or 0) - receipts_pay
+                )
+                requested_sum = form.cleaned_data.get("sum") or 0
+
+                if balance >= requested_sum:
+                    self.object.status = "PD"
+
+            self.object.save()
+            services.instance = self.object
+            services.save()
+
+        return HttpResponseRedirect(self.get_success_url())
+
+    def form_invalid(self, form):
+        print(form.errors)
+        return self.render_to_response(self.get_context_data(form=form))
 
 
 def get_tariff(request):
     apartment_id = request.GET.get("apartment_id")
-    data = {
-        "tariff_id": None,
-    }
+    data = {"tariff_id": None}
     if apartment_id:
         try:
             tariff = Tariffs.objects.filter(apartment=apartment_id).first()
@@ -1282,10 +1361,7 @@ def get_tariff_services(request):
         return JsonResponse({"success": False, "error": "Не указан тариф"})
 
     try:
-        from .models import Tariffs, ServicesCost
-
         tariff = Tariffs.objects.get(id=tariff_id)
-
         services_cost = ServicesCost.objects.filter(tariff=tariff).select_related(
             "service", "service__units_of_measure"
         )
@@ -1317,9 +1393,7 @@ def get_tariff_services(request):
 
 def get_unit(request):
     service_id = request.GET.get("service_id")
-    data = {
-        "unit_id": None,
-    }
+    data = {"unit_id": None}
     if service_id:
         try:
             service = Service.objects.get(id=service_id)
@@ -1327,27 +1401,21 @@ def get_unit(request):
                 data["unit_id"] = service.units_of_measure.id
         except (Service.DoesNotExist, AttributeError):
             pass
-
     return JsonResponse(data)
 
 
 def get_unit_service(request):
     service_id = request.GET.get("service_id")
-    data = {
-        "unit_id": None,
-        "cost": None,
-    }
+    data = {"unit_id": None, "cost": None}
     if service_id:
         try:
             service = Service.objects.get(id=service_id)
             if service.units_of_measure:
                 data["unit_id"] = service.units_of_measure.id
-            # Если у сервиса есть стандартная цена
             if hasattr(service, "price") and service.price:
                 data["cost"] = str(service.price)
         except (Service.DoesNotExist, AttributeError):
             pass
-
     return JsonResponse(data)
 
 
@@ -1385,23 +1453,17 @@ def get_counter_readings(request):
             )
 
         counter_readings = []
-
         services = counters_query.values_list("service", flat=True).distinct()
 
         for service_id in services:
-            # Получаем все счетчики NEW для этой услуги
             service_counters = counters_query.filter(service_id=service_id)
-
-            # Считаем сумму показаний (readings) всех NEW счетчиков для этой услуги
             total_consumption = (
                 service_counters.aggregate(total=Sum("readings"))["total"] or 0
             )
-
             first_counter = service_counters.first()
 
             if first_counter:
                 service = first_counter.service
-
                 counter_ids = list(service_counters.values_list("id", flat=True))
 
                 reading_info = {
@@ -1439,6 +1501,45 @@ def mark_counters_taken(request):
         )
 
         return JsonResponse({"success": True, "updated_count": updated_count})
+
+    except Exception as e:
+        return JsonResponse(
+            {"success": False, "error": f"Ошибка при обновлении статусов: {str(e)}"}
+        )
+
+
+def mark_counters_paid(request):
+    try:
+        data = json.loads(request.body)
+        invoice_id = data.get("invoice_id")
+
+        if not invoice_id:
+            return JsonResponse({"success": False, "error": "Не указан ID квитанции"})
+
+        try:
+            invoice = Receipt.objects.get(id=invoice_id)
+        except Receipt.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Квитанция не найдена"})
+
+        if invoice.status != "PD":
+            return JsonResponse(
+                {"success": False, "error": 'Квитанция должна иметь статус "Оплачена"'}
+            )
+
+        counter_ids = invoice.counter_ids if invoice.counter_ids else []
+
+        if not counter_ids:
+            return JsonResponse(
+                {"success": False, "error": "У квитанции нет связанных счетчиков"}
+            )
+
+        updated_count = Counter.objects.filter(
+            id__in=counter_ids, status="TAKEN"
+        ).update(status="TAKEN_AND_PAID")
+
+        return JsonResponse(
+            {"success": True, "updated_count": updated_count, "invoice_id": invoice_id}
+        )
 
     except Exception as e:
         return JsonResponse(
@@ -1520,12 +1621,10 @@ class ReceiptCounterTable(AjaxDatatableView):
         css_class = "label label-default"
         if obj.status == StatusCounter.NEW:
             css_class = "label label-warning"
-        elif obj.status == StatusBankBook.TAKEN:
+        elif obj.status == StatusCounter.TAKEN:
             css_class = "label label-success"
-        elif obj.status == StatusBankBook.TAKEN_AND_PAID:
+        elif obj.status == StatusCounter.TAKEN_AND_PAID:
             css_class = "label label-success"
-        elif obj.status == StatusBankBook.NULLABLE:
-            css_class = "label label-primary"
         row["status"] = f'<small class="{css_class}">{obj.get_status_display()}</small>'
 
         for key in row:
@@ -1742,11 +1841,9 @@ class CreateMessage(CreateView):
     success_url = reverse_lazy("admin:receipt-list")
 
     def form_valid(self, form):
-        message = Message.objects.create(
-            theme=form.cleaned_data["theme"],
-            message=form.cleaned_data["message"],
-            sender=self.request.user,
-        )
+        self.object = form.save(commit=False)
+        self.object.sender = self.request.user
+        self.object.save()
         users = User.objects.filter(is_staff=False)
         if form.cleaned_data["house"]:
             users = users.filter(house_set=form.cleaned_data["house"])
@@ -1760,10 +1857,15 @@ class CreateMessage(CreateView):
             target_status = ["UPD", "PT"]
             users = users.filter(apartment__receipt__status__in=target_status)
 
-        user_messages = [MessageStatus(user=user, message=message) for user in users]
+        user_messages = [
+            MessageStatus(user=user, message=self.object) for user in users
+        ]
         MessageStatus.objects.bulk_create(user_messages)
 
         return super().form_valid(form)
+
+    def form_invalid(self, form):
+        print(form.errors)
 
 
 class MessageList(ListView):
@@ -1778,3 +1880,148 @@ def message_bulk_delete(request):
             Message.objects.filter(id__in=item_ids).delete()
 
     return redirect("admin:message-list")
+
+
+class CashBoxComingCreateView(CreateView):
+    model = CashBox
+    template_name = "cashbox_coming_add.html"
+    form_class = CashBoxForm
+    success_url = reverse_lazy("admin:cashbox-list")
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.status = "CM"
+        self.object.save()
+        return super().form_valid(form)
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial["manager"] = self.request.user
+        return initial
+
+
+class CashBoxOutGoCreateView(CreateView):
+    model = CashBox
+    template_name = "cashbox_outgo_add.html"
+    form_class = CashBoxForm
+    success_url = reverse_lazy("admin:cashbox-list")
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.status = "OG"
+
+        self.object.save()
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        print(form.errors)
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial["manager"] = self.request.user
+        return initial
+
+
+class CashBoxComingEditView(UpdateView):
+    model = CashBox
+    template_name = "cashbox_coming_add.html"
+    form_class = CashBoxForm
+    success_url = reverse_lazy("admin:cashbox-list")
+
+
+class CashBoxOutGoEditView(UpdateView):
+    model = CashBox
+    template_name = "cashbox_outgo_add.html"
+    form_class = CashBoxForm
+    success_url = reverse_lazy("admin:cashbox-list")
+
+
+class CashBoxList(CommonContextMixin, ListView):
+    model = CashBox
+    template_name = "cashbox_list.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        stats = CashBox.objects.aggregate(
+            total_cm=Sum("sum", filter=Q(status="CM", is_catch=True)),
+            total_og=Sum("sum", filter=Q(status="OG", is_catch=True)),
+        )
+        formatted_comings = "{:,.2f}".format(stats["total_cm"] or 0).replace(",", " ")
+        formatted_outgoes = "{:,.2f}".format(stats["total_og"] or 0).replace(",", " ")
+        context["comings"] = formatted_comings
+        context["outgoes"] = formatted_outgoes
+        return context
+
+
+class CashBoxAjaxDatatable(AjaxDatatableView):
+    model = CashBox
+    initial_order = [[1, "desc"]]
+
+    def get_column_defs(self, request):
+        columns = [
+            {
+                "name": "number",
+                "title": "№",
+                "searchable": True,
+                "orderable": False,
+            },
+            {
+                "name": "date",
+                "title": "Дата",
+                "searchable": True,
+                "orderable": True,
+            },
+            {
+                "name": "status",
+                "title": "Статус",
+                "searchable": True,
+                "orderable": False,
+            },
+            {
+                "name": "type",
+                "title": "Тип платежа",
+                "foreign_field": "article__title",
+                "searchable": True,
+                "orderable": False,
+            },
+            {
+                "name": "owner",
+                "title": "Владелец",
+                "searchable": False,
+                "orderable": False,
+            },
+            {
+                "name": "bankbook",
+                "title": "Лицевой счет",
+                "foreign_field": "bank_book__number",
+                "searchable": True,
+                "orderable": False,
+            },
+            {
+                "name": "coming_outgo",
+                "title": "Приход/расход",
+                "searchable": True,
+                "orderable": False,
+            },
+            {
+                "name": "sum",
+                "title": "Сумма (грн)",
+                "searchable": True,
+                "orderable": False,
+            },
+        ]
+
+        return columns
+
+    def customize_row(self, row, obj):
+        row["date"] = obj.date.strftime("%d.%m.%Y")
+        row["status"] = "Проведен" if obj.is_catch else "Не проведен"
+        if obj.status == StatusCashBox.COMING:
+            css_class = "text-success"
+            row["sum"] = f'<small class="text-success">{obj.sum}</small>'
+        elif obj.status == StatusCashBox.OUTGO:
+            css_class = "text-danger"
+            row["sum"] = f'<small class="text-danger">-{obj.sum}</small>'
+        row["coming_outgo"] = (
+            f'<small class="{css_class}">{obj.get_status_display()}</small>'
+        )

@@ -1,10 +1,17 @@
 # Create your views here.
+import json
+
 from ajax_datatable import AjaxDatatableView
+from dateutil.relativedelta import relativedelta
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponse
+from django.core.checks import messages
+from django.db.models import Sum, Q
+from django.db.models.functions import TruncMonth
+from django.http import HttpResponse, HttpResponseRedirect, request
 from django.shortcuts import redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.views import View
@@ -19,8 +26,17 @@ from rest_framework.reverse import reverse_lazy
 from weasyprint import HTML
 
 from src.admin.choices import StatusCall, StatusReceipt
-from src.owner.forms import MasterCallForm
-from src.admin.models import Apartment, MasterCall, MessageStatus, Message, Receipt
+from src.owner.forms import MasterCallForm, CashBoxForm
+from src.admin.models import (
+    Apartment,
+    MasterCall,
+    MessageStatus,
+    Message,
+    Receipt,
+    CashBox,
+    Counter,
+    ServiceFullCost,
+)
 from src.user.views import User
 
 
@@ -28,6 +44,80 @@ class ApartmentOwnerDetail(DetailView):
     model = Apartment
     context_object_name = "apartment"
     template_name = "owner_apartment.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        stats = CashBox.objects.filter(bank_book=self.object.bankbook).aggregate(
+            total_cm=Sum("sum", filter=Q(status="CM", is_catch=True)),
+            total_og=Sum("sum", filter=Q(status="OG", is_catch=True)),
+        )
+
+        receipts = Receipt.objects.filter(bankbook=self.object.bankbook)
+
+        receipts_pay = (
+            ServiceFullCost.objects.filter(receipt__in=receipts).aggregate(
+                total=Sum("full_cost")
+            )["total"]
+            or 0
+        )
+
+        balance = (stats["total_cm"] or 0) - receipts_pay - (stats["total_og"] or 0)
+        formatted_balance = "{:,.2f}".format(balance).replace(",", " ")
+        context["balance"] = formatted_balance
+        today = timezone.now().date()
+        month_ago = today - relativedelta(months=1)
+        receipts = Receipt.objects.filter(
+            apartment=self.object, date__lte=today, date__gte=month_ago
+        )
+        debts = (
+            receipts.aggregate(total=Sum("servicefullcost__full_cost"))["total"] or 0
+        )
+        context["middle_debt"] = (
+            "{:,.2f}".format(debts / receipts.count()).replace(",", " ")
+            if receipts
+            else None
+        )
+        report = (
+            ServiceFullCost.objects.filter(
+                receipt__apartment=self.object,
+                receipt__date__lte=today,
+                receipt__date__gte=month_ago,
+            )
+            .values("service__title")
+            .annotate(total_cost=Sum("full_cost"))
+            .order_by("service__title")
+        )
+        colors = [f"hsl({(i * 137) % 360}, 70%, 60%)" for i in range(len(report))]
+        context["expenses_month"] = report
+        context["colors_month"] = json.dumps(colors)
+        year_ago = today - relativedelta(years=1)
+        report_year = (
+            ServiceFullCost.objects.filter(
+                receipt__apartment=self.object,
+                receipt__date__lte=today,
+                receipt__date__gte=year_ago,
+            )
+            .values("service__title")
+            .annotate(total_cost=Sum("full_cost"))
+            .order_by("service__title")
+        )
+        colors_year = [
+            f"hsl({(i * 137) % 360}, 70%, 60%)" for i in range(len(report_year))
+        ]
+        context["expenses_year"] = report_year
+        context["colors_year"] = json.dumps(colors_year)
+        monthly_stats = (
+            ServiceFullCost.objects.filter(receipt__in=receipts)
+            .annotate(
+                month=TruncMonth("receipt__date")  # Округляем дату до месяца
+            )
+            .values("month")
+            .annotate(total=Sum("full_cost"))
+            .order_by("month")
+        )
+        bar_data = [item["total"] for item in monthly_stats]
+        context["bar_data"] = bar_data
+        return context
 
 
 class ProfileDetail(LoginRequiredMixin, DetailView):
@@ -176,19 +266,13 @@ class DeleteMessage(View):
 
 class MessageAjaxDatatable(AjaxDatatableView):
     model = Message
-    initial_order = [[2, "asc"]]
+    initial_order = [[1, "asc"]]
 
     def get_column_defs(self, request):
         columns = [
             {
                 "name": "checkbox",
                 "title": "",
-                "searchable": False,
-                "orderable": False,
-            },
-            {
-                "name": "recipient",
-                "title": "Получатели",
                 "searchable": False,
                 "orderable": False,
             },
@@ -211,24 +295,18 @@ class MessageAjaxDatatable(AjaxDatatableView):
         row["checkbox"] = mark_safe(
             f'<input type="checkbox" name="item_ids" value="{obj.id}" class="item-checkbox">'
         )
-
-        if not obj.house:
-            row["receipent"] = '<span><a href="#">Всем</a></span>'
-        else:
-            row["receipent"] = (
-                f'<span><a href="#">{obj.house.title}{f', {obj.section.title}' if obj.section else ''}{f', {obj.floor.title}' if obj.floor else ''}{f', кв.{obj.apartment.number}' if obj.apartment else ''}</a></span>'
-            )
-
         row["theme"] = f"<span>{obj.theme}-{obj.message}</span>"
 
         for key in row:
             if row[key] is None or row[key] == "":
                 row[key] = '<span class="text-muted">(не задано)</span>'
 
-    def initialize_row(self, row, obj):
+    def get_initial_queryset(self, request=None):
         qs = super().get_initial_queryset()
         return qs.filter(
-            user=self.request.user, messagestatus__is_read=False, is_deleted=False
+            messagestatus__user=self.request.user,
+            messagestatus__is_read=False,
+            messagestatus__is_deleted=False,
         )
 
 
@@ -236,12 +314,11 @@ def message_bulk_delete(request):
     if request.method == "POST":
         item_ids = request.POST.getlist("item_ids")
         if item_ids:
-            MessageStatus.objects.filter(message__id__in=item_ids)
-            Message.objects.filter(id__in=item_ids).update(
-                messagestatus__is_deleted=True
-            )
+            MessageStatus.objects.filter(
+                message__id__in=item_ids, user=request.user
+            ).update(is_deleted=True)
 
-    return redirect("admin:message-list")
+    return redirect("owner:message-list")
 
 
 class ReceiptDetail(DetailView):
@@ -264,7 +341,7 @@ class ReceiptList(LoginRequiredMixin, ListView):
 
 
 class ReceiptListConcrete(LoginRequiredMixin, DetailView):
-    model = Receipt
+    model = Apartment
     template_name = "owner_receipt_list.html"
 
 
@@ -320,10 +397,81 @@ class ReceiptAjaxTable(AjaxDatatableView):
 
     def get_initial_queryset(self, request=None):
         qs = super().get_initial_queryset()
+
         qs = qs.filter(apartment__owner=self.request.user)
+
         apartment_id = self.kwargs.get("pk")
         if apartment_id:
-            return qs.filter(apartment=apartment_id)
+            qs = qs.filter(apartment_id=apartment_id)
+
+        print(
+            f"DEBUG: User: {self.request.user}, PK: {apartment_id}, Count: {qs.count()}"
+        )
+        return qs
+
+
+class ReceiptConcreteAjaxTable(AjaxDatatableView):
+    model = Receipt
+    initial_order = [[1, "desc"]]
+
+    def get_column_defs(self, request):
+        columns = [
+            {
+                "name": "number",
+                "title": "№",
+                "searchable": False,
+                "orderable": False,
+            },
+            {
+                "name": "date",
+                "title": "Дата",
+                "searchable": True,
+                "orderable": True,
+            },
+            {
+                "name": "status",
+                "title": "Статус",
+                "searchable": True,
+                "orderable": False,
+                "choices": StatusReceipt.choices,
+            },
+            {
+                "name": "sum",
+                "title": "Сумма",
+                "searchable": False,
+                "orderable": False,
+            },
+        ]
+        return columns
+
+    def customize_row(self, row, obj):
+        if obj.status == StatusReceipt.PAID:
+            css_class = "label label-success"
+        elif obj.status == StatusReceipt.PART:
+            css_class = "label label-warning"
+        elif obj.status == StatusReceipt.UNPAID:
+            css_class = "label label-danger"
+        row["status"] = f'<small class="{css_class}">{obj.get_status_display()}</small>'
+
+        detail_url = reverse("owner:receipt-detail", args=[obj.id])
+        row["DT_RowAttr"] = {"data-href": detail_url, "style": "cursor: pointer;"}
+
+        row["sum"] = (
+            f"<small>{sum(a.full_cost for a in obj.servicefullcost_set.all())}</small>"
+        )
+
+    def get_initial_queryset(self, request=None):
+        qs = super().get_initial_queryset()
+
+        qs = qs.filter(apartment__owner=self.request.user)
+
+        apartment_id = self.kwargs.get("pk")
+        if apartment_id:
+            qs = qs.filter(apartment_id=apartment_id)
+
+        print(
+            f"DEBUG: User: {self.request.user}, PK: {apartment_id}, Count: {qs.count()}"
+        )
         return qs
 
 
@@ -350,3 +498,80 @@ def download_receipt(request, pk):
     HTML(string=html_content).write_pdf(response)
 
     return response
+
+
+class ReceiptPay(CreateView):
+    model = CashBox
+    template_name = "owner_receipt_pay.html"
+    form_class = CashBoxForm
+
+    def get_receipt(self):
+        return get_object_or_404(Receipt, pk=self.kwargs.get("pk"))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        receipt_obj = self.get_receipt()
+        context["receipt"] = receipt_obj
+        full_cost = (
+            receipt_obj.servicefullcost_set.aggregate(total=Sum("full_cost"))["total"]
+            or 0
+        )
+        paid = receipt_obj.cashbox_set.aggregate(total=Sum("sum"))["total"] or 0
+        context["fullcost"] = full_cost - paid
+        return context
+
+    def form_invalid(self, form):
+        print(form.errors)
+        return super().form_invalid(form)
+
+    def form_valid(self, form):
+        receipt_obj = self.get_receipt()
+        full_cost = (
+            receipt_obj.servicefullcost_set.aggregate(total=Sum("full_cost"))["total"]
+            or 0
+        )
+        paid = receipt_obj.cashbox_set.aggregate(total=Sum("sum"))["total"] or 0
+        cost = full_cost - paid
+        sum = form.cleaned_data.get("sum")
+        if sum < cost:
+            receipt_obj.status = "PT"
+        elif sum >= cost and receipt_obj.bankbook:
+            receipt_obj.status = "PD"
+
+            receipt_obj.save()
+
+            Counter.objects.filter(
+                id__in=receipt_obj.counter_ids, status="TAKEN"
+            ).update(status="TAKEN_AND_PAID")
+
+        elif sum == cost and not receipt_obj.bankbook:
+            receipt_obj.status = "PD"
+
+        elif sum > cost and not receipt_obj.bankbook:
+            messages.error(
+                request, "Сумма превышает стоимость, а лицевой счет не указан."
+            )
+            return redirect(request.path)
+
+        receipt_obj.save()
+        self.object = form.save(commit=False)
+        self.object.status = "CM"
+        self.object.receipt = receipt_obj
+        self.object.bank_book = receipt_obj.bankbook
+        self.object.save(generate_number=True)
+        return HttpResponseRedirect(self.get_success_url())
+
+    def get_success_url(self):
+        return reverse("owner:receipt-detail", kwargs={"pk": self.object.receipt.pk})
+
+
+class TariffDetail(DetailView):
+    model = Apartment
+    template_name = "owner_tariff.html"
+    context_object_name = "tariff"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        tatiff = self.object.tariff
+        context["tariff"] = tatiff
+        return context

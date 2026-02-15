@@ -55,9 +55,12 @@
                        download>
                         <i class="fa fa-file-pdf-o" aria-hidden="true"></i> Скачать в PDF
                     </a>
-                    <a href="#" class="btn btn-sm btn-success">
-                        <i class="fa fa-credit-card" aria-hidden="true"></i> Оплатить
-                    </a>
+                    {% if not receipt.status == 'PD' %}
+                        <a href="{% url 'owner:receipt-pay' receipt.pk %}"
+                           class="btn btn-sm btn-success">
+                            <i class="fa fa-credit-card" aria-hidden="true"></i> Оплатить
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>

@@ -101,7 +101,7 @@
                                 <ul class="treeview-menu">
                                     {% for apartment in user.apartment_set.all %}
                                         <li>
-                                        <a href="#"><i class="fa fa-file-text-o"></i>
+                                        <a href="{% url "owner:apartment-detail" apartment.pk %}"><i class="fa fa-file-text-o"></i>
                                         <span>{{ apartment.house.title }}, кв.{{ apartment.number }}</span></a>
                                 </li>
                             {% endfor %}
@@ -116,7 +116,7 @@
                     </li>
                     {% for apartment in user.apartment_set.all %}
                         <li>
-                        <a href="#"><i class="fa fa-file-text-o"></i>
+                        <a href="{% url "owner:receipt-list-concrete" apartment.id %}"><i class="fa fa-file-text-o"></i>
                         <span>{{ apartment.house.title }}, кв.{{ apartment.number }}</span></a>
                 </li>
             {% endfor %}
@@ -129,7 +129,7 @@
 <ul class="treeview-menu">
     {% for apartment in user.apartment_set.all %}
         <li>
-        <a href="#"><i class="fa fa-file-text-o"></i>
+        <a href="{% url 'owner:tariff-list' apartment.id %}"><i class="fa fa-file-text-o"></i>
         <span>{{ apartment.house.title }}, кв.{{ apartment.number }}</span></a>
 </li>
 {% endfor %}
@@ -167,7 +167,7 @@
 </li>
 {% endif %}
 <li>
-<a href="$"><i class="fa fa-user-circle-o"></i>
+<a href="{% url 'owner:profile-detail' %}"><i class="fa fa-user-circle-o"></i>
 <span>Профиль</span></a>
 </li>
 </ul>

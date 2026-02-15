@@ -1,3 +1,4 @@
+from dateutil.relativedelta import relativedelta
 from django import forms
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
@@ -17,6 +18,7 @@ from .models import (
     Receipt,
     ServiceFullCost,
     Message,
+    CashBox,
 )
 
 
@@ -379,6 +381,7 @@ class MasterCallForm(forms.ModelForm):
 
 class ReceiptForm(forms.ModelForm):
     bankbook = forms.IntegerField(
+        required=False,
         widget=forms.NumberInput(attrs={"class": "form-control"}),
     )
 
@@ -420,9 +423,8 @@ class ReceiptForm(forms.ModelForm):
 
             self.fields["number"].initial = generated_number
             self.fields["date"].initial = timezone.now().date().strftime("%Y-%m-%d")
-            self.fields["date_from"].initial = (
-                timezone.now().date().strftime("%Y-%m-%d")
-            )
+            month_ago = today.date() - relativedelta(months=1)
+            self.fields["date_from"].initial = month_ago.strftime("%Y-%m-%d")
             self.fields["date_to"].initial = timezone.now().date().strftime("%Y-%m-%d")
 
     def clean_bankbook(self):
@@ -488,3 +490,33 @@ class MessageForm(forms.ModelForm):
             "flag": Select2Widget(attrs={"class": "form-control"}),
             "apartment": Select2Widget(attrs={"class": "form-control"}),
         }
+
+
+class CashBoxForm(forms.ModelForm):
+    class Meta:
+        model = CashBox
+        fields = "__all__"
+        widgets = {
+            "number": forms.NumberInput(attrs={"class": "form-control"}),
+            "date": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+            "bank_book": Select2Widget(attrs={"class": "form-control"}),
+            "article": Select2Widget(attrs={"class": "form-control"}),
+            "owner": Select2Widget(attrs={"class": "form-control"}),
+            "manager": Select2Widget(attrs={"class": "form-control"}),
+            "comment": forms.Textarea(attrs={"class": "form-control"}),
+            "is_catch": forms.CheckboxInput(attrs={"class": "form-control-input"}),
+            "sum": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk and self.instance.bankbook:
+            self.initial["date_to"] = self.instance.date_to
+        if not self.instance.pk:
+            today = timezone.now()
+            date_part = today.strftime("%d%m%y")
+            last_box = CashBox.objects.only("id").order_by("id").last()
+            next_id = (last_box.id + 1) if last_box else 1
+            generated_number = f"{date_part}{next_id}"
+            self.fields["number"].initial = generated_number
+            self.fields["date"].initial = timezone.now().date().strftime("%Y-%m-%d")

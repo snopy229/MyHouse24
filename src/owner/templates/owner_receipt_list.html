@@ -20,9 +20,15 @@
 {% block extra_js %}
     <script>
         $(document).ready(function () {
+            let ajaxUrl;
+            {% if apartment.id %}
+                ajaxUrl = "{% url 'owner:receipt-concrete-ajax-table' apartment.id %}";
+            {% else %}
+                ajaxUrl = "{% url 'owner:receipt-ajax-table' %}";
+            {% endif %}
             AjaxDatatableViewUtils.initialize_table(
                 $('#receipt-table'),
-                "{% url 'owner:receipt-ajax-table' %}",
+                ajaxUrl,
                 {
                     processing: false,
                     autoWidth: false,

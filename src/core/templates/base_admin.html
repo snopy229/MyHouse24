@@ -40,6 +40,49 @@
             background-color: transparent;
             color: #777;
         }
+
+        #clear-table-filters {
+            margin-right: 5px;
+        }
+
+        thead tr.filters th {
+            padding: 4px 8px !important;
+            vertical-align: middle;
+        }
+
+        thead input,
+        thead select {
+            background: white;
+            width: 100% !important;
+            height: 29px !important;
+            padding: 2px 5px !important;
+            font-size: 12px !important;
+            border: 1px solid #d2d6de !important;
+            border-radius: 3px !important;
+            box-sizing: border-box !important;
+        }
+
+        thead tr.filters th:after,
+        thead tr.filters th:before {
+            display: none !important;
+        }
+
+        .select2-container .select2-selection--single {
+            border: 1px solid #d2d6de !important;
+            border-radius: 0 !important;
+            height: 32px;
+        }
+
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 32px !important;
+            padding-left: 12px !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 32px !important;
+        }
+
     </style>
     <body class="hold-transition skin-black-light sidebar-mini">
         <div class="wrapper">
@@ -110,7 +153,7 @@
                             <a href="{% url 'admin:statistic' %}"><i class="fa fa-line-chart"></i><span>Статистика</span></a>
                         </li>
                         <li>
-                            <a href="#"><i class="fa fa-dollar"></i> <span>Касса</span></a>
+                            <a href="{% url 'admin:cashbox-list' %}"><i class="fa fa-dollar"></i> <span>Касса</span></a>
                         </li>
                         <li>
                         <a href="{% url 'admin:receipt-list' %}"><i class="fa fa-files-o"></i>

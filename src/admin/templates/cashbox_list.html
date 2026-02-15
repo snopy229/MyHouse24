@@ -1,59 +1,44 @@
 {% extends "base_admin.html" %}
-{% block title %}
-    Лицевые счета
-{% endblock title %}
-{% block content_header %}
-    Лицевые счета
-{% endblock content_header %}
-{% block content_url %}
-    <li>
-        <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
-    </li>
-    <li class="active">Лицевые счета</li>
-{% endblock content_url %}
 {% block content %}
     <section class="content">
         <div class="row">
-            <div id="hidden-filters" class="invisible">
-                {{ form.house }}
-                {{ form.section }}
-                {{ form.owner }}
-            </div>
+            <!--<div class="col-xs-12 col-sm-6">-->
+            <!--<h2 class="page-header">Квартиры</h2>-->
+            <!--</div>-->
             <div class="col-xs-12 col-lg-9">
                 <div class="row">
                     <div class="col-xs-12 col-md-4">
                         <div class="small-box bg-green overflow-hidden">
                             <div class="inner">
-                                <h3>12 000.00 грн</h3>
+                                <h3>{{ cashbox_status }} грн</h3>
                                 <p>Состояние кассы</p>
                             </div>
                             <div class="icon">
                                 <i class="fa fa-dollar"></i>
                             </div>
+                            <!--<span class="small-box-footer">&nbsp;</span>-->
                         </div>
                     </div>
                     <div class="col-xs-12 col-md-4">
                         <div class="small-box bg-blue overflow-hidden">
                             <div class="inner">
-                                <h3>0.00 грн</h3>
+                                <h3>33 922 972.00 грн</h3>
                                 <p>Баланс по счетам</p>
                             </div>
                             <div class="icon">
                                 <i class="fa fa-dollar"></i>
                             </div>
-                            <!--<span class="small-box-footer">&nbsp;</span>-->
                         </div>
                     </div>
                     <div class="col-xs-12 col-md-4">
                         <div class="small-box bg-red overflow-hidden">
                             <div class="inner">
-                                <h3>0.00 грн</h3>
+                                <h3>61 787.00 грн</h3>
                                 <p>Задолженность по счетам</p>
                             </div>
                             <div class="icon">
                                 <i class="fa fa-dollar"></i>
                             </div>
-                            <!--<span class="small-box-footer">&nbsp;</span>-->
                         </div>
                     </div>
                 </div>
@@ -69,10 +54,13 @@
                     </button>
                     <ul class="dropdown-menu">
                         <li>
-                            <a href="{% url 'admin:create-bankbook' %}">Добавить лицевой счет</a>
+                            <a href="{% url 'admin:cashbox-create-in' %}">Создать приход</a>
                         </li>
                         <li>
-                            <a href="{% url 'admin:bankbook-download' %}">Выгрузить в Excel</a>
+                            <a href="{% url 'admin:cashbox-create-out' %}">Создать расход</a>
+                        </li>
+                        <li>
+                            <a href="#">Выгрузить в Excel</a>
                         </li>
                     </ul>
                 </div>
@@ -84,22 +72,25 @@
                     <div class="box-header with-border">
                         <h3 class="box-title"></h3>
                         <div class="box-tools">
-                            <a href="#" class="btn btn-default btn-sm">
+                            <button class="btn btn-default btn-sm">
                                 <span class="hidden-xs">Очистить</span><i class="fa fa-eraser visible-xs" aria-hidden="true"></i>
-                            </a>
+                            </button>
                         </div>
                     </div>
                     <div id="w0" class="grid-view">
                         <div class="box-body table-responsive no-padding">
-                            <table class="table table-bordered table-hover table-striped linkedRow"
-                                   id="bankbook-table">
+                            <table id="cash-box-table"
+                                   class="table table-bordered table-hover table-striped linkedRow">
                             </table>
                         </div>
                         <div class="box-footer clearfix"></div>
                     </div>
                     <div class="box-footer">
                         <div>
-                            Количество счетов: <span class="text-bold">{{ bankbook.count }}</span>
+                            Проведен приход: <span class="text-bold">{{ comings }} грн</span>
+                        </div>
+                        <div>
+                            Проведен расход: <span class="text-bold">{{ outgoes }} грн</span>
                         </div>
                     </div>
                 </div>
@@ -108,11 +99,13 @@
     </section>
 {% endblock content %}
 {% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
     <script>
         $(document).ready(function () {
             AjaxDatatableViewUtils.initialize_table(
-                $('#bankbook-table'),
-                "{% url 'admin:bankbook-ajax-table' %}",
+                $('#cash-box-table'),
+                "{% url 'admin:cashbox-ajax-table' %}",
                 {
                     processing: true,
                     autoWidth: false,
@@ -135,7 +128,7 @@
                                 var $cell = $(column.footer());
 
                                 if ($cell.length === 0 || $cell.is(':empty')) {
-                                    $cell = $('#bankbook-table thead tr:eq(1) th').eq(column.index());
+                                    $cell = $('#cash-box-table thead tr:eq(1) th').eq(column.index());
                                 }
 
                                 $cell.empty();
@@ -172,37 +165,65 @@
                             }
                         }
 
-                        setupColumnFilter('house', '#id_house', '/api/admin/house', null);
+                        function setupRangeFilter(colName) {
+                            var column = api.column(colName + ':name');
+                            if (column.index() !== undefined) {
+                                var $cell = $('#cash-box-table thead tr:eq(1) th').eq(column.index());
+                                $cell.empty();
 
-                        setupColumnFilter('section', '#id_section', '/api/admin/section', function () {
-                            return {
-                                house_id: $('#id_house').val()
-                            };
-                        });
+                                var $input = $('<input>', {
+                                    type: 'text',
+                                    id: 'date_range',
+                                    class: 'form-control input-sm',
+                                });
 
-                        setupColumnFilter('owner', '#id_owner', '/api/admin/owner', null);
+                                $input.appendTo($cell);
+                                $input.daterangepicker({
+                                    autoUpdateInput: false,
+                                });
+                                $input.on('apply.daterangepicker', function (ev, picker) {
+                                    $(this).val(
+                                        picker.startDate.format('YYYY-MM-DD') +
+                                        ' - ' +
+                                        picker.endDate.format('YYYY-MM-DD')
+                                    );
+                                    $('#master-call-table').DataTable().ajax.reload();
+                                });
 
-                        $('#id_house, #id_section').on('change.select2', function () {
-                            $('#bankbook-table').DataTable().ajax.reload();
-                        });
+                                $input.on('cancel.daterangepicker', function () {
+                                    $(this).val('');
+                                    $('#master-call-table').DataTable().ajax.reload();
+                                })
+                            }
 
-                        $('#id_house').on('change', function () {
-                            $('#id_section').val(null).trigger('change.select2');
+                        }
+
+                        setupColumnFilter('master', '#id_master', '/api/admin/master', null);
+                        setupRangeFilter('date')
+
+                        $('#id_master').on('change.select2', function () {
+                            $('#master-call-table').DataTable().ajax.reload();
                         });
                     }
+
                 },
                 {
-                    house: function () {
-                        return $('#id_house').val();
+                    master: function () {
+                        return $('#id_master').val();
                     },
-                    section: function () {
-                        return $('#id_section').val();
+                    date_from: function () {
+                        var val = $('#date_range').val();
+                        if (!val) return null;
+                        return val.split(' - ')[0];
                     },
-                    owner: function () {
-                        return $('#id_owner').val();
+                    date_to: function () {
+                        var val = $('#date_range').val();
+                        if (!val) return null;
+                        return val.split(' - ')[1];
                     },
                 }
-            );
+            )
+            ;
             $('body').on('click', 'tr[data-href]', function (e) {
 
 

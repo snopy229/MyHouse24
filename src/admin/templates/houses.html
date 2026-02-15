@@ -53,40 +53,6 @@
             </div>
         </div>
     </section>
-    <style>
-        /* Исправлено: вынос инлайнового стиля (Ошибка H021) */
-        #clear-table-filters {
-            margin-right: 5px;
-        }
-
-        #house-table thead tr.filters th {
-            padding: 4px 8px !important;
-            background-color: #f9f9f9;
-            vertical-align: middle;
-        }
-
-        #house-table thead input,
-        #house-table thead select {
-            width: 100% !important;
-            height: 28px !important;
-            padding: 2px 5px !important;
-            font-size: 12px !important;
-            border: 1px solid #d2d6de !important;
-            border-radius: 3px !important;
-            box-sizing: border-box !important;
-            color: #555;
-        }
-
-        #house-table thead tr.filters th:after,
-        #house-table thead tr.filters th:before {
-            display: none !important;
-        }
-
-        .label-status {
-            font-size: 11px;
-            padding: 0.2em 0.6em;
-        }
-    </style>
     <script language="javascript">
         $(document).ready(function () {
             AjaxDatatableViewUtils.initialize_table(
@@ -104,9 +70,6 @@
                     dom: '<"box-body"t><"box-footer clearfix"p>',
                     info: false,
                     bFilter: true
-                    language: {
-                        url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/ru.json"
-                    },
                 }, {},
             );
             $('body').on('click', 'tr[data-href]', function (e) {

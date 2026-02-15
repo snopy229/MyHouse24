@@ -53,48 +53,6 @@
             </div>
         </div>
     </section>
-    <style>
-        #clear-table-filters {
-            margin-right: 5px;
-        }
-
-        #counter-table thead tr.filters th {
-            padding: 4px 8px !important;
-            vertical-align: middle;
-        }
-
-        #counter-table thead input,
-        #counter-table thead select {
-            background: white;
-            width: 100% !important;
-            height: 29px !important;
-            padding: 2px 5px !important;
-            font-size: 12px !important;
-            border: 1px solid #d2d6de !important;
-            border-radius: 3px !important;
-            box-sizing: border-box !important;
-        }
-
-        #counter-table thead tr.filters th:after,
-        #counter-table thead tr.filters th:before {
-            display: none !important;
-        }
-
-        .select2-container .select2-selection--single {
-            border: 1px solid #d2d6de !important;
-            border-radius: 0 !important;
-        }
-
-
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 32px !important;
-            padding-left: 12px !important;
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 32px !important;
-        }
-    </style>
 {% endblock content %}
 {% block extra_js %}
     <script>
@@ -115,9 +73,6 @@
                     dom: '<"box-body"t><"box-footer clearfix"p>',
                     info: false,
                     bFilter: true,
-                    language: {
-                        url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/ru.json"
-                    },
                     initComplete: function (settings, json) {
                         var api = this.api();
 

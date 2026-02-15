@@ -42,7 +42,6 @@ class EditServicesView(TemplateView):
                 queryset=Service.objects.all(), prefix="services"
             )
 
-        # Загружаем единицы измерения (prefix='units')
         if "units" not in context:
             context["units"] = UnitsFormSet(
                 queryset=UnitsOfMeasurement.objects.all(), prefix="units"

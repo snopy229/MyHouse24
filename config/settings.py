@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.humanize",
     "phonenumber_field",
     "hcaptcha_field",
     "src.managements",
@@ -149,6 +150,11 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 
 USE_TZ = True
+
+USE_L10N = False
+DECIMAL_SEPARATOR = "."
+USE_THOUSANDS_SEPARATOR = True
+THOUSANDS_SEPARATOR = " "
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/

@@ -1,3 +1,4 @@
+from django.shortcuts import redirect
 from django.urls import reverse_lazy, reverse
 from django.views.generic import CreateView
 from django.contrib.auth import get_user_model
@@ -26,6 +27,11 @@ class LogInOwner(LoginView):
     form_class = AuthenticationOwnerForm
     template_name = "LogInOwner.html"
 
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect(self.get_success_url())
+        return super().dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         return super().get_context_data(**kwargs)
 
@@ -47,10 +53,10 @@ class LogInOwner(LoginView):
 
         remember_me = form.cleaned_data.get("remember_me")
 
-        if not remember_me:
-            self.request.session.set_expiry(0)
+        if remember_me:
+            self.request.session.set_expiry(1209600)
         else:
-            self.request.session.set_expiry(None)
+            self.request.session.set_expiry(0)
 
         return response
 

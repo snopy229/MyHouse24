@@ -1,6 +1,6 @@
 from django.contrib.auth.base_user import BaseUserManager
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from phonenumber_field.modelfields import PhoneNumberField
 
 from .choices import Status
@@ -36,12 +36,12 @@ class Role(models.Model):
     has_cashbox = models.BooleanField(default=False)
     has_invoices = models.BooleanField(default=False)
     has_personal_accounts = models.BooleanField(default=False)
-    has_apartaments = models.BooleanField(default=False)
+    has_apartments = models.BooleanField(default=False)
     has_owners = models.BooleanField(default=False)
     has_messages = models.BooleanField(default=False)
     has_master_requests = models.BooleanField(default=False)
     has_meters = models.BooleanField(default=False)
-    has_site_managment = models.BooleanField(default=False)
+    has_site_management = models.BooleanField(default=False)
     has_services = models.BooleanField(default=False)
     has_tariffs = models.BooleanField(default=False)
     has_roles = models.BooleanField(default=False)
@@ -52,7 +52,7 @@ class Role(models.Model):
         return self.title
 
 
-class User(AbstractUser):
+class User(AbstractUser, PermissionsMixin):
     username = None
     email = models.EmailField(
         verbose_name="email address",
@@ -82,3 +82,13 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.first_name} {self.second_name}"
+
+    def has_perm(self, perm, obj=None):
+        if self.is_staff and self.is_superuser:
+            return True
+
+        if perm.startswith("role.") and self.role:
+            field_name = perm.split(".")[-1]
+            return getattr(self.role, field_name, False)
+
+        return super().has_perm(perm, obj)

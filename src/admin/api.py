@@ -1,9 +1,10 @@
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from ninja import Router, Query
 
-from src.settings.models import Tariffs, Service
+from src.settings.models import Tariffs, Service, Article
 from src.user.models import User
 from .models import House, Floor, Section, BankBook, Apartment
 from .schemas import Select2Response
@@ -235,3 +236,87 @@ def list_master(request, q: str = Query(None), page: int = 1):
         for item in current_page.object_list
     ]
     return {"results": result, "pagination": {"more": current_page.has_next()}}
+
+
+@router.get("/manager", response=Select2Response)
+def list_manager(request, q: str = Query(None), page: int = 1):
+    qs = User.objects.filter(
+        role__title__in=["Управляющий", "Бухгалтер", "Электрик"]
+    ).order_by("role__title")
+    if q:
+        qs = qs.filter(
+            Q(username__icontains=q)
+            | Q(first_name__icontains=q)
+            | Q(last_name__icontains=q)
+            | Q(role_title__icontains=q)
+        )
+    paginator = Paginator(qs, 10)
+    current_page = paginator.get_page(page)
+    result = [
+        {
+            "id": item.id,
+            "text": f"{item.role.title}-{item.fullname if item.fullname else item.email}",
+        }
+        for item in current_page.object_list
+    ]
+    return {"results": result, "pagination": {"more": current_page.has_next()}}
+
+
+@router.get("/article-coming", response=Select2Response)
+def list_coming_article(request, q: str = Query(None), page: int = 1):
+    qs = Article.objects.filter(type="IN")
+    paginator = Paginator(qs, 10)
+    current_page = paginator.get_page(page)
+    result = [
+        {
+            "id": item.id,
+            "text": f"{item.title}",
+        }
+        for item in current_page.object_list
+    ]
+    return {"results": result, "pagination": {"more": current_page.has_next()}}
+
+
+@router.get("/article-out-go", response=Select2Response)
+def list_out_go_article(request, q: str = Query(None), page: int = 1):
+    qs = Article.objects.filter(type="OUT")
+    paginator = Paginator(qs, 10)
+    current_page = paginator.get_page(page)
+    result = [
+        {
+            "id": item.id,
+            "text": f"{item.title}",
+        }
+        for item in current_page.object_list
+    ]
+    return {"results": result, "pagination": {"more": current_page.has_next()}}
+
+
+@router.get("/bank_book_owner", response=Select2Response)
+def list_bank_book_owner(
+    request,
+    owner_id: str | int | None = Query(None),
+    q: str = Query(None),
+    page: int = 1,
+):
+    if owner_id:
+        qs = BankBook.objects.filter(apartment__owner_id=owner_id).order_by("number")
+    if not owner_id:
+        return {"results": [], "pagination": {"more": False}}
+
+    paginator = Paginator(qs, 10)
+    current_page = paginator.get_page(page)
+    result = [
+        {
+            "id": item.id,
+            "text": str(item.number),
+        }
+        for item in current_page.object_list
+    ]
+    return {"results": result, "pagination": {"more": current_page.has_next()}}
+
+
+@router.get("/get_bank_book_owner")
+def get_bank_book(request, apartment_id):
+    bank_book = get_object_or_404(BankBook, apartment_id=apartment_id)
+    return {"bank_book": bank_book.number}

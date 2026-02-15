@@ -10,7 +10,7 @@ class StatusBankBook(models.TextChoices):
 class StatusCounter(models.TextChoices):
     NEW = "NEW", _("Новое")
     TAKEN = "TAKEN", _("Учтено")
-    TAKEN_AND_PAID = "TAKEN_AND_PAID", _("Учтено и оплочено")
+    TAKEN_AND_PAID = "TAKEN_AND_PAID", _("Учтено и оплачено")
     NULLABLE = "NULLABLE", _("Нулевое")
 
 
@@ -31,3 +31,8 @@ class StatusReceipt(models.TextChoices):
     PAID = "PD", _("Оплачена")
     PART = "PT", _("Частично оплачена")
     UNPAID = "UPD", _("Неоплачена")
+
+
+class StatusCashBox(models.TextChoices):
+    COMING = "CM", _("Приход")
+    OUTGO = "OG", _("Расход")

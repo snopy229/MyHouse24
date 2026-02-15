@@ -315,6 +315,21 @@
 
                 if (apartmentId) {
                     $.ajax({
+                        url: '/api/admin/get_bank_book_owner',
+                        data: {'apartment_id': apartmentId},
+                        success: function (data) {
+                            if (data.bank_book) {
+                                $('#id_bankbook').val(data.bank_book);
+                            }
+                        },
+                        error: function (xhr) {
+                            if (xhr.status === 404) {
+                                $('#id_bankbook').val('');
+                            }
+                        }
+                    });
+
+                    $.ajax({
                         url: '{% url "admin:get_tariff" %}',
                         data: {'apartment_id': apartmentId},
                         success: function (data) {

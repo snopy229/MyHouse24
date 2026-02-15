@@ -56,6 +56,13 @@ from .views import (
     MessageAjaxDatatable,
     MessageList,
     message_bulk_delete,
+    CashBoxComingCreateView,
+    CashBoxOutGoCreateView,
+    CashBoxList,
+    CashBoxComingEditView,
+    CashBoxOutGoEditView,
+    CashBoxAjaxDatatable,
+    mark_counters_paid,
 )
 
 app_name = "admin"
@@ -143,12 +150,34 @@ urlpatterns = [
     path(
         "api/get-counter-readings/", get_counter_readings, name="get_counter_readings"
     ),
-    path("api/mark-counters-taken", mark_counters_taken, name="mark_counters_taken"),
+    path("api/mark-counters-taken/", mark_counters_taken, name="mark_counters_taken"),
+    path("api/mark-counters-paid/", mark_counters_paid, name="mark_counters_paid"),
     # message
     path("message/list/", MessageList.as_view(), name="message-list"),
     path("message/create/", CreateMessage.as_view(), name="message-create"),
-    path(
-        "message/ajax/table/", MessageAjaxDatatable.as_view(), name="message-ajax-table"
-    ),
+    path("message/table/", MessageAjaxDatatable.as_view(), name="message-ajax-table"),
     path("message/bulk_delete/", message_bulk_delete, name="message_bulk_delete"),
+    # cashbox
+    path(
+        "cashbox/create?type=in",
+        CashBoxComingCreateView.as_view(),
+        name="cashbox-create-in",
+    ),
+    path(
+        "cashbox/create?type=out",
+        CashBoxOutGoCreateView.as_view(),
+        name="cashbox-create-out",
+    ),
+    path(
+        "cashbox/edit?type=in/<int:pk>/",
+        CashBoxComingEditView.as_view(),
+        name="cashbox-edit-in",
+    ),
+    path(
+        "cashbox/edit?type=out/<int:pk>/",
+        CashBoxOutGoEditView.as_view(),
+        name="cashbox-edit-out",
+    ),
+    path("cashbox/list/", CashBoxList.as_view(), name="cashbox-list"),
+    path("cashbox/table/", CashBoxAjaxDatatable.as_view(), name="cashbox-ajax-table"),
 ]
