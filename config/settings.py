@@ -35,6 +35,9 @@ DEBUG = env("DEBUG")
 ALLOWED_HOSTS = ["*"]
 
 # Application definition
+CSRF_TRUSTED_ORIGINS = [
+    "http://vaua0080025.online-vm.com",
+]
 
 INSTALLED_APPS = [
     "src.user",
