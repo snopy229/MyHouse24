@@ -297,19 +297,19 @@ class CreateUser(CreateView):
     success_url = reverse_lazy("settings:users-list")
 
     def form_valid(self, form):
-        user = form.save(commit=False)
-        user.is_staff = True
-        user.save()
+        self.object = form.save(commit=False)
+        self.object.is_staff = True
+        self.object.save()
 
         role_name = form.cleaned_data.get("role")
         if role_name:
             Role.objects.update_or_create(
-                user=user,
+                user=self.object,
                 defaults={"name": role_name},
             )
 
         raw_password = form.cleaned_data.get("password1")
-        send_password.delay(raw_password, user.email)
+        send_password(raw_password, self.object.email).delay()
 
         return HttpResponseRedirect(self.get_success_url())
 
