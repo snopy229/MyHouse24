@@ -147,34 +147,35 @@ class Statistic(
     template_name = "statistic.html"
     permission_required = "role.has_statistics"
 
-    def get_context_data(self, request=None, **kwargs):
+    def get_context_data(self, **kwargs):
         context = super().get_context_data()
+        user = self.request.user
         houses = House.objects.all()
         excluded_roles = [
             "Директор",
         ]
-        if request.user.role.title not in excluded_roles:
-            houses = houses.filter(owner=request.user)
+        if user.role.title not in excluded_roles:
+            houses = houses.filter(owner=user)
         context["houses"] = houses.count()
         owners = User.objects.filter(status="active", is_staff=False)
-        if request.user.role.title not in excluded_roles:
-            owners = owners.filter(apartment_set__house__owner=request.user)
+        if user.role.title not in excluded_roles:
+            owners = owners.filter(apartment_set__house__owner=user)
         context["owners"] = owners.count()
         master_call_in_work = MasterCall.objects.filter(call_status="IN WORK")
-        if request.user.role.title not in excluded_roles:
-            master_call_in_work = master_call_in_work.filter(master=request.user)
+        if user.role.title not in excluded_roles:
+            master_call_in_work = master_call_in_work.filter(master=user)
         context["master_calls_in_work"] = master_call_in_work.count()
         apartments = Apartment.objects.all()
-        if request.user.role.title not in excluded_roles:
-            apartments = apartments.filter(house__owner=request.user)
+        if user.role.title not in excluded_roles:
+            apartments = apartments.filter(house__owner=user)
         context["apartments"] = apartments.count()
         bankbook = BankBook.objects.all()
-        if request.user.role.title not in excluded_roles:
-            bankbook = bankbook.filter(house__owner=request.user)
+        if user.role.title not in excluded_roles:
+            bankbook = bankbook.filter(house__owner=user)
         context["bankbooks"] = bankbook.count()
         new_master_call = MasterCall.objects.filter(call_status="NEW")
-        if request.user.role.title not in excluded_roles:
-            new_master_call = new_master_call.filter(master=request.user)
+        if user.role.title not in excluded_roles:
+            new_master_call = new_master_call.filter(master=user)
         context["new_master_call"] = new_master_call.count()
         monthly_stats = (
             ServiceFullCost.objects.all()
