@@ -280,7 +280,7 @@ class EditUsersPageView(UpdateView):
 
         raw_password = form.cleaned_data.get("password1")
         raw_email = form.cleaned_data.get("email")
-        send_password(raw_password, raw_email).delay()
+        send_password.delay(raw_password, raw_email)
 
         return HttpResponseRedirect(self.get_success_url())
 
@@ -323,7 +323,7 @@ class CreateUser(CreateView):
 
         raw_password = form.cleaned_data.get("password1")
         raw_email = form.cleaned_data.get("email")
-        send_password(raw_password, raw_email).delay()
+        send_password.delay(raw_password, raw_email)
 
         return HttpResponseRedirect(self.get_success_url())
 
