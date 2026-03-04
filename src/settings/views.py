@@ -299,27 +299,19 @@ class CreateUser(CreateView):
     def form_valid(self, form):
         user = form.save(commit=False)
         user.is_staff = True
+        user.save()
+
+        role_name = form.cleaned_data.get("role")
+        if role_name:
+            Role.objects.update_or_create(
+                user=user,
+                defaults={"name": role_name},
+            )
 
         raw_password = form.cleaned_data.get("password1")
+        send_password.delay(raw_password, user.email)
 
-        try:
-            with transaction.atomic():
-                user.save()
-
-                role_name = form.cleaned_data.get("role")
-                if role_name:
-                    Role.objects.update_or_create(
-                        user=user,
-                        defaults={"name": role_name},
-                    )
-
-                user_email = form.cleaned_data.get("email")
-                send_password(raw_password, user_email).delay()
-
-        except Exception:
-            return self.form_invalid(form)
-
-        return HttpResponseRedirect(reverse_lazy("settings:users-list"))
+        return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form):
         print(form.errors)
