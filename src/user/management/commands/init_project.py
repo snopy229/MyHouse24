@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         self.roles(*args, **kwargs)
+        self.create_is_staff(*args, **kwargs)
 
     def roles(self, *args, **kwargs):
         if Role.objects.exists():
