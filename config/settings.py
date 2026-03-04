@@ -34,11 +34,16 @@ DEBUG = env("DEBUG")
 
 ALLOWED_HOSTS = ["*"]
 
-# Application definition
 CSRF_TRUSTED_ORIGINS = [
     "http://vaua0080025.online-vm.com",
+    "http://*.online-vm.com",
+    "http://localhost:8080",
 ]
 
+SECURE_PROXY_SSL_HEADER = None
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_HTTPONLY = False
 INSTALLED_APPS = [
     "src.user",
     "django.contrib.auth",
