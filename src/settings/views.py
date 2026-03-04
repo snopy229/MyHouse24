@@ -219,14 +219,17 @@ class UserAjaxTable(AjaxDatatableView):
         row["first_name"] = f"{obj.first_name} {obj.second_name}"
         row["role__title"] = obj.role.title if obj.role else "—"
 
+        send_invite = reverse("settings:send-invite", args=[obj.id])
         edit_url = reverse("settings:edit-user", args=[obj.id])
         delete_url = reverse("settings:delete-user", args=[obj.id])
 
         row["actions"] = format_html(
             '<div class="btn-group btn-group-sm">'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-repeat"></i></a>'
             '<a href="{}" class="btn btn-default"><i class="fa fa-pencil"></i></a>'
             '<a href="{}" class="btn btn-default"><i class="fa fa-trash"></i></a>'
             "</div>",
+            send_invite,
             edit_url,
             delete_url,
         )
@@ -284,7 +287,7 @@ class SendInvite(RedirectView):
 
 
 class DeleteUsersView(DeleteView):
-    def post(self, request, pk):
+    def get(self, request, pk):
         article = get_object_or_404(User, pk=pk)
         article.delete()
         return redirect("settings:users-list")
