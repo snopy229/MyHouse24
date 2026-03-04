@@ -8,42 +8,39 @@ class Command(BaseCommand):
         self.create_is_staff(*args, **kwargs)
 
     def roles(self, *args, **kwargs):
-        if Role.objects.exists():
-            self.stdout.write(self.style.WARNING("Roles already initialized."))
-            return
-        roles = [
-            {
-                "title": "Директор",
-            },
-            {
-                "title": "Управляющий",
-            },
-            {
-                "title": "Бухгалтер",
-            },
-            {
-                "title": "Электрик",
-            },
-            {
-                "title": "Сантехник",
-            },
-            {
-                "title": "Слесарь",
-            },
+        role_titles = [
+            "Директор",
+            "Управляющий",
+            "Бухгалтер",
+            "Электрик",
+            "Сантехник",
+            "Слесарь",
         ]
-        for role_data in roles:
-            role, created = Role.objects.get_or_create(
-                title=role_data["title"], defaults=role_data
-            )
-            if created:
-                self.stdout.write(self.style.SUCCESS(f'Role "{role.title}" created.'))
-            else:
-                self.stdout.write(
-                    self.style.WARNING(f'Role "{role.title}" already exists.')
-                )
 
-    def create_is_staff(self, *args, **kwargs):
+        created_roles = {}
+
+        for title in role_titles:
+            role, created = Role.objects.get_or_create(title=title)
+            created_roles[title] = role
+            if created:
+                self.stdout.write(self.style.SUCCESS(f'Role "{title}" created.'))
+            else:
+                self.stdout.write(self.style.WARNING(f'Role "{title}" already exists.'))
+
+    def create_is_staff(self, created_role, *args, **kwargs):
         if not User.objects.filter(is_staff=True).exists():
-            User.objects.create_superuser(
-                email="admin@gamil.com", password="admin", role__title="Директор"
+            director_role = created_role.get("Директор")
+
+            User.objects.create_user(
+                email="admin@gmail.com",
+                password="admin",
+                role=director_role,
+                is_staff=True,
             )
+            self.stdout.write(
+                self.style.SUCCESS(
+                    "Superuser 'admin@gmail.com' created with role 'Директор'."
+                )
+            )
+        else:
+            self.stdout.write(self.style.WARNING("Superuser already exists."))
