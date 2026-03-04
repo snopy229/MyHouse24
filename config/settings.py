@@ -32,7 +32,7 @@ SECRET_KEY = env("SECRET_KEY", default="your-default-secret-key")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 # Application definition
 
@@ -185,9 +185,7 @@ HCAPTCHA_DEFAULT_CONFIG = {
     "size": "normal",
 }
 
-HCAPTCHA_PROXIES = {
-    "http": "http://127.0.0.1:8000",
-}
+HCAPTCHA_PROXIES = {}
 
 HCAPTCHA_TIMEOUT = 5
 

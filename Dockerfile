@@ -25,8 +25,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && curl -sSL https://install.python-poetry.org | python3 - \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml poetry.lock* ./
+RUN pip install --no-cache-dir --upgrade pip
 
-RUN poetry install --no-interaction --no-ansi --no-root
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .

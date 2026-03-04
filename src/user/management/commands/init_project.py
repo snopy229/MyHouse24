@@ -1,4 +1,4 @@
-from src.user.models import Role
+from src.user.models import Role, User
 from django.core.management.base import BaseCommand
 
 
@@ -37,3 +37,7 @@ class Command(BaseCommand):
                 self.stdout.write(
                     self.style.WARNING(f'Role "{role.title}" already exists.')
                 )
+
+    def create_is_staff(self, *args, **kwargs):
+        if not User.objects.filter(is_staff=True).exists():
+            User.objects.create_superuser("admin", "admin@gamil.com", "admin")
