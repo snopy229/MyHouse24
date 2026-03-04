@@ -234,7 +234,7 @@ CKEDITOR_CONFIGS = {
 
 EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
 ANYMAIL = {
-    "BREVO_API_KEY": env("BREVO_API_KEY"),  # Ключ нужно добавить в .env
+    "BREVO_API_KEY": env("BREVO_API_KEY"),
 }
 DEFAULT_FROM_EMAIL = env("SENDER_EMAIL")
 

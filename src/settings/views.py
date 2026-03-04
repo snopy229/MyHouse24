@@ -321,6 +321,9 @@ class CreateUser(CreateView):
 
         return HttpResponseRedirect(reverse_lazy("settings:users-list"))
 
+    def form_invalid(self, form):
+        print(form.errors)
+
 
 class DetailUser(DetailView):
     model = User
