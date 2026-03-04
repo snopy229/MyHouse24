@@ -31,7 +31,7 @@
             <a href="{% url 'admin:owner-list' %}">Владельцы квартир</a>
         </li>
         <li>
-            <a href="{% url 'admin:detail-owner' owner.id %}">Владельцы квартир</a>
+            <a href="{% url 'admin:detail-owner' owner.id %}">Профиль владельца</a>
         </li>
         <li class="active">Редактировать</li>
     {% endif %}
@@ -127,6 +127,7 @@
                             <div class="form-group field-userform-email required">
                                 <label class="control-label" for="userform-email">Email (логин)</label>
                                 {{ form.email }}
+                                <span>{{ form.email.errors }}</span>
                                 <div class="help-block"></div>
                             </div>
                         </div>
@@ -159,6 +160,14 @@
                         <div class="col-xs-12 text-right">
                             <button type='reset' class="btn btn-default">Отменить</button>
                             <button type="submit" class="btn btn-success">Сохранить</button>
+                            {% if 'edit' in request.past and not owner.email_verify %}
+                                <button type="button"
+                                        id="btn-verify"
+                                        class="btn btn-default"
+                                        data-url="{% url 'admin:send-verification' owner.pk %}">
+                                    Отправить ссылку подтверждения
+                                </button>
+                            {% endif %}
                         </div>
                     </div>
                 </form>
@@ -180,6 +189,20 @@
             padding-top: 20px;
         }
     </style>
+    <script>
+        document.getElementById('btn-verify').addEventListener('click', function () {
+            const url = this.getAttribute('data-url');
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {'X-CSRFToken': csrftoken}
+            }).then(response => {
+                if (response.ok) alert('Письмо отправлено!');
+                else alert('Ошибка отправки');
+            });
+        });
+    </script>
     <script>
         function generateAndFill() {
 
@@ -257,26 +280,30 @@
                         email: true,
                     },
                     password1: {
-                        required: true,
+                        {% if 'create' in request.path %}
+                            required: true,
+                        {% endif %}
                         minlength: 5
                     },
                     password2: {
-                        required: true,
+                        {% if 'create' in request.path %}
+                            required: true,
+                        {% endif %}
                         minlength: 5
                     },
                 },
                 messages: {
                     email: {
-                        required: "Значение «Email (логин)» не является правильным email адресом.",
-                        email: "Необходимо заполнить «Email (логин)»."
+                        required: "Необходимо заполнить «Email (логин)».Значение «Email (логин)» не является правильным email адресом.",
+                        email: "Значение «Email (логин)» не является правильным email адресом."
                     },
                     password1: {
                         required: "Необходимо заполнить «Пароль».",
-                        minlength: "Значение «Пароль» должно содержать минимум 6 символов."
+                        minlength: "Значение «Пароль» должно содержать минимум 5 символов."
                     },
                     password2: {
                         required: "Необходимо заполнить «Повторить пароль».",
-                        minlength: "Значение «Пароль» должно содержать минимум 6 символов."
+                        minlength: "Значение «Пароль» должно содержать минимум 5 символов."
                     },
                 },
                 errorClass: 'is-invalid',

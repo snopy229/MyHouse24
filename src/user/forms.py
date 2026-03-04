@@ -40,9 +40,9 @@ class UserRegistrationForm(UserCreationForm):
 
 class AuthenticationOwnerForm(AuthenticationForm):
     hcaptcha = hCaptchaField()
-    username = forms.EmailField(
+    username = forms.CharField(
         label="Email или ID пользователя",
-        widget=forms.EmailInput(
+        widget=forms.TextInput(
             attrs={"class": "form-control", "placeholder": "E-mail или ID"}
         ),
     )

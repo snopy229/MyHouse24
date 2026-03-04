@@ -10,7 +10,7 @@ from src.settings.models import (
     Tariffs,
     ServicesCost,
 )
-from src.user.models import User
+from src.user.models import User, Role
 
 
 class UnitForm(forms.ModelForm):
@@ -98,7 +98,12 @@ class UserForm(forms.ModelForm):
             "email": forms.EmailInput(attrs={"class": "form-control"}),
             "phone_number": forms.TextInput(attrs={"class": "form-control"}),
             "status": forms.Select(attrs={"class": "form-control"}),
-            "role": forms.Select(attrs={"class": "form-control"}),
+            "role": forms.Select(
+                attrs={
+                    "class": "form-control",
+                    "required": True,
+                }
+            ),
         }
 
     def clean_password1(self):
@@ -177,4 +182,61 @@ ServiceCostFormSet = inlineformset_factory(
     form=ServicesCostForm,
     extra=0,
     can_delete=True,
+)
+
+
+class RoleForm(forms.ModelForm):
+    class Meta:
+        model = Role
+        fields = "__all__"
+        widgets = {
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+            "has_statistics": forms.CheckboxInput(
+                attrs={"class": "form-control-input"}
+            ),
+            "has_cashbox": forms.CheckboxInput(attrs={"class": "form-control-input"}),
+            "has_invoices": forms.CheckboxInput(attrs={"class": "form-control-input"}),
+            "has_personal_accounts": forms.CheckboxInput(
+                attrs={"class": "form-control-input"}
+            ),
+            "has_apartments": forms.CheckboxInput(
+                attrs={"class": "form-control-input"}
+            ),
+            "has_owners": forms.CheckboxInput(attrs={"class": "form-control-input"}),
+            "has_houses": forms.CheckboxInput(attrs={"class": "form-control-input"}),
+            "has_messages": forms.CheckboxInput(attrs={"class": "form-control-input"}),
+            "has_master_requests": forms.CheckboxInput(
+                attrs={"class": "form-control-input"}
+            ),
+            "has_meters": forms.CheckboxInput(attrs={"class": "form-control-input"}),
+            "has_site_management": forms.CheckboxInput(
+                attrs={"class": "form-control-input"}
+            ),
+            "has_services": forms.CheckboxInput(attrs={"class": "form-control-input"}),
+            "has_tariffs": forms.CheckboxInput(attrs={"class": "form-control-input"}),
+            "has_roles": forms.CheckboxInput(attrs={"class": "form-control-input"}),
+            "has_users": forms.CheckboxInput(attrs={"class": "form-control-input"}),
+            "has_payment_details": forms.CheckboxInput(
+                attrs={"class": "form-control-input"}
+            ),
+            "has_article": forms.CheckboxInput(attrs={"class": "form-control-input"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        field = self.fields["title"]
+        self.fields["title"].disabled = True
+        field.widget.attrs.update(
+            {
+                "style": "border: none; background: transparent; padding: 0; color: inherit; outline: none; appearance: none;",
+                "readonly": "readonly",
+            }
+        )
+
+
+RoleFormSet = modelformset_factory(
+    Role,
+    form=RoleForm,
+    extra=0,
+    can_delete=False,
 )

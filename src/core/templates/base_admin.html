@@ -54,11 +54,24 @@
         thead select {
             background: white;
             width: 100% !important;
-            height: 29px !important;
+            height: 32px !important;
             padding: 2px 5px !important;
             font-size: 12px !important;
             border: 1px solid #d2d6de !important;
-            border-radius: 3px !important;
+            box-sizing: border-box !important;
+        }
+
+        .sorting_asc, .sorting_desc, .sorting {
+            color: #3e8cbb;
+        }
+
+        thead option:hover {
+            background: black;
+            width: 100% !important;
+            height: 32px !important;
+            padding: 2px 5px !important;
+            font-size: 12px !important;
+            border: 1px solid #d2d6de !important;
             box-sizing: border-box !important;
         }
 
@@ -73,6 +86,9 @@
             height: 32px;
         }
 
+        .select2-selection__clear {
+            display: none !important;
+        }
 
         .select2-container--default .select2-selection--single .select2-selection__rendered {
             line-height: 32px !important;
@@ -81,6 +97,15 @@
 
         .select2-container--default .select2-selection--single .select2-selection__arrow {
             height: 32px !important;
+        }
+
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: #00a65a !important;
+            color: white !important;
+        }
+
+        .select2-results__option--highlighted {
+            background-color: #00a65a !important;
         }
 
     </style>
@@ -113,10 +138,30 @@
                             <li class="dropdown notifications-menu">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                                     <i class="fa fa-child fa-lg"></i>
-                                    <span class="label label-warning">{{ new_owners }}</span>
+                                    <span class="label label-warning">{{ new_owners.count|default:0 }}</span>
                                 </a>
                                 <ul class="dropdown-menu">
-                                    <li class="header">Новых пользователей: {{ new_owners }}</li>
+                                    {% if new_owners %}
+                                        <li class="header">Новых пользователей: {{ new_owners.count|default:0 }}</li>
+                                    {% else %}
+                                        <li class="header">Нет новых пользователей</li>
+                                    {% endif %}
+                                    <li>
+                                        <ul class="menu">
+                                            {% if new_owners %}
+                                                {% for owner in new_owners %}
+                                                    <li>
+                                                        <a href="{% url 'admin:detail-owner' owner.id %}">{{ owner.email }}</a>
+                                                    </li>
+                                                {% endfor %}
+                                            {% else %}
+                                                <li>
+                                                    <a href="{% url 'admin:owner-list' %}">Перейти в раздел
+                                                    пользователей</a>
+                                                </li>
+                                            {% endif %}
+                                        </ul>
+                                    </li>
                                 </ul>
                             </li>
                             <li class="dropdown user user-menu">
@@ -149,83 +194,121 @@
             <aside class="main-sidebar">
                 <section class="sidebar">
                     <ul class="sidebar-menu" data-widget="tree">
-                        <li class="{% if 'statistic' in request.path %}active{% endif %}">
-                            <a href="{% url 'admin:statistic' %}"><i class="fa fa-line-chart"></i><span>Статистика</span></a>
+                        {% if user.role.title == 'Директор' or user.role.has_statistic %}
+                            <li class="{% if 'statistic' in request.path %}active{% endif %}">
+                                <a href="{% url 'admin:statistic' %}"><i class="fa fa-line-chart"></i><span>Статистика</span></a>
+                            {% endif %}
                         </li>
-                        <li>
-                            <a href="{% url 'admin:cashbox-list' %}"><i class="fa fa-dollar"></i> <span>Касса</span></a>
-                        </li>
-                        <li>
-                        <a href="{% url 'admin:receipt-list' %}"><i class="fa fa-files-o"></i>
-                        <span>Квитанции на оплату</span></a>
-                </li>
-                <li class="{% if 'bankbook' in request.path %}active{% endif %}">
-                <a href="{% url 'admin:bankbook-list' %}"><i class="fa fa-credit-card"></i>
-                <span>Лицевые счета</span></a>
-        </li>
-        <li class="{% if 'flat' in request.path %}active{% endif %}">
-            <a href="{% url 'admin:flat-list' %}"><i class="fa fa-key"></i> <span>Квартиры</span></a>
-        </li>
-        <li class="{% if 'owner' in request.path %}active{% endif %}">
-        <a href="{% url 'admin:owner-list' %}"><i class="fa fa-users"></i>
-        <span>Владельцы квартир</span></a>
+                        {% if user.role.title == 'Директор' or user.role.has_cashbox %}
+                            <li class="{% if 'cashbox' in request.path %}active{% endif %}">
+                                <a href="{% url 'admin:cashbox-list' %}"><i class="fa fa-dollar"></i> <span>Касса</span></a>
+                            </li>
+                        {% endif %}
+                        {% if user.role.title == 'Директор' or user.role.has_invoices %}
+                            <li class="{% if 'receipt' in request.path %}active{% endif %}">
+                            <a href="{% url 'admin:receipt-list' %}"><i class="fa fa-files-o"></i>
+                            <span>Квитанции на оплату</span></a>
+                    </li>
+                {% endif %}
+                {% if user.role.title == 'Директор' or user.role.has_personal_accounts %}
+                    <li class="{% if 'bankbook' in request.path %}active{% endif %}">
+                    <a href="{% url 'admin:bankbook-list' %}"><i class="fa fa-credit-card"></i>
+                    <span>Лицевые счета</span></a>
+            </li>
+        {% endif %}
+        {% if user.role.title == 'Директор' or user.role.has_apartments %}
+            <li class="{% if 'flat' in request.path %}active{% endif %}">
+                <a href="{% url 'admin:flat-list' %}"><i class="fa fa-key"></i> <span>Квартиры</span></a>
+            </li>
+        {% endif %}
+        {% if user.role.title == 'Директор' or user.role.has_owners %}
+            <li class="{% if 'owner' in request.path %}active{% endif %}">
+            <a href="{% url 'admin:owner-list' %}"><i class="fa fa-users"></i>
+            <span>Владельцы квартир</span></a>
+    </li>
+{% endif %}
+{% if user.role.title == 'Директор' or user.role.has_houses %}
+    <li class="{% if 'house' in request.path %}active{% endif %}">
+        <a href="{% url 'admin:house-list' %}"><i class="fa fa-building"></i> <span>Дома</span></a>
+    </li>
+{% endif %}
+{% if user.role.title == 'Директор' or user.role.has_messages %}
+    <li class="{% if 'message' in request.path %}active{% endif %}">
+    <a href="{% url 'admin:message-list' %}"><i class="fa fa-envelope-o"></i>
+    <span>Сообщения</span></a>
 </li>
-<li class="{% if 'house' in request.path %}active{% endif %}">
-    <a href="{% url 'admin:house-list' %}"><i class="fa fa-building"></i> <span>Дома</span></a>
+{% endif %}
+{% if user.role.title == 'Директор' or user.role.has_master_requests %}
+    <li class="{% if 'master-call' in request.path %}active{% endif %}">
+    <a href="{% url 'admin:master-call-list' %}"><i class="fa fa-wrench"></i>
+    <span>Заявки мастера</span></a>
+</li>
+{% endif %}
+{% if user.role.title == 'Директор' or user.role.has_meters %}
+    <li class="{% if 'counter' in request.path %}active{% endif %}">
+        <a href="{% url 'admin:counter-list' %}"><i class="fa fa-dashboard"></i> <span>Показания счетчиков</span></a>
+    </li>
+{% endif %}
+{% if user.role.title == 'Директор' or user.role.has_site_management %}
+    <li class="treeview {% if 'managements' in request.path %}active{% endif %}">
+        <a href="#!"><i class="fa fa-desktop"></i> <span>Управление сайтом</span> <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span></a>
+        <ul class="treeview-menu">
+            <li>
+            <a href="{% url 'managements:edit-main-page' %}"><i class="fa fa-circle-o"></i>
+            <span>Главная страница</span></a>
+    </li>
+    <li>
+    <a href="{% url 'managements:edit-about-us' %}"><i class="fa fa-circle-o"></i>
+    <span>О нас</span></a>
 </li>
 <li>
-    <a href="{% url 'admin:message-list' %}"><i class="fa fa-envelope-o"></i> <span>Сообщения</span></a>
+<a href="{% url 'managements:edit-services' %}"><i class="fa fa-circle-o"></i>
+<span>Услуги</span></a>
 </li>
 <li>
-<a href="{% url 'admin:master-call-list' %}"><i class="fa fa-wrench"></i>
-<span>Заявки мастера</span></a>
+<a href="{% url 'managements:edit-contacts' %}"><i class="fa fa-circle-o"></i>
+<span>Контакты</span></a>
 </li>
-<li class="{% if 'counter' in request.path %}active{% endif %}">
-    <a href="{% url 'admin:counter-list' %}"><i class="fa fa-dashboard"></i> <span>Показания счетчиков</span></a>
+</ul>
 </li>
-<li class="treeview {% if 'managements' in request.path %}active{% endif %}">
-    <a href="#!"><i class="fa fa-desktop"></i> <span>Управление сайтом</span> <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span></a>
-    <ul class="treeview-menu">
-        <li>
-            <a href="{% url 'managements:edit-main-page' %}"><i class="fa fa-circle-o"></i> <span>Главная страница</span></a>
-        </li>
-        <li>
-            <a href="{% url 'managements:edit-about-us' %}"><i class="fa fa-circle-o"></i> <span>О нас</span></a>
-        </li>
-        <li>
-            <a href="{% url 'managements:edit-services' %}"><i class="fa fa-circle-o"></i> <span>Услуги</span></a>
-        </li>
-        <li>
-            <a href="{% url 'managements:edit-tariffs' %}"><i class="fa fa-circle-o"></i> <span>Тарифы</span></a>
-        </li>
-        <li>
-            <a href="{% url 'managements:edit-contacts' %}"><i class="fa fa-circle-o"></i> <span>Контакты</span></a>
-        </li>
-    </ul>
-</li>
+{% endif %}
 <li class="treeview {% if 'settings' in request.path %}active{% endif %}">
     <a href="#"><i class="fa fa-cogs"></i> <span>Настройки системы</span>
         <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span></a>
     <ul class="treeview-menu">
-        <li>
-            <a href="{% url 'settings:edit-services' %}"><i class="fa fa-briefcase"></i> <span>Услуги</span></a>
-        </li>
-        <li>
-        <a href="{% url 'settings:tariff-list' %}"><i class="fa fa-money"></i>
-        <span>Тарифы</span></a>
+        {% if user.role.title == 'Директор' or user.role.has_services %}
+            <li>
+                <a href="{% url 'settings:edit-services' %}"><i class="fa fa-briefcase"></i> <span>Услуги</span></a>
+            </li>
+        {% endif %}
+        {% if user.role.title == 'Директор' or user.role.has_tariffs %}
+            <li>
+            <a href="{% url 'settings:tariff-list' %}"><i class="fa fa-money"></i>
+            <span>Тарифы</span></a>
+    </li>
+{% endif %}
+{% if user.role.title == 'Директор' or user.role.has_roles %}
+    <li>
+    <a href="{% url "settings:roles" %}"><i class="fa fa-user"></i>
+    <span>Роли</span></a>
 </li>
-<li>
-    <a href="#"><i class="fa fa-user"></i> <span>Роли</span></a>
+{% endif %}
+{% if user.role.title == 'Директор' or user.role.has_users %}
+    <li>
+        <a href="{% url 'settings:users-list' %}"><i class="fa fa-user-plus"></i> <span>Пользователи</span></a>
+    </li>
+{% endif %}
+{% if user.role.title == 'Директор' or user.role.has_payment_details %}
+    <li>
+    <a href="{% url 'settings:requisite-edit' %}"><i class="fa fa-credit-card"></i>
+    <span>Платежные реквизиты</span></a>
 </li>
-<li>
-    <a href="{% url 'settings:users-list' %}"><i class="fa fa-user-plus"></i> <span>Пользователи</span></a>
-</li>
-<li>
-    <a href="{% url 'settings:requisite-edit' %}"><i class="fa fa-credit-card"></i> <span>Платежные реквизиты</span></a>
-</li>
-<li>
-    <a href="{% url 'settings:article-list' %}"><i class="fa fa-list-ol"></i> <span>Статьи платежей</span></a>
-</li>
+{% endif %}
+{% if user.role.title == 'Директор' or user.role.has_article %}
+    <li>
+        <a href="{% url 'settings:article-list' %}"><i class="fa fa-list-ol"></i> <span>Статьи платежей</span></a>
+    </li>
+{% endif %}
 </ul>
 </li>
 </ul>

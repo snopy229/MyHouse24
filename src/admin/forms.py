@@ -6,7 +6,7 @@ from django.forms import inlineformset_factory
 from django.utils import timezone
 from django_select2.forms import Select2Widget
 
-from src.user.models import User
+from src.user.models import User, Role
 from .models import (
     House,
     Section,
@@ -19,6 +19,7 @@ from .models import (
     ServiceFullCost,
     Message,
     CashBox,
+    XlsTemplate,
 )
 
 
@@ -275,6 +276,15 @@ class OwnerForm(forms.ModelForm):
         return user
 
 
+class InviteForm(forms.Form):
+    email = forms.EmailField(
+        widget=forms.EmailInput(
+            attrs={"class": "form-control", "placeholder": "info@example.com"}
+        ),
+        label="Email",
+    )
+
+
 class BankBookForm(forms.ModelForm):
     owner = forms.ModelChoiceField(
         widget=Select2Widget, required=False, queryset=User.objects.all()
@@ -301,10 +311,12 @@ class BankBookForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if not self.instance.pk:
             last_book = BankBook.objects.last()
-            if last_book:
-                self.fields["number"].initial = last_book.number + 1
-            else:
-                self.fields["number"].initial = 1
+            today = timezone.now().date()
+            date_part = today.strftime("%d%m%y")
+            next_id = (last_book.id + 1) if last_book else 1
+            next_id_str = str(next_id)[-5:].zfill(5)
+            generated_number = f"{date_part}{next_id_str}"
+            self.fields["number"].initial = generated_number
 
 
 class CounterForm(forms.ModelForm):
@@ -333,10 +345,12 @@ class CounterForm(forms.ModelForm):
         if not self.instance.pk:
             self.fields["date"].initial = timezone.now().date().strftime("%Y-%m-%d")
             last_counter = Counter.objects.last()
-            if last_counter:
-                self.fields["number"].initial = last_counter.number + 1
-            else:
-                self.fields["number"].initial = 1
+            today = timezone.now().date()
+            date_part = today.strftime("%d%m%y")
+            next_id = (last_counter.id + 1) if last_counter else 1
+            next_id_str = str(next_id)[-5:].zfill(5)
+            generated_number = f"{date_part}{next_id_str}"
+            self.fields["number"].initial = generated_number
         else:
             if self.instance.date:
                 self.initial["date"] = self.instance.date.strftime("%Y-%m-%d")
@@ -370,6 +384,13 @@ class MasterCallForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["master_type"].queryset = Role.objects.exclude(
+            title__in=["Директор", "Управляющий", "Бухгалтер"]
+        )
+
+        self.fields["master_type"].empty_label = "Любой специалист"
+        self.fields["master_type"].required = False
+        self.fields["master_type"].initial = None
         if not self.instance.pk:
             self.fields["date"].initial = timezone.now().date().strftime("%Y-%m-%d")
             self.fields["time"].initial = timezone.now().time().strftime("%H:%M")
@@ -379,10 +400,21 @@ class MasterCallForm(forms.ModelForm):
                 self.fields["time"].initial = timezone.now().time().strftime("%H:%M")
 
 
+class UserChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return obj.fullname
+
+
 class ReceiptForm(forms.ModelForm):
     bankbook = forms.IntegerField(
         required=False,
         widget=forms.NumberInput(attrs={"class": "form-control"}),
+    )
+
+    owner = UserChoiceField(
+        required=False,
+        widget=Select2Widget(attrs={"class": "form-control"}),
+        queryset=User.objects.filter(is_staff=False),
     )
 
     class Meta:
@@ -415,11 +447,12 @@ class ReceiptForm(forms.ModelForm):
             self.initial["date_from"] = self.instance.date_from
             self.initial["date_to"] = self.instance.date_to
         if not self.instance.pk:
+            last_receipt = Receipt.objects.order_by("id").last()
             today = timezone.now()
             date_part = today.strftime("%d%m%y")
-            last_receipt = Receipt.objects.order_by("id").last()
             next_id = (last_receipt.id + 1) if last_receipt else 1
-            generated_number = f"{date_part}{next_id}"
+            next_id_str = str(next_id)[-5:].zfill(5)
+            generated_number = f"{date_part}{next_id_str}"
 
             self.fields["number"].initial = generated_number
             self.fields["date"].initial = timezone.now().date().strftime("%Y-%m-%d")
@@ -472,6 +505,7 @@ class MessageForm(forms.ModelForm):
                 "class": "form-control",
                 "rows": 5,
                 "style": "width: 100%; min-width: 100%;",
+                "placeholder": "Сообщение",
             }
         )
     )
@@ -484,8 +518,14 @@ class MessageForm(forms.ModelForm):
             "created_at",
         ]
         widgets = {
-            "theme": forms.TextInput(attrs={"class": "form-control"}),
-            "house": Select2Widget(attrs={"class": "form-control"}),
+            "theme": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Тема"}
+            ),
+            "house": Select2Widget(
+                attrs={
+                    "class": "form-control",
+                }
+            ),
             "service": Select2Widget(attrs={"class": "form-control"}),
             "flag": Select2Widget(attrs={"class": "form-control"}),
             "apartment": Select2Widget(attrs={"class": "form-control"}),
@@ -498,7 +538,9 @@ class CashBoxForm(forms.ModelForm):
         fields = "__all__"
         widgets = {
             "number": forms.NumberInput(attrs={"class": "form-control"}),
-            "date": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+            "date": forms.DateInput(
+                attrs={"class": "form-control", "type": "date"}, format="%Y-%m-%d"
+            ),
             "bank_book": Select2Widget(attrs={"class": "form-control"}),
             "article": Select2Widget(attrs={"class": "form-control"}),
             "owner": Select2Widget(attrs={"class": "form-control"}),
@@ -510,8 +552,8 @@ class CashBoxForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance and self.instance.pk and self.instance.bankbook:
-            self.initial["date_to"] = self.instance.date_to
+        if self.instance and self.instance.pk:
+            self.initial["date"] = self.instance.date
         if not self.instance.pk:
             today = timezone.now()
             date_part = today.strftime("%d%m%y")
@@ -520,3 +562,21 @@ class CashBoxForm(forms.ModelForm):
             generated_number = f"{date_part}{next_id}"
             self.fields["number"].initial = generated_number
             self.fields["date"].initial = timezone.now().date().strftime("%Y-%m-%d")
+
+
+class XlsTemplateForm(forms.ModelForm):
+    class Meta:
+        model = XlsTemplate
+        fields = "__all__"
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "template": forms.FileInput(),
+        }
+
+
+class XlsTemplateShowForm(forms.Form):
+    templates = forms.ModelChoiceField(
+        queryset=XlsTemplate.objects.all(),
+        widget=forms.RadioSelect(attrs={"class": "form-control-input"}),
+        initial=lambda: XlsTemplate.objects.filter(is_default=True).first(),
+    )

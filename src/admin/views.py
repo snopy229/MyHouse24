@@ -1,15 +1,18 @@
 import json
 
 from ajax_datatable import AjaxDatatableView
-from django.core.mail import send_mail
-from django.db import transaction
-from django.db.models import CharField, Value, Sum, Q
-from django.db.models.functions import Concat
+from celery.result import AsyncResult
+from django.contrib.auth.mixins import PermissionRequiredMixin, AccessMixin
+from django.db import transaction, IntegrityError
+from django.db.models import CharField, Value, Sum, Q, FloatField, F
+from django.db.models.functions import Concat, Coalesce, TruncMonth
+from django.forms import inlineformset_factory
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
+from django.views import View
 from django.views.generic import (
     CreateView,
     UpdateView,
@@ -17,17 +20,20 @@ from django.views.generic import (
     DeleteView,
     DetailView,
     ListView,
+    FormView,
 )
+from django.views.generic.edit import FormMixin
 from openpyxl import Workbook
 from datetime import datetime
+from django.utils import timezone
 
 from src.settings.models import Tariffs, Service, ServicesCost
-from src.user.models import User
+from src.user.models import User, Role
 from src.user.choices import Status
+from src.user.utils import send_email_verify
 from .choices import (
     StatusBankBook,
     StatusCounter,
-    MasterType,
     StatusCall,
     StatusReceipt,
     StatusCashBox,
@@ -46,6 +52,10 @@ from .forms import (
     ServiceFullCostFormSet,
     MessageForm,
     CashBoxForm,
+    InviteForm,
+    ServiceFullCostForm,
+    XlsTemplateForm,
+    XlsTemplateShowForm,
 )
 from src.admin.models import (
     House,
@@ -58,7 +68,18 @@ from src.admin.models import (
     MessageStatus,
     CashBox,
     ServiceFullCost,
+    XlsTemplate,
 )
+from .tasks import send_password, send_invite_owner, generate_excel_task, send_pdf_task
+
+
+class RedirectMixin(AccessMixin):
+    redirect_url = reverse_lazy("admin:error")
+
+    def handle_no_permission(self):
+        if self.permission_denied_message:
+            pass
+        return redirect(self.redirect_url)
 
 
 class CommonContextMixin:
@@ -73,19 +94,116 @@ class CommonContextMixin:
         formatted_balance = "{:,.2f}".format(balance).replace(",", " ")
 
         context["cashbox_status"] = formatted_balance
+        stats = CashBox.objects.filter(bank_book__isnull=False).aggregate(
+            total_cm=Sum("sum", filter=Q(status="CM", is_catch=True)),
+            total_og=Sum("sum", filter=Q(status="OG", is_catch=True)),
+        )
+
+        receipts = Receipt.objects.filter(bankbook__isnull=False)
+
+        receipts_pay = (
+            ServiceFullCost.objects.filter(receipt__in=receipts).aggregate(
+                total=Sum("full_cost")
+            )["total"]
+            or 0
+        )
+        balance = (stats["total_cm"] or 0) - receipts_pay - (stats["total_og"] or 0)
+        formatted_balance = "{:,.2f}".format(balance).replace(",", " ")
+        context["bankbook_status"] = formatted_balance
+        bankbooks = BankBook.objects.all()
+        dept = 0
+        for bankbook in bankbooks:
+            stats = CashBox.objects.filter(bank_book=bankbook).aggregate(
+                total_cm=Sum("sum", filter=Q(status="CM", is_catch=True)),
+                total_og=Sum("sum", filter=Q(status="OG", is_catch=True)),
+            )
+
+            receipts = Receipt.objects.filter(bankbook=bankbook)
+
+            receipts_pay = (
+                ServiceFullCost.objects.filter(receipt__in=receipts).aggregate(
+                    total=Sum("full_cost")
+                )["total"]
+                or 0
+            )
+            balance = (stats["total_cm"] or 0) - receipts_pay - (stats["total_og"] or 0)
+            if balance < 0:
+                balance = -balance
+                dept += balance
+
+        formatted_dept = "{:,.2f}".format(dept).replace(",", " ")
+        context["bankbook_dept"] = formatted_dept
+
         return context
 
 
-class Statistic(TemplateView):
-    model = "ModelName"
+class ErrorPage(TemplateView):
+    template_name = "admin_error.html"
+
+
+class Statistic(
+    RedirectMixin, CommonContextMixin, PermissionRequiredMixin, TemplateView
+):
     template_name = "statistic.html"
+    permission_required = "role.has_statistics"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context["houses"] = House.objects.all().count()
+        context["owners"] = User.objects.filter(status="active", is_staff=False).count()
+        context["master_calls_in_work"] = MasterCall.objects.filter(
+            call_status="IN WORK"
+        ).count()
+        context["apartments"] = Apartment.objects.all().count()
+        context["bankbooks"] = BankBook.objects.all().count()
+        context["new_master_call"] = MasterCall.objects.filter(
+            call_status="NEW"
+        ).count()
+        monthly_stats = (
+            ServiceFullCost.objects.all()
+            .annotate(month=TruncMonth("receipt__date"))
+            .values("month")
+            .annotate(total=Sum("full_cost"))
+            .order_by("month")
+        )
+        coming_money = (
+            CashBox.objects.filter(status="CM", receipt__isnull=False)
+            .annotate(month=TruncMonth("receipt__date"))
+            .values("month")
+            .annotate(total=Sum("sum"))
+            .order_by("month")
+        )
+        bar_data = [item["total"] for item in monthly_stats]
+        income_data = [item["total"] for item in coming_money]
+        context["bar_data"] = bar_data
+        context["income_data"] = income_data
+        cb_coming = (
+            CashBox.objects.filter(status="CM")
+            .annotate(month=TruncMonth("date"))
+            .values("month")
+            .annotate(total=Sum("sum"))
+            .order_by("month")
+        )
+        cb_outgo = (
+            CashBox.objects.filter(status="OG")
+            .annotate(month=TruncMonth("date"))
+            .values("month")
+            .annotate(total=Coalesce(Sum("sum"), 0.0))
+            .order_by("month")
+        )
+        cm_list = [item["total"] for item in cb_coming]
+        og_list = [item["total"] for item in cb_outgo]
+        context["cb_coming"] = cm_list
+        context["cb_outgo"] = og_list
+        return context
 
 
-class CreateHouse(CreateView):
+class CreateHouse(RedirectMixin, PermissionRequiredMixin, CreateView):
     model = House
     form_class = HouseForm
     context_object_name = "house"
     template_name = "house.html"
+    permission_required = "role.has_houses"
     success_url = reverse_lazy("admin:house-list")
 
     def get_context_data(self, **kwargs):
@@ -120,11 +238,12 @@ class CreateHouse(CreateView):
             return self.render_to_response(self.get_context_data(form=form))
 
 
-class EditHouse(UpdateView):
+class EditHouse(RedirectMixin, PermissionRequiredMixin, UpdateView):
     model = House
     form_class = HouseForm
     context_object_name = "house"
     template_name = "house.html"
+    permission_required = "role.has_houses"
     success_url = reverse_lazy("admin:house-list")
 
     def get_context_data(self, **kwargs):
@@ -167,10 +286,11 @@ class EditHouse(UpdateView):
             return self.render_to_response(self.get_context_data(form=form))
 
 
-class DetailHouse(DetailView):
+class DetailHouse(RedirectMixin, PermissionRequiredMixin, DetailView):
     model = House
     template_name = "house_detail.html"
     context_object_name = "house"
+    permission_required = "role.has_houses"
 
 
 class HouseAjaxTable(AjaxDatatableView):
@@ -200,6 +320,15 @@ class HouseAjaxTable(AjaxDatatableView):
         },
     ]
 
+    def get_initial_queryset(self, request=None):
+        qs = super().get_initial_queryset()
+        excluded_roles = [
+            "Директор",
+        ]
+        if request.user.role.title not in excluded_roles:
+            qs = qs.filter(owner=request.user)
+        return qs
+
     def customize_row(self, row, obj):
         row["actions"] = format_html(
             '<div class="btn-group btn-group-sm">'
@@ -215,8 +344,9 @@ class HouseAjaxTable(AjaxDatatableView):
         return
 
 
-class DeleteHouse(DeleteView):
+class DeleteHouse(RedirectMixin, PermissionRequiredMixin, DeleteView):
     model = House
+    permission_required = "role.has_houses"
 
     def get(self, request, pk):
         article = get_object_or_404(House, pk=pk)
@@ -224,16 +354,18 @@ class DeleteHouse(DeleteView):
         return redirect("admin:house-list")
 
 
-class HouseList(ListView):
+class HouseList(RedirectMixin, PermissionRequiredMixin, ListView):
     template_name = "houses.html"
     model = House
     context_object_name = "house"
+    permission_required = "role.has_houses"
 
 
-class CreateFlat(CreateView):
+class CreateFlat(RedirectMixin, PermissionRequiredMixin, CreateView):
     model = Apartment
     template_name = "flat.html"
     form_class = ApartmentForm
+    permission_required = "role.has_apartments"
 
     def form_valid(self, form):
         self.object = form.save()
@@ -261,9 +393,10 @@ class CreateFlat(CreateView):
         return initial
 
 
-class ListFlat(TemplateView):
+class ListFlat(RedirectMixin, PermissionRequiredMixin, TemplateView):
     template_name = "flats.html"
     form_class = ApartmentForm
+    permission_required = "role.has_apartments"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -305,7 +438,7 @@ class FlatAjaxTable(AjaxDatatableView):
             {
                 "name": "floor",
                 "foreign_field": "floor__title",
-                "title": "Секция",
+                "title": "Этаж",
                 "visible": True,
                 "searchable": False,
                 "orderable": True,
@@ -318,8 +451,8 @@ class FlatAjaxTable(AjaxDatatableView):
                 "orderable": True,
             },
             {
-                "name": "area",
-                "title": "#",
+                "name": "remainder",
+                "title": "Остаток (грн)",
                 "visible": True,
                 "searchable": True,
                 "orderable": False,
@@ -336,24 +469,32 @@ class FlatAjaxTable(AjaxDatatableView):
     def get_initial_queryset(self, request=None):
         qs = super().get_initial_queryset()
 
+        excluded_roles = [
+            "Директор",
+        ]
+        if request.user.role.title not in excluded_roles:
+            qs = qs.filter(house__owner=request.user)
+            return qs
+
         house = self.request.POST.get("house")
         section = self.request.POST.get("section")
         floor = self.request.POST.get("floor")
         owner = self.request.POST.get("owner")
 
         if house:
-            qs = qs.filter(house__id=house)
+            qs = qs.filter(house=house)
         if section:
-            qs = qs.filter(section__id=section)
+            qs = qs.filter(section=section)
         if floor:
-            qs = qs.filter(floor__id=floor)
+            qs = qs.filter(floor=floor)
         if owner:
-            qs = qs.filter(owmer__id=owner)
+            qs = qs.filter(owmer=owner)
 
         return qs
 
     def customize_row(self, row, obj):
-        row["owner"] = f"{obj.owner.first_name} {obj.owner.second_name}"
+        if obj.owner:
+            row["owner"] = obj.owner.fullname
 
         edit_url = reverse("admin:edit-flat", args=[obj.id])
         delete_url = reverse("admin:delete-flat", args=[obj.id])
@@ -368,6 +509,36 @@ class FlatAjaxTable(AjaxDatatableView):
         )
 
         detail_url = reverse("admin:flat-detail", args=[obj.id])
+        if not hasattr(obj, "bankbook") or obj.bankbook is None:
+            row["remainder"] = "<span class='text-muted'>(нет счета)</span>"
+
+        elif obj.bankbook:
+            stats = CashBox.objects.filter(bank_book=obj.bankbook).aggregate(
+                total_cm=Sum("sum", filter=Q(status="CM", is_catch=True)),
+                total_og=Sum("sum", filter=Q(status="OG", is_catch=True)),
+            )
+
+            receipts = Receipt.objects.filter(bankbook=obj.bankbook)
+
+            receipts_pay = (
+                ServiceFullCost.objects.filter(receipt__in=receipts).aggregate(
+                    total=Sum("full_cost")
+                )["total"]
+                or 0
+            )
+
+            balance = (stats["total_cm"] or 0) - receipts_pay - (stats["total_og"] or 0)
+            formatted_balance = "{:,.2f}".format(balance).replace(",", " ")
+            if balance > 0:
+                row["remainder"] = (
+                    f'<span class="text-success">{formatted_balance}</span>'
+                )
+            elif balance < 0:
+                row["remainder"] = (
+                    f'<span class="text-danger">{formatted_balance}</span>'
+                )
+            else:
+                row["remainder"] = "<span>0</span>"
 
         row["DT_RowAttr"] = {"data-href": detail_url, "style": "cursor: pointer;"}
         for key in row:
@@ -377,21 +548,24 @@ class FlatAjaxTable(AjaxDatatableView):
         return row
 
 
-class EditFlat(UpdateView):
+class EditFlat(RedirectMixin, PermissionRequiredMixin, UpdateView):
     model = Apartment
     template_name = "flat.html"
     form_class = ApartmentForm
     success_url = reverse_lazy("admin:flat-list")
+    permission_required = "role.has_apartments"
 
 
-class FlatDetail(DetailView):
+class FlatDetail(RedirectMixin, PermissionRequiredMixin, DetailView):
     model = Apartment
     template_name = "flat_detail.html"
     context_object_name = "apartment"
+    permission_required = "role.has_apartments"
 
 
-class DeleteFlat(DeleteView):
+class DeleteFlat(RedirectMixin, PermissionRequiredMixin, DeleteView):
     model = Apartment
+    permission_required = "role.has_apartments"
 
     def get(self, request, pk):
         flatt = get_object_or_404(Apartment, pk=pk)
@@ -399,11 +573,12 @@ class DeleteFlat(DeleteView):
         return redirect("admin:flat-list")
 
 
-class ListOwner(ListView):
+class ListOwner(RedirectMixin, PermissionRequiredMixin, ListView):
     template_name = "owners.html"
     form_class = OwnerForm
     model = User
     context_object_name = "owner"
+    permission_required = "role.has_owners"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -415,66 +590,88 @@ class ListOwner(ListView):
         return User.objects.filter(is_staff=False)
 
 
-class DetailOwner(DetailView):
+class DetailOwner(RedirectMixin, PermissionRequiredMixin, DetailView):
     model = User
     template_name = "owner_detail.html"
     context_object_name = "owner"
+    permission_required = "role.has_owners"
 
 
-class CreateOwner(CreateView):
+class SendInviteMessage(RedirectMixin, PermissionRequiredMixin, FormView):
+    template_name = "owner_send_message.html"
+    form_class = InviteForm
+    permission_required = "role.has_owners"
+
+    def form_valid(self, form):
+        email = form.cleaned_data.get("email")
+        send_invite_owner.delay(email)
+
+        return HttpResponseRedirect(reverse_lazy("admin:owner-list"))
+
+
+class CreateOwner(RedirectMixin, PermissionRequiredMixin, CreateView):
     template_name = "owner.html"
     form_class = OwnerForm
     model = User
     context_object_name = "owner"
     success_url = reverse_lazy("admin:flat-list")
+    permission_required = "role.has_owners"
 
     def form_valid(self, form):
         user = form.save(commit=False)
         user.is_staff = False
         raw_password = form.cleaned_data.get("password1")
         user_email = form.cleaned_data.get("email")
-
-        try:
-            send_mail(
-                subject="Создания пароля",
-                message=f"Новый пароль: {raw_password}",
-                from_email=None,
-                recipient_list=[user_email],
-            )
-        except Exception as e:
-            print(f"Ошибка отправки: {e}")
+        id = form.cleaned_data.get("id_user")
+        if not id:
+            try:
+                last_box = User.objects.only("id").order_by("id").last()
+                next_id = (last_box.id + 1) if last_box else 1
+                user.id_user = "00" + str(next_id)
+            except IntegrityError:
+                pass
+        user.save()
+        send_email_verify(self.request, user)
+        if len(raw_password) != 0:
+            send_password.delay(raw_password, user_email)
 
         return HttpResponseRedirect(reverse_lazy("admin:owner-list"))
 
-    def form_invalid(self, form):
-        print(">>> ОШИБКИ В ФОРМЕ:", form.errors)
-        print(">>> ПРИШЕДШИЕ ДАННЫЕ:", form.data)
 
-        return super().form_invalid(form)
-
-
-class EditOwner(UpdateView):
+class EditOwner(RedirectMixin, PermissionRequiredMixin, UpdateView):
     template_name = "owner.html"
     form_class = OwnerForm
     model = User
     context_object_name = "owner"
     success_url = reverse_lazy("admin:owner-list")
+    permission_required = "role.has_owners"
 
     def form_valid(self, form):
+        user = form.save(commit=False)
         raw_password = form.cleaned_data.get("password1")
         user_email = form.cleaned_data.get("email")
+        id = form.cleaned_data.get("id_user")
+
+        if not id:
+            last_box = User.objects.only("id").order_by("id").last()
+            next_id = (last_box.id + 1) if last_box else 1
+            user.id_user = "00" + str(next_id)
+
+        user.save()
         if len(raw_password) != 0:
-            try:
-                send_mail(
-                    subject="Изменение пароля",
-                    message=f"Новый пароль: {raw_password}",
-                    from_email=None,
-                    recipient_list=[user_email],
-                )
-            except Exception as e:
-                print(f"Ошибка отправки: {e}")
+            send_password.delay(raw_password, user_email)
 
         return super().form_valid(form)
+
+
+class SendVerificationView(RedirectMixin, PermissionRequiredMixin, View):
+    model = User
+    permission_required = "role.has_owners"
+
+    def post(self, request, pk):
+        user = get_object_or_404(User, pk=pk)
+        send_email_verify(self.request, user)
+        return redirect("admin:edit-owner", user.pk)
 
 
 class OwnerAjaxTable(AjaxDatatableView):
@@ -540,7 +737,7 @@ class OwnerAjaxTable(AjaxDatatableView):
     def customize_row(self, row, obj):
         parts = [obj.second_name, obj.first_name, obj.last_name]
         row["full_name"] = " ".join(filter(None, parts))
-        row["phone_number"] = obj.phone_number if obj.phone_number else ""
+        row["phone_number"] = str(obj.phone_number) if obj.phone_number else ""
 
         detail_url = reverse("admin:detail-owner", args=[obj.id])
         row["DT_RowAttr"] = {"data-href": detail_url, "style": "cursor: pointer;"}
@@ -624,8 +821,9 @@ class OwnerAjaxTable(AjaxDatatableView):
         return qs
 
 
-class DeleteOwner(DeleteView):
+class DeleteOwner(RedirectMixin, PermissionRequiredMixin, DeleteView):
     model = User
+    permission_required = "role.has_owners"
 
     def get(self, request, pk):
         house = get_object_or_404(User, pk=pk)
@@ -633,18 +831,22 @@ class DeleteOwner(DeleteView):
         return redirect("admin:owner-list")
 
 
-class CreateBankBook(CreateView):
+class CreateBankBook(RedirectMixin, PermissionRequiredMixin, CreateView):
     model = BankBook
     template_name = "bankbook.html"
     form_class = BankBookForm
     success_url = reverse_lazy("admin:bankbook-list")
+    permission_required = "role.has_personal_accounts"
 
 
-class BankBookListView(ListView):
+class BankBookListView(
+    RedirectMixin, PermissionRequiredMixin, CommonContextMixin, ListView
+):
     model = BankBook
     template_name = "bankbooks.html"
     context_object_name = "bankbook"
     form_class = BankBookForm
+    permission_required = "role.has_personal_accounts"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -653,12 +855,13 @@ class BankBookListView(ListView):
         return context
 
 
-class UpdateBankBook(UpdateView):
+class UpdateBankBook(RedirectMixin, PermissionRequiredMixin, UpdateView):
     model = BankBook
     template_name = "bankbook.html"
     form_class = BankBookForm
     context_object_name = "bankbook"
     success_url = reverse_lazy("admin:bankbook-list")
+    permission_required = "role.has_personal_accounts"
 
 
 def download_xlsx(request):
@@ -692,13 +895,52 @@ def download_xlsx(request):
     return response
 
 
-class DeleteBankBook(DeleteView):
+def export_status(request, task_id):
+    result = AsyncResult(task_id)
+
+    if result.ready():
+        return JsonResponse({"ready": True, "file_url": result.result})
+
+    return JsonResponse({"ready": False})
+
+
+class DeleteBankBook(RedirectMixin, PermissionRequiredMixin, DeleteView):
     model = BankBook
+    permission_required = "role.has_personal_accounts"
 
     def get(self, request, pk):
         bankbook = get_object_or_404(BankBook, pk=pk)
         bankbook.delete()
         return redirect("admin:bankbook-list")
+
+
+class BankBookDetailView(RedirectMixin, PermissionRequiredMixin, DetailView):
+    model = BankBook
+    template_name = "bankbook_detail.html"
+    context_object_name = "bankbook"
+    permission_required = "role.has_personal_accounts"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        bankbook = self.object
+        stats = CashBox.objects.filter(bank_book=bankbook).aggregate(
+            total_cm=Sum("sum", filter=Q(status="CM", is_catch=True)),
+            total_og=Sum("sum", filter=Q(status="OG", is_catch=True)),
+        )
+
+        receipts = Receipt.objects.filter(bankbook=bankbook)
+
+        receipts_pay = (
+            ServiceFullCost.objects.filter(receipt__in=receipts).aggregate(
+                total=Sum("full_cost")
+            )["total"]
+            or 0
+        )
+        balance = (stats["total_cm"] or 0) - receipts_pay - (stats["total_og"] or 0)
+        formatted_balance = "{:,.2f}".format(balance).replace(",", " ")
+        context["balance"] = formatted_balance
+
+        return context
 
 
 class BankBookAjaxTable(AjaxDatatableView):
@@ -763,7 +1005,7 @@ class BankBookAjaxTable(AjaxDatatableView):
         detail_url = "#"
         row["DT_RowAttr"] = {"data-href": detail_url, "style": "cursor: pointer;"}
 
-        if obj.apartment.owner:
+        if obj.apartment and obj.apartment.owner:
             row["owner"] = obj.apartment.owner.fullname
 
         stats = CashBox.objects.filter(bank_book=obj).aggregate(
@@ -801,6 +1043,12 @@ class BankBookAjaxTable(AjaxDatatableView):
             delete_url,
         )
 
+        detail_url = reverse("admin:bankbook-detail", args=[obj.id])
+        row["DT_RowAttr"] = row["DT_RowAttr"] = {
+            "data-href": detail_url,
+            "style": "cursor: pointer;",
+        }
+
         for key in row:
             if row[key] is None or row[key] == "":
                 row[key] = '<span class="text-muted">(не задано)</span>'
@@ -813,6 +1061,7 @@ class BankBookAjaxTable(AjaxDatatableView):
         house = self.request.POST.get("house")
         section = self.request.POST.get("section")
         owner = self.request.POST.get("owner")
+        remainder = self.request.POST.get("remainder")
 
         if house:
             qs = qs.filter(house__id=house)
@@ -820,15 +1069,77 @@ class BankBookAjaxTable(AjaxDatatableView):
             qs = qs.filter(section__id=section)
         if owner:
             qs = qs.filter(apartment__owner__fullname=owner)
+        if remainder:
+            if remainder == "remainder":
+                qs = (
+                    BankBook.objects.annotate(
+                        total_cm=Coalesce(
+                            Sum(
+                                "cashbox__sum",
+                                filter=Q(cashbox__status="CM", cashbox__is_catch=True),
+                            ),
+                            0.0,
+                            output_field=FloatField(),
+                        ),
+                        total_og=Coalesce(
+                            Sum(
+                                "cashbox__sum",
+                                filter=Q(cashbox__status="OG", cashbox__is_catch=True),
+                            ),
+                            0.0,
+                            output_field=FloatField(),
+                        ),
+                        total_pay=Coalesce(
+                            Sum("receipt__servicefullcost__full_cost"),
+                            0.0,
+                            output_field=FloatField(),
+                        ),
+                    )
+                    .annotate(
+                        final_balance=F("total_cm") - F("total_pay") - F("total_og")
+                    )
+                    .filter(final_balance__lt=0)
+                )
+            elif remainder == "not_remainder":
+                qs = (
+                    BankBook.objects.annotate(
+                        total_cm=Coalesce(
+                            Sum(
+                                "cashbox__sum",
+                                filter=Q(cashbox__status="CM", cashbox__is_catch=True),
+                            ),
+                            0.0,
+                            output_field=FloatField(),
+                        ),
+                        total_og=Coalesce(
+                            Sum(
+                                "cashbox__sum",
+                                filter=Q(cashbox__status="OG", cashbox__is_catch=True),
+                            ),
+                            0.0,
+                            output_field=FloatField(),
+                        ),
+                        total_pay=Coalesce(
+                            Sum("receipt__servicefullcost__full_cost"),
+                            0.0,
+                            output_field=FloatField(),
+                        ),
+                    )
+                    .annotate(
+                        final_balance=F("total_cm") - F("total_pay") - F("total_og")
+                    )
+                    .filter(final_balance__gte=0)
+                )
 
         return qs
 
 
-class CreateCounter(CreateView):
+class CreateCounter(RedirectMixin, PermissionRequiredMixin, CreateView):
     model = Counter
     form_class = CounterForm
     template_name = "counter.html"
     success_url = reverse_lazy("admin:counter-list")
+    permission_required = "role.has_meters"
 
     def get_initial(self):
         initial = super().get_initial()
@@ -850,11 +1161,12 @@ class CreateCounter(CreateView):
         return initial
 
 
-class CounterList(ListView):
+class CounterList(RedirectMixin, PermissionRequiredMixin, ListView):
     model = Counter
     form_class = CounterForm
     template_name = "counters.html"
     context_object_name = "counters"
+    permission_required = "role.has_meters"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -963,10 +1275,11 @@ class CounterAjaxTable(AjaxDatatableView):
         return qs
 
 
-class CounterSpecificList(ListView):
+class CounterSpecificList(RedirectMixin, PermissionRequiredMixin, ListView):
     model = Counter
     form_class = CounterForm
     template_name = "counter_specific.html"
+    permission_required = "role.has_meters"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1072,22 +1385,25 @@ class CounterSpecificAjaxTable(AjaxDatatableView):
         return qs.filter(apartment_id=apartment_id)
 
 
-class CounterDetail(DetailView):
+class CounterDetail(RedirectMixin, PermissionRequiredMixin, DetailView):
     model = Counter
     template_name = "counter_detail.html"
     context_object_name = "counter"
+    permission_required = "role.has_meters"
 
 
-class CounterEdit(UpdateView):
+class CounterEdit(RedirectMixin, PermissionRequiredMixin, UpdateView):
     model = Counter
     form_class = CounterForm
     template_name = "counter.html"
     success_url = reverse_lazy("admin:counter-list")
     context_object_name = "counter"
+    permission_required = "role.has_meters"
 
 
-class DeleteCounter(DeleteView):
+class DeleteCounter(RedirectMixin, PermissionRequiredMixin, DeleteView):
     model = Counter
+    permission_required = "role.has_meters"
 
     def get(self, request, pk):
         counter = get_object_or_404(Counter, pk=pk)
@@ -1095,22 +1411,34 @@ class DeleteCounter(DeleteView):
         return redirect("admin:counter-list")
 
 
-class CreateMasterCall(CreateView):
+class CreateMasterCall(RedirectMixin, PermissionRequiredMixin, CreateView):
     model = MasterCall
     form_class = MasterCallForm
     template_name = "master_call.html"
     success_url = reverse_lazy("admin:statistic")
+    permission_required = "role.has_master_requests"
 
 
-class MasterCallList(ListView):
+class MasterCallDetail(RedirectMixin, PermissionRequiredMixin, DetailView):
+    model = MasterCall
+    template_name = "master_call_detail.html"
+    context_object_name = "master_call"
+    permission_required = "role.has_master_requests"
+
+
+class MasterCallList(RedirectMixin, PermissionRequiredMixin, ListView):
     model = MasterCall
     form_class = MasterCallForm
     template_name = "master_calls.html"
+    permission_required = "role.has_master_requests"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["form"] = self.form_class()
-
+        masters_type = Role.objects.exclude(
+            title__in=["Директор", "Управляющий", "Бухгалтер"]
+        )
+        context["master_types"] = masters_type
         return context
 
 
@@ -1137,8 +1465,7 @@ class MasterCallAjaxDataTable(AjaxDatatableView):
                 "name": "master_type",
                 "title": "Тип мастера",
                 "orderable": True,
-                "searchable": True,
-                "choices": MasterType.choices,
+                "searchable": False,
             },
             {
                 "name": "description",
@@ -1194,6 +1521,9 @@ class MasterCallAjaxDataTable(AjaxDatatableView):
             obj.apartment.number,
             obj.apartment.house.title,
         )
+        row["master_type"] = (
+            obj.master_type.title if obj.master_type else "Любой специалист"
+        )
         if obj.owner:
             owner_url = reverse("admin:detail-owner", args=[obj.owner.id])
             row["owner"] = format_html(
@@ -1218,6 +1548,9 @@ class MasterCallAjaxDataTable(AjaxDatatableView):
             css_class = "label label-primary"
         row["status"] = f'<small class="{css_class}">{obj.call_status}</small>'
 
+        detail_url = reverse("admin:master-call-detail", args=[obj.id])
+        row["DT_RowAttr"] = {"data-href": detail_url, "style": "cursor: pointer;"}
+
         edit_url = reverse("admin:master-call-edit", args=[obj.id])
         delete_url = reverse("admin:master-call-delete", args=[obj.id])
 
@@ -1237,10 +1570,14 @@ class MasterCallAjaxDataTable(AjaxDatatableView):
 
     def get_initial_queryset(self, request=None):
         qs = super().get_initial_queryset().order_by("id")
+        excluded_roles = ["Директор", "Управляющий", "Бухгалтер"]
+        if request.user.role.title not in excluded_roles:
+            qs = qs.filter(master_type=request.user.role)
 
         master = self.request.POST.get("master")
         date_from = self.request.POST.get("date_from")
         date_to = self.request.POST.get("date_to")
+        master_type = self.request.POST.get("master_type")
 
         if master:
             qs = qs.filter(master_id=master)
@@ -1251,18 +1588,27 @@ class MasterCallAjaxDataTable(AjaxDatatableView):
         if date_from:
             qs = qs.filter(date__gte=date_from)
 
+        if master_type:
+            if master_type == "noone":
+                qs = qs.filter(master_type__isnull=True)
+            else:
+                qs = qs.filter(master_type=master_type)
+
         return qs
 
 
-class EditMasterCall(UpdateView):
+class EditMasterCall(RedirectMixin, PermissionRequiredMixin, UpdateView):
     model = MasterCall
     form_class = MasterCallForm
     template_name = "master_call.html"
     success_url = reverse_lazy("admin:master-call-list")
+    context_object_name = "mastercall"
+    permission_required = "role.has_master_requests"
 
 
-class DeleteMasterCall(DeleteView):
+class DeleteMasterCall(RedirectMixin, PermissionRequiredMixin, DeleteView):
     model = MasterCall
+    permission_required = "role.has_master_requests"
 
     def get(self, request, pk):
         master_call = get_object_or_404(MasterCall, pk=pk)
@@ -1270,25 +1616,114 @@ class DeleteMasterCall(DeleteView):
         return redirect("admin:master-call-list")
 
 
-class ReceiptList(ListView):
+class ReceiptList(RedirectMixin, PermissionRequiredMixin, CommonContextMixin, ListView):
     model = Receipt
     template_name = "receipts.html"
+    form_class = ReceiptForm
+    permission_required = "role.has_invoices"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["form"] = self.form_class()
+        return context
 
 
-class ReceiptCreate(CreateView):
+class ReceiptCreate(RedirectMixin, PermissionRequiredMixin, CreateView):
     model = Receipt
     form_class = ReceiptForm
     template_name = "receipt.html"
     success_url = reverse_lazy("admin:receipt-list")
+    permission_required = "role.has_invoices"
+
+    def get_duplicate(self):
+        duplicate_id = self.request.GET.get("duplicate")
+        if not duplicate_id:
+            return None
+        try:
+            return Receipt.objects.get(pk=duplicate_id)
+        except Receipt.DoesNotExist:
+            return None
+
+    def get_source_bankbook(self):
+        source_id = self.request.GET.get("source_id")
+        if not source_id:
+            return None
+        try:
+            return BankBook.objects.get(pk=source_id)
+        except BankBook.DoesNotExist:
+            return None
+
+    def get_initial(self):
+        initial = super().get_initial()
+
+        duplicate = self.get_duplicate()
+        bankbook = self.get_source_bankbook()
+
+        if duplicate:
+            initial.update(
+                {
+                    "house": duplicate.house_id,
+                    "section": duplicate.section_id,
+                    "apartment": duplicate.apartment_id,
+                    "tariff": duplicate.tariff_id,
+                    "bankbook": duplicate.bankbook.number
+                    if duplicate.bankbook
+                    else None,
+                }
+            )
+
+        if bankbook:
+            initial.update(
+                {
+                    "house": bankbook.house_id,
+                    "section": bankbook.section_id,
+                    "apartment": bankbook.apartment_id,
+                    "bankbook": bankbook,
+                }
+            )
+
+        return initial
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        duplicate = self.get_duplicate()
+
         if self.request.POST:
             context["services"] = ServiceFullCostFormSet(
                 self.request.POST, prefix="services"
             )
         else:
-            context["services"] = ServiceFullCostFormSet(prefix="services")
+            if duplicate:
+                initial_data = [
+                    {
+                        "service": s.service_id,
+                        "cost": s.cost,
+                        "unit": s.unit_id,
+                        "full_cost": s.full_cost,
+                        "consumption": s.consumption,
+                    }
+                    for s in duplicate.servicefullcost_set.all()
+                ]
+
+                DuplicateFormSet = inlineformset_factory(
+                    Receipt,
+                    ServiceFullCost,
+                    form=ServiceFullCostForm,
+                    extra=len(initial_data),
+                    can_delete=True,
+                )
+
+                context["services"] = DuplicateFormSet(
+                    instance=None,
+                    prefix="services",
+                    initial=initial_data,
+                    queryset=ServiceFullCost.objects.none(),
+                )
+            else:
+                context["services"] = ServiceFullCostFormSet(
+                    instance=None, prefix="services"
+                )
+
         return context
 
     def form_valid(self, form):
@@ -1298,8 +1733,13 @@ class ReceiptCreate(CreateView):
         if not services.is_valid():
             return self.form_invalid(form)
 
+        duplicate = self.get_duplicate()
+
         with transaction.atomic():
             self.object = form.save(commit=False)
+
+            if duplicate:
+                self.object.source_id = duplicate.id
 
             counter_ids_str = self.request.POST.get("counter_ids")
             if counter_ids_str:
@@ -1325,6 +1765,7 @@ class ReceiptCreate(CreateView):
                 balance = (
                     (stats["total_cm"] or 0) - (stats["total_og"] or 0) - receipts_pay
                 )
+
                 requested_sum = form.cleaned_data.get("sum") or 0
 
                 if balance >= requested_sum:
@@ -1376,7 +1817,7 @@ def get_tariff_services(request):
                 "unit_id": sc.service.units_of_measure.id
                 if sc.service.units_of_measure
                 else None,
-                "unit_name": sc.service.units_of_measure.name
+                "unit_name": sc.service.units_of_measure.units
                 if sc.service.units_of_measure
                 else "",
                 "cost": str(sc.cost),
@@ -1656,16 +2097,76 @@ class ReceiptCounterTable(AjaxDatatableView):
         return qs
 
 
-class EditReceipt(UpdateView):
+class EditReceipt(RedirectMixin, PermissionRequiredMixin, UpdateView):
     model = Receipt
     form_class = ReceiptForm
     template_name = "receipt.html"
     success_url = reverse_lazy("admin:receipt-list")
     context_object_name = "receipt"
+    permission_required = "role.has_invoices"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context["services"] = ServiceFullCostFormSet(
+                self.request.POST, instance=self.object, prefix="services"
+            )
+        else:
+            context["services"] = ServiceFullCostFormSet(
+                instance=self.object, prefix="services"
+            )
+        return context
+
+    def form_valid(self, form):
+        services = ServiceFullCostFormSet(
+            self.request.POST, instance=self.object, prefix="services"
+        )
+
+        if not services.is_valid():
+            return self.form_invalid(form)
+
+        with transaction.atomic():
+            self.object = form.save(commit=False)
+
+            counter_ids_str = self.request.POST.get("counter_ids")
+            if counter_ids_str:
+                try:
+                    self.object.counter_ids = json.loads(counter_ids_str)
+                except (ValueError, TypeError):
+                    self.object.counter_ids = []
+
+            bank_book = form.cleaned_data.get("bankbook")
+            if bank_book:
+                stats = CashBox.objects.filter(bank_book=bank_book).aggregate(
+                    total_cm=Sum("sum", filter=Q(status="CM", is_catch=True)),
+                    total_og=Sum("sum", filter=Q(status="OG", is_catch=True)),
+                )
+
+                receipts_pay = (
+                    ServiceFullCost.objects.filter(
+                        receipt__bankbook=bank_book
+                    ).aggregate(total=Sum("full_cost"))["total"]
+                    or 0
+                )
+
+                balance = (
+                    (stats["total_cm"] or 0) - (stats["total_og"] or 0) - receipts_pay
+                )
+
+                requested_sum = form.cleaned_data.get("sum") or 0
+
+                if balance >= requested_sum:
+                    self.object.status = "PD"
+
+            self.object.save()
+            services.save()
+
+        return HttpResponseRedirect(self.get_success_url())
 
 
-class DeleteReceipt(DeleteView):
+class DeleteReceipt(RedirectMixin, PermissionRequiredMixin, DeleteView):
     model = Receipt
+    permission_required = "role.has_invoices"
 
     def get(self, request, pk):
         receipt = get_object_or_404(Receipt, pk=pk)
@@ -1673,12 +2174,27 @@ class DeleteReceipt(DeleteView):
         return redirect("admin:receipt-list")
 
 
+def receipt_bulk_delete(request):
+    if request.method == "POST":
+        item_ids = request.POST.getlist("item_ids")
+        if item_ids:
+            Receipt.objects.filter(id__in=item_ids).delete()
+
+    return redirect("admin:receipt-list")
+
+
 class ReceiptAjaxDatatable(AjaxDatatableView):
     model = Receipt
-    initial_order = [[2, "asc"]]
+    initial_order = [[3, "asc"]]
 
     def get_column_defs(self, request):
         columns = [
+            {
+                "name": "checkbox",
+                "title": "<input type='checkbox' class='form-control-input checkbox-toggle'>",
+                "searchable": False,
+                "orderable": False,
+            },
             {
                 "name": "number",
                 "title": "№ квитанции",
@@ -1732,10 +2248,22 @@ class ReceiptAjaxDatatable(AjaxDatatableView):
         return columns
 
     def customize_row(self, row, obj):
+        row["checkbox"] = mark_safe(
+            f'<input type="checkbox" name="item_ids" value="{obj.id}" class="item-checkbox">'
+        )
         row["apartment"] = (
             f"<small>{obj.apartment.number}, {obj.apartment.house.title}</small>"
         )
         row["owner"] = f"<small>{obj.apartment.owner.fullname}</small>"
+
+        css_class = ""
+        if obj.status == StatusReceipt.PAID:
+            css_class = "label label-success"
+        elif obj.status == StatusReceipt.PART:
+            css_class = "label label-warning"
+        elif obj.status == StatusReceipt.UNPAID:
+            css_class = "label label-danger"
+        row["status"] = f'<small class="{css_class}">{obj.get_status_display()}</small>'
 
         services_cost = obj.servicefullcost_set.all()
         services_sum = sum(a.full_cost for a in services_cost)
@@ -1748,14 +2276,17 @@ class ReceiptAjaxDatatable(AjaxDatatableView):
 
         row["is_catch"] = catch
 
+        duplicate_url = reverse("admin:receipt-create") + f"?duplicate={obj.pk}"
         edit_url = reverse("admin:receipt-edit", args=[obj.id])
         delete_url = reverse("admin:receipt-delete", args=[obj.id])
 
         row["actions"] = format_html(
             '<div class="btn-group btn-group-sm">'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-clone"></i></a>'
             '<a href="{}" class="btn btn-default"><i class="fa fa-pencil"></i></a>'
             '<a href="{}" class="btn btn-default"><i class="fa fa-trash"></i></a>'
             "</div>",
+            duplicate_url,
             edit_url,
             delete_url,
         )
@@ -1767,11 +2298,39 @@ class ReceiptAjaxDatatable(AjaxDatatableView):
             if row[key] is None or row[key] == "":
                 row[key] = '<span class="text-muted">(не задано)</span>'
 
+    def get_initial_queryset(self, request=None):
+        qs = super().get_initial_queryset()
+        bank_book_id = (
+            self.request.POST.get("bank_book_id")
+            or self.request.GET.get("bank_book_id")
+            or self.request.POST.get("extra_data[bank_book_id]")
+        )
 
-class DetailReceipt(DetailView):
+        apartment_id = (
+            self.request.POST.get("apartment_id")
+            or self.request.GET.get("apartment_id")
+            or self.request.POST.get("extra_data[apartment_id]")
+        )
+
+        owner = self.request.POST.get("owner")
+
+        if apartment_id:
+            qs = qs.filter(apartment_id=apartment_id)
+
+        if bank_book_id:
+            qs = qs.filter(bankbook_id=bank_book_id)
+
+        if owner:
+            qs = qs.filter(apartment__owner=owner)
+
+        return qs
+
+
+class DetailReceipt(RedirectMixin, PermissionRequiredMixin, DetailView):
     model = Receipt
     template_name = "receipt_detail.html"
     context_object_name = "receipt"
+    permission_required = "role.has_invoices"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1780,6 +2339,85 @@ class DetailReceipt(DetailView):
         context["fullcost"] = sum(a.full_cost for a in services_cost)
 
         return context
+
+
+class XlsTemplateReceiptDetail(
+    RedirectMixin, PermissionRequiredMixin, FormMixin, DetailView
+):
+    model = Receipt
+    template_name = "receipt_templates.html"
+    form_class = XlsTemplateShowForm
+    permission_required = "role.has_invoices"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context["form"] = self.form_class()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+
+        template_id = request.POST.get("templates")
+
+        if "action_download" in request.POST:
+            return self.handle_download(request, template_id, self.object.pk)
+
+        elif "action_send_email" in request.POST:
+            return self.handle_send(request, template_id, self.object.pk)
+
+        return super().post(request, *args, **kwargs)
+
+    def handle_download(self, request, template_id, pk):
+        return download_receipt_xls(self.request, template_id, pk)
+
+    def handle_send(self, request, template_id, pk):
+        return send_receipt(self.request, template_id, pk)
+
+
+def download_receipt_xls(request, template_id, pk):
+    task = generate_excel_task.delay(template_id, pk)
+    return JsonResponse({"task_id": task.id})
+
+
+def send_receipt(request, template_id, pk):
+    task = send_pdf_task.delay(template_id, pk)
+    return JsonResponse({"task_id": task.id})
+
+
+class XlsTemplateSettings(RedirectMixin, PermissionRequiredMixin, CreateView):
+    model = XlsTemplate
+    form_class = XlsTemplateForm
+    template_name = "receipt_trmplates_setting.html"
+    success_url = reverse_lazy("admin:receipt-templates-settings")
+    permission_required = "role.has_invoices"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context["templates"] = XlsTemplate.objects.all()
+        return context
+
+    def form_invalid(self, form):
+        print(form.errors)
+        return super().form_invalid(form)
+
+
+class XlsTemplateSetDefault(RedirectMixin, PermissionRequiredMixin, View):
+    permission_required = "role.has_invoices"
+
+    def get(self, request, pk):
+        template = get_object_or_404(XlsTemplate, pk=pk)
+        template.set_as_default()
+        return redirect("admin:receipt-templates-settings")
+
+
+class XlsTemplateDelete(RedirectMixin, PermissionRequiredMixin, DeleteView):
+    model = XlsTemplate
+    permission_required = "role.has_invoices"
+
+    def get(self, request, pk):
+        templa = get_object_or_404(XlsTemplate, pk=pk)
+        templa.delete()
+        return redirect("admin:receipt-list")
 
 
 class MessageAjaxDatatable(AjaxDatatableView):
@@ -1802,7 +2440,7 @@ class MessageAjaxDatatable(AjaxDatatableView):
             },
             {
                 "name": "theme",
-                "title": "Получатели",
+                "title": "Текст",
                 "searchable": True,
                 "orderable": True,
             },
@@ -1821,24 +2459,43 @@ class MessageAjaxDatatable(AjaxDatatableView):
         )
 
         if not obj.house:
-            row["receipent"] = '<span><a href="#">Всем</a></span>'
+            row["recipient"] = '<span><a href="#">Всем</a></span>'
         else:
-            row["receipent"] = (
-                f'<span><a href="#">{obj.house.title}{f', {obj.section.title}' if obj.section else ''}{f', {obj.floor.title}' if obj.floor else ''}{f', кв.{obj.apartment.number}' if obj.apartment else ''}</a></span>'
-            )
+            parts = [obj.house.title]
+
+            if obj.section:
+                parts.append(obj.section.title)
+            if obj.floor:
+                parts.append(obj.floor.title)
+            if obj.apartment:
+                parts.append(f"кв.{obj.apartment.number}")
+
+            address_str = ", ".join(parts)
+            row["recipient"] = f'<span><a href="#">{address_str}</a></span>'
 
         row["theme"] = f"<span>{obj.theme}-{obj.message}</span>"
+
+        detail_url = reverse("admin:message-detail", args=[obj.id])
+
+        row["DT_RowAttr"] = {"data-href": detail_url, "style": "cursor: pointer;"}
 
         for key in row:
             if row[key] is None or row[key] == "":
                 row[key] = '<span class="text-muted">(не задано)</span>'
 
 
-class CreateMessage(CreateView):
+class CreateMessage(RedirectMixin, PermissionRequiredMixin, CreateView):
     model = Message
     form_class = MessageForm
     template_name = "message.html"
-    success_url = reverse_lazy("admin:receipt-list")
+    success_url = reverse_lazy("admin:message-list")
+    permission_required = "role.has_messages"
+
+    def get_initial(self):
+        initial = super().get_initial()
+        if self.request.GET.get("for_debtor") == "true":
+            initial["for_debtor"] = True
+        return initial
 
     def form_valid(self, form):
         self.object = form.save(commit=False)
@@ -1868,9 +2525,27 @@ class CreateMessage(CreateView):
         print(form.errors)
 
 
-class MessageList(ListView):
+class MessageDelete(RedirectMixin, PermissionRequiredMixin, DeleteView):
+    model = Message
+    permission_required = "role.has_messages"
+
+    def get(self, request, pk):
+        message = get_object_or_404(Message, pk=pk)
+        message.delete()
+        return redirect("admin:message-list")
+
+
+class MessageList(RedirectMixin, PermissionRequiredMixin, ListView):
     model = Message
     template_name = "messages.html"
+    permission_required = "role.has_messages"
+
+
+class MessageDetailView(RedirectMixin, PermissionRequiredMixin, DetailView):
+    model = Message
+    template_name = "message_detail.html"
+    context_object_name = "message"
+    permission_required = "role.has_messages"
 
 
 def message_bulk_delete(request):
@@ -1882,11 +2557,12 @@ def message_bulk_delete(request):
     return redirect("admin:message-list")
 
 
-class CashBoxComingCreateView(CreateView):
+class CashBoxComingCreateView(RedirectMixin, PermissionRequiredMixin, CreateView):
     model = CashBox
     template_name = "cashbox_coming_add.html"
     form_class = CashBoxForm
     success_url = reverse_lazy("admin:cashbox-list")
+    permission_required = "role.has_cashbox"
 
     def form_valid(self, form):
         self.object = form.save(commit=False)
@@ -1896,15 +2572,44 @@ class CashBoxComingCreateView(CreateView):
 
     def get_initial(self):
         initial = super().get_initial()
+        source_id = self.request.GET.get("source_id")
+        bankbook_id = self.request.GET.get("bankbook_id")
+        if source_id:
+            try:
+                original = CashBox.objects.get(pk=source_id)
+                initial.update(
+                    {
+                        "article": original.article,
+                        "is_catch": original.is_catch,
+                        "comment": original.comment,
+                        "owner": original.owner,
+                        "bank_book": original.bank_book,
+                    }
+                )
+            except CashBox.DoesNotExist:
+                pass
+        elif bankbook_id:
+            try:
+                original = BankBook.objects.get(pk=bankbook_id)
+                initial.update(
+                    {
+                        "owner": original.apartment.owner,
+                        "bank_book": original,
+                    }
+                )
+            except CashBox.DoesNotExist:
+                pass
+
         initial["manager"] = self.request.user
         return initial
 
 
-class CashBoxOutGoCreateView(CreateView):
+class CashBoxOutGoCreateView(RedirectMixin, PermissionRequiredMixin, CreateView):
     model = CashBox
     template_name = "cashbox_outgo_add.html"
     form_class = CashBoxForm
     success_url = reverse_lazy("admin:cashbox-list")
+    permission_required = "role.has_cashbox"
 
     def form_valid(self, form):
         self.object = form.save(commit=False)
@@ -1918,27 +2623,62 @@ class CashBoxOutGoCreateView(CreateView):
 
     def get_initial(self):
         initial = super().get_initial()
-        initial["manager"] = self.request.user
+        source_id = self.request.GET.get("source_id")
+        if source_id:
+            try:
+                original = CashBox.objects.get(pk=source_id)
+                initial.update(
+                    {
+                        "article": original.article,
+                        "is_catch": original.is_catch,
+                        "manager": original.manager,
+                        "comment": original.comment,
+                    }
+                )
+            except CashBox.DoesNotExist:
+                pass
+        else:
+            initial["manager"] = self.request.user
         return initial
 
 
-class CashBoxComingEditView(UpdateView):
+class CashBoxComingEditView(RedirectMixin, PermissionRequiredMixin, UpdateView):
     model = CashBox
     template_name = "cashbox_coming_add.html"
     form_class = CashBoxForm
     success_url = reverse_lazy("admin:cashbox-list")
+    context_object_name = "cashbox"
+    permission_required = "role.has_cashbox"
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.status = "CM"
+
+        self.object.save()
+        return super().form_valid(form)
 
 
-class CashBoxOutGoEditView(UpdateView):
+class CashBoxOutGoEditView(RedirectMixin, PermissionRequiredMixin, UpdateView):
     model = CashBox
     template_name = "cashbox_outgo_add.html"
     form_class = CashBoxForm
     success_url = reverse_lazy("admin:cashbox-list")
+    context_object_name = "cashbox"
+    permission_required = "role.has_cashbox"
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.status = "OG"
+
+        self.object.save()
+        return super().form_valid(form)
 
 
-class CashBoxList(CommonContextMixin, ListView):
+class CashBoxList(CommonContextMixin, RedirectMixin, PermissionRequiredMixin, ListView):
     model = CashBox
     template_name = "cashbox_list.html"
+    form_class = CashBoxForm
+    permission_required = "role.has_cashbox"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data()
@@ -1950,6 +2690,7 @@ class CashBoxList(CommonContextMixin, ListView):
         formatted_outgoes = "{:,.2f}".format(stats["total_og"] or 0).replace(",", " ")
         context["comings"] = formatted_comings
         context["outgoes"] = formatted_outgoes
+        context["form"] = self.form_class
         return context
 
 
@@ -1972,15 +2713,14 @@ class CashBoxAjaxDatatable(AjaxDatatableView):
                 "orderable": True,
             },
             {
-                "name": "status",
+                "name": "statuss",
                 "title": "Статус",
-                "searchable": True,
+                "searchable": False,
                 "orderable": False,
             },
             {
-                "name": "type",
+                "name": "article",
                 "title": "Тип платежа",
-                "foreign_field": "article__title",
                 "searchable": True,
                 "orderable": False,
             },
@@ -1998,15 +2738,22 @@ class CashBoxAjaxDatatable(AjaxDatatableView):
                 "orderable": False,
             },
             {
-                "name": "coming_outgo",
+                "name": "status",
                 "title": "Приход/расход",
                 "searchable": True,
                 "orderable": False,
+                "choices": StatusCashBox.choices,
             },
             {
                 "name": "sum",
                 "title": "Сумма (грн)",
-                "searchable": True,
+                "searchable": False,
+                "orderable": False,
+            },
+            {
+                "name": "actions",
+                "title": "",
+                "searchable": False,
                 "orderable": False,
             },
         ]
@@ -2015,13 +2762,178 @@ class CashBoxAjaxDatatable(AjaxDatatableView):
 
     def customize_row(self, row, obj):
         row["date"] = obj.date.strftime("%d.%m.%Y")
-        row["status"] = "Проведен" if obj.is_catch else "Не проведен"
+        row["statuss"] = "Проведен" if obj.is_catch else "Не проведен"
+        css_class = ""
         if obj.status == StatusCashBox.COMING:
             css_class = "text-success"
             row["sum"] = f'<small class="text-success">{obj.sum}</small>'
         elif obj.status == StatusCashBox.OUTGO:
             css_class = "text-danger"
             row["sum"] = f'<small class="text-danger">-{obj.sum}</small>'
-        row["coming_outgo"] = (
-            f'<small class="{css_class}">{obj.get_status_display()}</small>'
+        row["status"] = f'<small class="{css_class}">{obj.get_status_display()}</small>'
+        detail_url = reverse("admin:cashbox-detail", args=[obj.id])
+        row["DT_RowAttr"] = {"data-href": detail_url, "style": "cursor: pointer;"}
+
+        edit_url = "#"
+        if obj.status == "OG":
+            edit_url = reverse("admin:cashbox-edit-out", args=[obj.id])
+        elif obj.status == "CM":
+            edit_url = reverse("admin:cashbox-edit-in", args=[obj.id])
+
+        delete_url = reverse("admin:cashbox-delete", args=[obj.id])
+
+        row["actions"] = format_html(
+            '<div class="btn-group btn-group-sm">'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-pencil"></i></a>'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-trash"></i></a>'
+            "</div>",
+            edit_url,
+            delete_url,
         )
+
+        for key in row:
+            if row[key] is None or row[key] == "":
+                row[key] = '<span class="text-muted">(не задано)</span>'
+
+    def get_initial_queryset(self, request=None):
+        qs = super().get_initial_queryset().order_by("id")
+
+        owner = self.request.POST.get("owner")
+        date_from = self.request.POST.get("date_from")
+        date_to = self.request.POST.get("date_to")
+        status = self.request.POST.get("statuss")
+        article = self.request.POST.get("article")
+        bank_book_id = (
+            self.request.POST.get("bank_book_id")
+            or self.request.GET.get("bank_book_id")
+            or self.request.POST.get("extra_data[bank_book_id]")
+        )
+
+        if bank_book_id:
+            qs = qs.filter(bank_book_id=bank_book_id, status="CM")
+
+        if owner:
+            qs = qs.filter(owner=owner)
+
+        if date_to:
+            qs = qs.filter(date__lte=date_to)
+
+        if date_from:
+            qs = qs.filter(date__gte=date_from)
+
+        if status:
+            if status == "is_catch":
+                qs = qs.filter(is_catch=True)
+            elif status == "not_is_catch":
+                qs = qs.filter(is_catch=False)
+
+        if article:
+            qs = qs.filter(article=article)
+
+        return qs
+
+
+class CashBoxDetail(RedirectMixin, PermissionRequiredMixin, DetailView):
+    model = CashBox
+    template_name = "cashbox_detail.html"
+    context_object_name = "cashbox"
+    permission_required = "role.has_cashbox"
+
+
+class CashBoxDeleteView(RedirectMixin, PermissionRequiredMixin, DeleteView):
+    model = "CashBox"
+    permission_required = "role.has_cashbox"
+
+    def get(self, request, pk):
+        cashbox = get_object_or_404(CashBox, pk=pk)
+        cashbox.delete()
+        return redirect("admin:cashbox-list")
+
+
+def cashbox_xlsx(request):
+    cashbox = get_object_or_404(CashBox)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Платеж"
+
+    data = [
+        ("Платеж", f"#{cashbox.number}"),
+        ("Дата", cashbox.date.strftime("%d.%m.%Y") if cashbox.date else ""),
+        ("Владелец квартиры", str(cashbox.owner.fullname) if cashbox.owner else ""),
+        ("Лицевой счет", str(cashbox.bank_book.number) if cashbox.bank_book else ""),
+        ("Приход/расход", cashbox.get_status_display()),
+        ("Статус", "Проведен" if cashbox.is_catch else "Не проведен"),
+        ("Статья", str(cashbox.article.title) if cashbox.article else ""),
+        ("Квитанция", str(cashbox.receipt.number) if cashbox.receipt else ""),
+        ("Сумма", cashbox.sum),
+        ("Валюта", "UAH"),
+        ("Комментарий", cashbox.comment if cashbox.comment else ""),
+        ("Менеджер", cashbox.manager.fullname),
+    ]
+
+    for row_num, (label, value) in enumerate(data, start=1):
+        ws.cell(row=row_num, column=1, value=label)
+        ws.cell(row=row_num, column=2, value=value)
+
+    ws.column_dimensions["A"].width = 25
+    ws.column_dimensions["B"].width = 25
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    now = timezone.now().strftime("%Y%m%d_%H%M%S")
+    response["Content-Disposition"] = f'attachment; filename="cashbox_{now}.xlsx"'
+    wb.save(response)
+
+    return response
+
+
+def cashbox_detail_xlsx(request, pk):
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "XLSX"
+    columns = [
+        "#",
+        "Дата",
+        "Приход/расход",
+        "Статус",
+        "Статья",
+        "Квитанция",
+        "Сумма",
+        "Валюта",
+        "Владелец квартиры",
+        "Лицевой счет",
+    ]
+    ws.append(columns)
+    qs = CashBox.objects.all()
+    for cashbox in qs:
+        row = [
+            cashbox.number,
+            cashbox.date.strftime("%d.%m.%Y"),
+            cashbox.get_status_display(),
+            "Проведен" if cashbox.is_catch else "Не проведен",
+            cashbox.article.title if cashbox.article else "",
+            cashbox.receipt.number if cashbox.receipt else "",
+            cashbox.sum,
+            "UAH",
+            cashbox.owner.fullname if cashbox.owner else "",
+            cashbox.bank_book.number if cashbox.bank_book else "",
+        ]
+        ws.append(row)
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter
+        for cell in col:
+            if cell.value:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+        adjusted_width = max_length + 2
+        ws.column_dimensions[column].width = adjusted_width
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    now = timezone.now().strftime("%Y%m%d_%H%M%S")
+    response["Content-Disposition"] = f'attachment; filename="cashbox_{now}.xlsx"'
+    wb.save(response)
+    return response

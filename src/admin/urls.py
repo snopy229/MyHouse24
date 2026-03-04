@@ -63,11 +63,30 @@ from .views import (
     CashBoxOutGoEditView,
     CashBoxAjaxDatatable,
     mark_counters_paid,
+    CashBoxDetail,
+    CashBoxDeleteView,
+    cashbox_xlsx,
+    cashbox_detail_xlsx,
+    ErrorPage,
+    BankBookDetailView,
+    SendInviteMessage,
+    MessageDetailView,
+    MessageDelete,
+    receipt_bulk_delete,
+    XlsTemplateSettings,
+    XlsTemplateDelete,
+    export_status,
+    SendVerificationView,
+    XlsTemplateSetDefault,
+    XlsTemplateReceiptDetail,
+    MasterCallDetail,
 )
 
 app_name = "admin"
 
 urlpatterns = [
+    path("export_status/<str:task_id>/", export_status, name="export-status"),
+    path("error/", ErrorPage.as_view(), name="error"),
     path("statistic/", Statistic.as_view(), name="statistic"),
     # House
     path("house/create/", CreateHouse.as_view(), name="create-house"),
@@ -90,6 +109,12 @@ urlpatterns = [
     path("owner/detail/<int:pk>/", DetailOwner.as_view(), name="detail-owner"),
     path("owner/ajax/table/", OwnerAjaxTable.as_view(), name="owner-ajax-table"),
     path("owner/delete/<int:pk>/", DeleteOwner.as_view(), name="delete-owner"),
+    path("owner/send/invite/", SendInviteMessage.as_view(), name="send-invite"),
+    path(
+        "owner/send_verification/<int:pk>/",
+        SendVerificationView.as_view(),
+        name="send-verification",
+    ),
     # BankBook
     path("bankbook/create/", CreateBankBook.as_view(), name="create-bankbook"),
     path("bankbook/list/", BankBookListView.as_view(), name="bankbook-list"),
@@ -97,6 +122,11 @@ urlpatterns = [
     path("bankbook/edit/<int:pk>/", UpdateBankBook.as_view(), name="bankbook-edit"),
     path("bankbook/delete/<int:pk>/", DeleteBankBook.as_view(), name="bankbook-delete"),
     path("bankbook/download/", download_xlsx, name="bankbook-download"),
+    path(
+        "bankbook/detail/<int:pk>/",
+        BankBookDetailView.as_view(),
+        name="bankbook-detail",
+    ),
     # Counter
     path("counter/table", CounterAjaxTable.as_view(), name="counter-ajax-table"),
     path("counter/list/", CounterList.as_view(), name="counter-list"),
@@ -123,6 +153,11 @@ urlpatterns = [
     ),
     path("master-call/list/", MasterCallList.as_view(), name="master-call-list"),
     path(
+        "master-call/detail/<int:pk>/",
+        MasterCallDetail.as_view(),
+        name="master-call-detail",
+    ),
+    path(
         "master-call/edit/<int:pk>/", EditMasterCall.as_view(), name="master-call-edit"
     ),
     path(
@@ -142,6 +177,27 @@ urlpatterns = [
     path("receipt/edit/<int:pk>/", EditReceipt.as_view(), name="receipt-edit"),
     path("receipt/delete/<int:pk>/", DeleteReceipt.as_view(), name="receipt-delete"),
     path("receipt/detail/<int:pk>/", DetailReceipt.as_view(), name="receipt-detail"),
+    path("receipt/bulk-delete/", receipt_bulk_delete, name="receipt-baulk-delete"),
+    path(
+        "receipt/templates/<int:pk>",
+        XlsTemplateReceiptDetail.as_view(),
+        name="receipt-templates",
+    ),
+    path(
+        "receipt/templates/setting/",
+        XlsTemplateSettings.as_view(),
+        name="receipt-templates-settings",
+    ),
+    path(
+        "receipt/setiing/delete/<int:pk>/",
+        XlsTemplateDelete.as_view(),
+        name="receipt-template-delete",
+    ),
+    path(
+        "receipt/template/set-default/<int:pk>/",
+        XlsTemplateSetDefault.as_view(),
+        name="receipt-template-set-default",
+    ),
     # endpoints
     path("api/get_tariff/", get_tariff, name="get_tariff"),
     path("api/get_unit/", get_unit, name="get_unit"),
@@ -154,9 +210,13 @@ urlpatterns = [
     path("api/mark-counters-paid/", mark_counters_paid, name="mark_counters_paid"),
     # message
     path("message/list/", MessageList.as_view(), name="message-list"),
+    path("message/delete/<int:pk>/", MessageDelete.as_view(), name="message-delete"),
     path("message/create/", CreateMessage.as_view(), name="message-create"),
     path("message/table/", MessageAjaxDatatable.as_view(), name="message-ajax-table"),
     path("message/bulk_delete/", message_bulk_delete, name="message_bulk_delete"),
+    path(
+        "message/detail/<int:pk>/", MessageDetailView.as_view(), name="message-detail"
+    ),
     # cashbox
     path(
         "cashbox/create?type=in",
@@ -180,4 +240,10 @@ urlpatterns = [
     ),
     path("cashbox/list/", CashBoxList.as_view(), name="cashbox-list"),
     path("cashbox/table/", CashBoxAjaxDatatable.as_view(), name="cashbox-ajax-table"),
+    path("cashbox/detail/<int:pk>/", CashBoxDetail.as_view(), name="cashbox-detail"),
+    path(
+        "cashbox/deleta/<int:pk>/", CashBoxDeleteView.as_view(), name="cashbox-delete"
+    ),
+    path("cashbox/download/list", cashbox_xlsx, name="cashbox-download-list"),
+    path("cashbox/download/<int:pk>/", cashbox_detail_xlsx, name="cashbox-download"),
 ]

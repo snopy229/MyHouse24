@@ -124,42 +124,6 @@
             </div>
         </form>
     </section>
-    <style>
-        .page-header-spec {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-bottom: 20px;
-        }
-
-        .flex-form-group {
-            margin-bottom: 0 !important;
-        }
-
-        .header-date-separator {
-            margin: 0 10px;
-            font-weight: 400;
-        }
-
-        .select2-container .select2-selection--single {
-            border: 1px solid #d2d6de !important;
-            border-radius: 0 !important;
-            height: 34px;
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 32px !important;
-            padding-left: 12px !important;
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 32px !important;
-        }
-
-        .margin-bottom-15 {
-            margin-bottom: 15px;
-        }
-    </style>
 {% endblock content %}
 {% block extra_js %}
     <script>
@@ -202,10 +166,28 @@
                     dataType: 'json',
                     delay: 250,
                     data: function (params) {
-                        return {
+                        let requestData = {
                             q: params.term,
-                            page: params.page,
-                            house_id: $('#id_house').val()
+                            page: params.page || 1
+                        };
+
+                        let houseId = $('#id_house').val();
+                        let sectionId = $('#id_section').val();
+
+                        if (houseId) {
+                            requestData.house_id = houseId;
+                        }
+
+                        if (sectionId) {
+                            requestData.section_id = sectionId;
+                        }
+
+                        return requestData;
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.results,
+                            pagination: data.pagination
                         };
                     }
                 }

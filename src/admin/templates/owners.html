@@ -37,11 +37,11 @@
                             <a href="{% url 'admin:create-owner' %}">Добавить владельца квартиры</a>
                         </li>
                         <li>
-                            <a href="#">Отправить сообщение
+                            <a href="{% url 'admin:message-create' %}?for_debtor=true">Отправить сообщение
                             должникам</a>
                         </li>
                         <li>
-                            <a href="#">Отправить приглашение</a>
+                            <a href="{% url 'admin:send-invite' %}">Отправить приглашение</a>
                         </li>
                     </ul>
                 </div>
@@ -195,12 +195,6 @@
                     }
                 }
             );
-
-            $('.box-tools a').on('click', function (e) {
-                e.preventDefault();
-                $('#id_house').val(null).trigger('change');
-                $('#owner-table').DataTable().search('').columns().search('').draw();
-            });
             $('body').on('click', 'tr[data-href]', function (e) {
 
 
@@ -209,6 +203,28 @@
                 }
 
                 window.location = $(this).data('href');
+            });
+            $('.box-tools a').on('click', function (e) {
+                e.preventDefault();
+
+                $('#id_house, #id_apartment').each(function () {
+                    if ($(this).hasClass('select2-hidden-accessible')) {
+                        $(this).val(null).trigger('change');
+                    }
+                });
+
+                $('.box-tools').closest('.box').find('input[type="text"], input[type="number"], input[type="date"], input[type="search"]').val('');
+
+                $('.filters-form input[type="text"]').val('');
+
+                $('select:not(.select2-hidden-accessible)').val('').trigger('change');
+
+                if ($.fn.dataTable.isDataTable('#owner-table')) {
+                    var table = $('#owner-table').DataTable();
+                    table.search('')
+                        .columns().search('')
+                        .draw();
+                }
             });
         });
     </script>

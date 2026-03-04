@@ -20,6 +20,8 @@ from .views import (
     ReceiptPay,
     ReceiptConcreteAjaxTable,
     TariffDetail,
+    EditUser,
+    Error,
 )
 
 app_name = "owner"
@@ -29,6 +31,7 @@ urlpatterns = [
         "apartment/<int:pk>/", ApartmentOwnerDetail.as_view(), name="apartment-detail"
     ),
     path("profile/detail/", ProfileDetail.as_view(), name="profile-detail"),
+    path("profile/edit/", EditUser.as_view(), name="profile-edit"),
     # master
     path("master/list/", MasterCallListView.as_view(), name="master-call-list"),
     path(
@@ -61,4 +64,5 @@ urlpatterns = [
     path("receipt/download/<int:pk>/", download_receipt, name="download-receipt"),
     path("receipt/print/<int:pk>/", ReceiptPrint.as_view(), name="receipt-print"),
     path("tariff/<int:pk>/", TariffDetail.as_view(), name="tariff-list"),
+    path("error/", Error.as_view(), name="error"),
 ]

@@ -1,0 +1,137 @@
+{% extends "base_admin.html" %}
+{% block title %}
+    Лицевой счет
+{% endblock title %}
+{% block content_header %}
+    Лицевой счет
+{% endblock content_header %}
+{% block content_url %}
+    <li>
+        <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+    </li>
+    <li>
+        <a href="{% url 'admin:bankbook-list' %}">Лицевые счета</a>
+    </li>
+    <li class="active">Лицевой счет №{{ bankbook.number }}</li>
+{% endblock content_url %}
+{% block content %}
+    <section class="content">
+        <div class="row">
+            <div class="col-xs-12 col-md-7 col-lg-6">
+                <div class="page-header-spec">
+                    <div class="form-group">
+                        <div class="input-group date">
+                            <div class="input-group-addon">№</div>
+                            <div class="form-control pull-right">{{ bankbook.number }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="box">
+            <div class="box-header with-border">
+                <h3 class="box-title">Просмотр лицевого счета</h3>
+                <div class="box-tools">
+                    {% if bankbook.status != 'ACTIVE' or not bankbook.apartment %}
+                        <button class="btn btn-default btn-sm disabled"
+                                data-confirm="Лицевой счет неактивен или не привязан к квартире">
+                            <span class="hidden-xs"><i class="fa fa-dollar"></i> Принять платеж</span><i class="fa fa-pencil visible-xs" aria-hidden="true"></i>
+                        </button>
+                        <button class="btn btn-default btn-sm disabled"
+                                data-confirm="Лицевой счет неактивен или не привязан к квартире">
+                            <span class="hidden-xs"><i class="fa fa-files-o"></i> Оформить квитанцию</span><i class="fa fa-pencil visible-xs" aria-hidden="true"></i>
+                        </button>
+                    {% else %}
+                        <a href="{% url 'admin:cashbox-create-in' %}?bankbook_id={{ bankbook.id }}"
+                           class="btn btn-default btn-sm">
+                            <span class="hidden-xs"><i class="fa fa-dollar"></i> Принять платеж</span><i class="fa fa-pencil visible-xs" aria-hidden="true"></i>
+                        </a>
+                        <a href="{% url 'admin:receipt-create' %}?source_id={{ bankbook.id }}"
+                           class="btn btn-default btn-sm">
+                            <span class="hidden-xs"><i class="fa fa-files-o"></i> Оформить квитанцию</span><i class="fa fa-pencil visible-xs" aria-hidden="true"></i>
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'admin:bankbook-edit' bankbook.id %}"
+                       class="btn btn-primary btn-sm">
+                        <span class="hidden-xs">Редактировать счет</span><i class="fa fa-pencil visible-xs" aria-hidden="true"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-xs-12">
+                        <table class="table table-bordered table-striped table-view">
+                            <tbody>
+                                <tr>
+                                    <td>Статус</td>
+                                    <td>
+                                        {% if bankbook.status == 'ACTIVE' %}
+                                            <small class="label label-success">{{ bankbook.get_status_display }}</small>
+                                        {% elif bankbook.status == 'INACTIVE' %}
+                                            <small class="label label-danger">{{ bankbook.get_status_display }}</small>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Дом</td>
+                                    <td>
+                                        {% if bankbook.house %}
+                                            <a href="{% url 'admin:detail-house' bankbook.house.id %}">{{ bankbook.house.title }}</a>
+                                        {% else %}
+                                            <p>Не указано</p>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Секция</td>
+                                    <td>{{ bankbook.section.title | default:'Не указано' }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Квартира</td>
+                                    <td>
+                                        {% if bankbook.apartment %}
+                                            <a href="{% url 'admin:flat-detail' bankbook.apartment.id %}">{{ bankbook.apartment.number }}</a>
+                                        {% else %}
+                                            <p>Не указано</p>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Владелец</td>
+                                    <td>
+                                        {{ bankbook.apartment.owner.fullname | default:'Не указано' }}
+                                        {% if bankbook.apartment.owner %}
+                                            <a href="{% url 'admin:detail-owner' bankbook.apartment.owner.id %}">{{ bankbook.apartment.owner.fullname }}</a>
+                                        {% else %}
+                                            не указано
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Остаток, грн.</td>
+                                    <td>
+                                        <span class="text-default">{{ balance }}</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div>
+                            <p>
+                                <a href="{% url "admin:counter-specific-list" %}?apartment_id={{ bankbook.apartment.id }}">Посмотреть
+                                показания счетчиков</a>
+                            </p>
+                            <p>
+                                <a href="{% url "admin:cashbox-list" %}?bank_book_id={{ bankbook.id }}">Посмотреть
+                                приходы</a>
+                            </p>
+                            <p>
+                                <a href="{% url 'admin:receipt-list' %}?bank_book_id={{ bankbook.id }}">Посмотреть
+                                квитанции</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock content %}

@@ -1,0 +1,43 @@
+{% extends "base_static.html" %}
+{% block structure %}
+    <style>
+        .login-logo-custom {
+            width: 360px;
+        }
+
+        .login-logo-img {
+            width: 100%;
+            height: auto;
+        }
+
+        .captcha-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+    </style>
+    <body class="hold-transition skin-black-light sidebar-mini login-page">
+        <div class="login-box login-page">
+            <div class="login-logo login-logo-custom">
+                <a href="{% url 'home' %}">
+                    <img src="https://myhouse24.demodev.cc/logo.svg"
+                         alt="logo"
+                         width="360"
+                         height="100"
+                         class="login-logo-img">
+                </a>
+            </div>
+            <div class="nav-tabs-custom">
+                <div class="tab-content">
+                    <div class="tab-pane active" id="tab_1">
+                        <div class="login-box-body">
+                            <div id="preloader"></div>
+                            <h3>Подтвердите регистрацию</h3>
+                            <p>Перейдите на електронную почту и подтвердите</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+{% endblock structure %}

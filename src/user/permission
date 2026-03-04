@@ -1,0 +1,10 @@
+RedirectMixin, PermissionRequiredMixin,
+permission_required = 'role.has_site_management'
+
+    has_site_management = models.BooleanField(default=False)
+    has_services = models.BooleanField(default=False)
+    has_tariffs = models.BooleanField(default=False)
+    has_roles = models.BooleanField(default=False)
+    has_users = models.BooleanField(default=False)
+    has_payment_details = models.BooleanField(default=False)
+    has_article = models.BooleanField(default=False)

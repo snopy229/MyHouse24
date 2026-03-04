@@ -1,99 +1,112 @@
 {% extends "base_admin.html" %}
+{% block title %}
+    Квитанции на оплату
+{% endblock title %}
+{% block content_header %}
+    Квитанции на оплату
+{% endblock content_header %}
+{% block content_url %}
+    <li>
+        <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+    </li>
+    <li class="active">Квитанции на оплату</li>
+{% endblock content_url %}
 {% block content %}
     <section class="content">
-        <div class="row">
-            <!--<div class="col-xs-12 col-sm-6">-->
-            <!--<h2 class="page-header">Квитанции</h2>-->
-            <!--</div>-->
-            <div class="col-xs-12 col-lg-9">
-                <div class="row">
-                    <div class="col-xs-12 col-md-4">
-                        <div class="small-box bg-green overflow-hidden">
-                            <div class="inner">
-                                <h3>4 815.00 грн</h3>
-                                <p>Состояние кассы</p>
+        {{ form.owner }}
+        {{ form. }}
+        <form action="{% url 'admin:receipt-baulk-delete' %}" method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-xs-12 col-lg-9">
+                    <div class="row">
+                        <div class="col-xs-12 col-md-4">
+                            <div class="small-box bg-green overflow-hidden">
+                                <div class="inner">
+                                    <h3>{{ cashbox_status }} грн</h3>
+                                    <p>Состояние кассы</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fa fa-dollar"></i>
+                                </div>
                             </div>
-                            <div class="icon">
-                                <i class="fa fa-dollar"></i>
+                        </div>
+                        <div class="col-xs-12 col-md-4">
+                            <div class="small-box bg-blue overflow-hidden">
+                                <div class="inner">
+                                    <h3>{{ bankbook_status }} грн</h3>
+                                    <p>Баланс по счетам</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fa fa-dollar"></i>
+                                </div>
                             </div>
-                            <!--<span class="small-box-footer">&nbsp;</span>-->
+                        </div>
+                        <div class="col-xs-12 col-md-4">
+                            <div class="small-box bg-red overflow-hidden">
+                                <div class="inner">
+                                    <h3>{{ bankbook_dept }} грн</h3>
+                                    <p>Задолженность по счетам</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fa fa-dollar"></i>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-xs-12 col-md-4">
-                        <div class="small-box bg-blue overflow-hidden">
-                            <div class="inner">
-                                <h3>3 010.00 грн</h3>
-                                <p>Баланс по счетам</p>
-                            </div>
-                            <div class="icon">
-                                <i class="fa fa-dollar"></i>
-                            </div>
-                            <!--<span class="small-box-footer">&nbsp;</span>-->
-                        </div>
+                </div>
+                <div class="col-xs-12 col-lg-3">
+                    <div class="btn-group pull-right margin-bottom">
+                        <button type="button"
+                                class="btn btn-success dropdown-toggle"
+                                data-toggle="dropdown"
+                                aria-haspopup="true"
+                                aria-expanded="false">
+                            Выберите действие <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="{% url 'admin:receipt-create' %}">Создать общую
+                                квитанцию</a>
+                            </li>
+                            <li>
+                                <button class="btn btn-link" type="submit">Удалить</button>
+                            </li>
+                        </ul>
                     </div>
-                    <div class="col-xs-12 col-md-4">
-                        <div class="small-box bg-red overflow-hidden">
-                            <div class="inner">
-                                <h3>0.00 грн</h3>
-                                <p>Задолженность по счетам</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="box">
+                        <div class="box-header with-border">
+                            <h3 class="box-title"></h3>
+                            <div class="box-tools">
+                                <a href="#" class="btn btn-default btn-sm">
+                                    <span class="hidden-xs">Очистить</span><i class="fa fa-eraser visible-xs" aria-hidden="true"></i>
+                                </a>
                             </div>
-                            <div class="icon">
-                                <i class="fa fa-dollar"></i>
+                        </div>
+                        <div id="w0" class="grid-view">
+                            <div class="box-body table-responsive no-padding">
+                                <table id="receipt-table"
+                                       class="table table-bordered table-hover table-striped linkedRow">
+                                </table>
                             </div>
-                            <!--<span class="small-box-footer">&nbsp;</span>-->
+                            <div class="box-footer clearfix"></div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-xs-12 col-lg-3">
-                <div class="btn-group pull-right margin-bottom">
-                    <button type="button"
-                            class="btn btn-success dropdown-toggle"
-                            data-toggle="dropdown"
-                            aria-haspopup="true"
-                            aria-expanded="false">
-                        Выберите действие <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li>
-                            <a href="{% url 'admin:receipt-create' %}">Создать общую квитанцию</a>
-                        </li>
-                        <!--                <li><a href="#!">Создать квитанцию на оплату за ЭЭ</a></li>
-                                        <li><a href="#!">Создать квитанцию на оплату за ГАЗ</a></li>-->
-                        <li>
-                            <a href="#!" class="delete-many">Удалить</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-xs-12">
-                <div class="box">
-                    <div class="box-header with-border">
-                        <h3 class="box-title"></h3>
-                        <div class="box-tools">
-                            <a href="#" class="btn btn-default btn-sm">
-                                <span class="hidden-xs">Очистить</span><i class="fa fa-eraser visible-xs" aria-hidden="true"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <div id="w0" class="grid-view">
-                        <div class="box-body table-responsive no-padding">
-                            <table id="receipt-table"
-                                   class="table table-bordered table-hover table-striped linkedRow">
-                            </table>
-                        </div>
-                        <div class="box-footer clearfix"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        </form>
     </section>
 {% endblock content %}
 {% block extra_js %}
     <script>
         $(document).ready(function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const bankbookID = urlParams.get('bank_book_id');
+            const apartmentID = urlParams.get('apartment_id');
             AjaxDatatableViewUtils.initialize_table(
                 $('#receipt-table'),
                 "{% url 'admin:receipt-ajax-table' %}",
@@ -119,7 +132,7 @@
                                 var $cell = $(column.footer());
 
                                 if ($cell.length === 0 || $cell.is(':empty')) {
-                                    $cell = $('#master-call-table thead tr:eq(1) th').eq(column.index());
+                                    $cell = $('#receipt-table thead tr:eq(1) th').eq(column.index());
                                 }
 
                                 $cell.empty();
@@ -159,7 +172,7 @@
                         function setupRangeFilter(colName) {
                             var column = api.column(colName + ':name');
                             if (column.index() !== undefined) {
-                                var $cell = $('#master-call-table thead tr:eq(1) th').eq(column.index());
+                                var $cell = $('#receipt-table thead tr:eq(1) th').eq(column.index());
                                 $cell.empty();
 
                                 var $input = $('<input>', {
@@ -178,46 +191,65 @@
                                         ' - ' +
                                         picker.endDate.format('YYYY-MM-DD')
                                     );
-                                    $('#master-call-table').DataTable().ajax.reload();
+                                    $('#receipt-table').DataTable().ajax.reload();
                                 });
 
                                 $input.on('cancel.daterangepicker', function () {
                                     $(this).val('');
-                                    $('#master-call-table').DataTable().ajax.reload();
+                                    $('#receipt-table').DataTable().ajax.reload();
                                 })
                             }
 
                         }
 
-                        setupColumnFilter('master', '#id_master', '/api/admin/master', null);
+                        setupColumnFilter('owner', '#id_owner', '/api/admin/owner', null);
                         setupRangeFilter('date')
 
                         $('#id_master').on('change.select2', function () {
-                            $('#master-call-table').DataTable().ajax.reload();
+                            $('#receipt-table').DataTable().ajax.reload();
                         });
                     }
                 },
                 {
-                    master: function () {
-                        return $('#id_master').val();
-                    },
-                    date_from: function () {
-                        var val = $('#date_range').val();
-                        if (!val) return null;
-                        return val.split(' - ')[0];
-                    },
-                    date_to: function () {
-                        var val = $('#date_range').val();
-                        if (!val) return null;
-                        return val.split(' - ')[1];
-                    },
+                    extra_data: {
+                        bank_book_id: bankbookID,
+                        apartment_id: apartmentID,
+                        owner: function () {
+                            return $('#id_owner').val();
+                        },
+                        date_from: function () {
+                            var val = $('#date_range').val();
+                            if (!val) return null;
+                            return val.split(' - ')[0];
+                        },
+                        date_to: function () {
+                            var val = $('#date_range').val();
+                            if (!val) return null;
+                            return val.split(' - ')[1];
+                        },
+
+                    }
                 }
             )
             ;
+            $(document).on('click', '.checkbox-toggle', function () {
+                const clicks = $(this).data('clicks');
+                const faIcon = $('.checkbox-toggle i');
+                const checkboxes = $("#receipt-table input[type='checkbox']");
+
+                if (clicks) {
+                    checkboxes.prop('checked', false);
+                    faIcon.removeClass('fa-check-square-o').addClass('fa-square-o');
+                } else {
+                    checkboxes.prop('checked', true);
+                    faIcon.removeClass('fa-square-o').addClass('fa-check-square-o');
+                }
+                $(this).data('clicks', !clicks);
+            });
             $('body').on('click', 'tr[data-href]', function (e) {
 
 
-                if ($(e.target).closest('a, button, .btn').length) {
+                if ($(e.target).closest('a, button, .btn, input').length) {
                     return;
                 }
 

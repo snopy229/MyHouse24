@@ -1,11 +1,17 @@
 {% extends "base_admin.html" %}
 {% block title %}
-    Редактировать главную страницу
+    Редактирование страницы
 {% endblock title %}
+{% block content_header %}
+    Редактирование страницы
+{% endblock content_header %}
+{% block content_url %}
+    <li>
+        <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+    </li>
+    <li class="active">Редактирование страницы</li>
+{% endblock content_url %}
 {% block content %}
-    {% block content_header %}
-        Редактировать главную страницу
-    {% endblock content_header %}
     <style>
         /* H021: Вынесенные стили */
         .label-block {
@@ -59,7 +65,10 @@
                                         <div class="help-block"></div>
                                     </div>
                                     <div class="form-group margin-bottom-30 field-websitehomeslide-0-imagefile">
-                                        <label class="control-label" for="websitehomeslide-0-imagefile">Рекомендуемый размер: (1920x800)</label>
+                                        <label class="control-label" for="websitehomeslide-0-imagefile">
+                                            Рекомендуемый
+                                            размер: (1920x800)
+                                        </label>
                                         {{ form.slide1 }}
                                         <div class="help-block"></div>
                                     </div>
@@ -82,7 +91,10 @@
                                         <div class="help-block"></div>
                                     </div>
                                     <div class="form-group margin-bottom-30 field-websitehomeslide-1-imagefile">
-                                        <label class="control-label" for="websitehomeslide-1-imagefile">Рекомендуемый размер: (1920x800)</label>
+                                        <label class="control-label" for="websitehomeslide-1-imagefile">
+                                            Рекомендуемый
+                                            размер: (1920x800)
+                                        </label>
                                         {{ form.slide2 }}
                                         <div class="help-block"></div>
                                     </div>
@@ -105,7 +117,10 @@
                                         <div class="help-block"></div>
                                     </div>
                                     <div class="form-group margin-bottom-30 field-websitehomeslide-2-imagefile">
-                                        <label class="control-label" for="websitehomeslide-2-imagefile">Рекомендуемый размер: (1920x800)</label>
+                                        <label class="control-label" for="websitehomeslide-2-imagefile">
+                                            Рекомендуемый
+                                            размер: (1920x800)
+                                        </label>
                                         {{ form.slide3 }}
                                         <div class="help-block"></div>
                                     </div>
@@ -154,7 +169,10 @@
                                         <div class="help-block"></div>
                                     </div>
                                     <div class="form-group field-websitehomefeature-0-imagefile">
-                                        <label class="control-label" for="websitehomefeature-0-imagefile">Рекомендуемый размер: (1000x600)</label>
+                                        <label class="control-label" for="websitehomefeature-0-imagefile">
+                                            Рекомендуемый
+                                            размер: (1000x600)
+                                        </label>
                                         {{ form.block_image_1 }}
                                         <div class="help-block"></div>
                                     </div>
@@ -190,7 +208,10 @@
                                         <div class="help-block"></div>
                                     </div>
                                     <div class="form-group field-websitehomefeature-1-imagefile">
-                                        <label class="control-label" for="websitehomefeature-1-imagefile">Рекомендуемый размер: (1000x600)</label>
+                                        <label class="control-label" for="websitehomefeature-1-imagefile">
+                                            Рекомендуемый
+                                            размер: (1000x600)
+                                        </label>
                                         {{ form.block_image_2 }}
                                         <div class="help-block"></div>
                                     </div>
@@ -226,7 +247,10 @@
                                         <div class="help-block"></div>
                                     </div>
                                     <div class="form-group field-websitehomefeature-1-imagefile">
-                                        <label class="control-label" for="websitehomefeature-1-imagefile">Рекомендуемый размер: (1000x600)</label>
+                                        <label class="control-label" for="websitehomefeature-1-imagefile">
+                                            Рекомендуемый
+                                            размер: (1000x600)
+                                        </label>
                                         {{ form.block_image_3 }}
                                         <div class="help-block"></div>
                                     </div>
@@ -257,7 +281,10 @@
                                         <div class="help-block"></div>
                                     </div>
                                     <div class="form-group field-websitehomefeature-3-imagefile">
-                                        <label class="control-label" for="websitehomefeature-3-imagefile">Рекомендуемый размер: (1000x600)</label>
+                                        <label class="control-label" for="websitehomefeature-3-imagefile">
+                                            Рекомендуемый
+                                            размер: (1000x600)
+                                        </label>
                                         {{ form.block_image_4 }}
                                         <div class="help-block"></div>
                                     </div>
@@ -293,7 +320,10 @@
                                         <div class="help-block"></div>
                                     </div>
                                     <div class="form-group field-websitehomefeature-3-imagefile">
-                                        <label class="control-label" for="websitehomefeature-3-imagefile">Рекомендуемый размер: (1000x600)</label>
+                                        <label class="control-label" for="websitehomefeature-3-imagefile">
+                                            Рекомендуемый
+                                            размер: (1000x600)
+                                        </label>
                                         {{ form.block_image_5 }}
                                         <div class="help-block"></div>
                                     </div>
@@ -324,7 +354,10 @@
                                         <div class="help-block"></div>
                                     </div>
                                     <div class="form-group field-websitehomefeature-3-imagefile">
-                                        <label class="control-label" for="websitehomefeature-3-imagefile">Рекомендуемый размер: (1000x600)</label>
+                                        <label class="control-label" for="websitehomefeature-3-imagefile">
+                                            Рекомендуемый
+                                            размер: (1000x600)
+                                        </label>
                                         {{ form.block_image_6 }}
                                         <div class="help-block"></div>
                                     </div>

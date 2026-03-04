@@ -1,4 +1,16 @@
 {% extends "base_admin.html" %}
+{% block title %}
+    Сообщения
+{% endblock title %}
+{% block content_header %}
+    Сообщения
+{% endblock content_header %}
+{% block content_url %}
+    <li>
+        <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+    </li>
+    <li class="active">Сообщения</li>
+{% endblock content_url %}
 {% block content %}
     <section class="content">
         <div class="row">
@@ -62,9 +74,12 @@
                     showing: false,
                     info: false,
                     bFilter: true,
+                    language: {
+                        url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/ru.json"
+                    },
                 },
-            )
-            ;
+            );
+
             $(document).on('click', '.checkbox-toggle', function () {
                 const clicks = $(this).data('clicks');
                 const faIcon = $('.checkbox-toggle i');
@@ -78,6 +93,15 @@
                     faIcon.removeClass('fa-square-o').addClass('fa-check-square-o');
                 }
                 $(this).data('clicks', !clicks);
+            });
+            $('body').on('click', 'tr[data-href]', function (e) {
+
+
+                if ($(e.target).closest('a, button, .btn').length) {
+                    return;
+                }
+
+                window.location = $(this).data('href');
             });
 
             $('#bulk-delete-form').on('submit', function (e) {

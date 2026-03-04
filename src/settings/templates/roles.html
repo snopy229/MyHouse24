@@ -1,0 +1,67 @@
+{% extends "base_admin.html" %}
+{% block content %}
+    <section class="content">
+        <div class="box">
+            <form action="">
+                {% csrf_token %}
+                <div class="box-body table-responsive no-padding">
+                    <table class="table table-bordered table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th>Роль</th>
+                                <th class="text-center">Статистика</th>
+                                <th class="text-center">Касса</th>
+                                <th class="text-center">Квитанции</th>
+                                <th class="text-center">Лицевые счета</th>
+                                <th class="text-center">Квартиры</th>
+                                <th class="text-center">Владельцы</th>
+                                <th class="text-center">Дома</th>
+                                <th class="text-center">Сообщения</th>
+                                <th class="text-center">Заявки мастера</th>
+                                <th class="text-center">Счетчики</th>
+                                <th class="text-center">Сайт</th>
+                                <th class="text-center">Услуги</th>
+                                <th class="text-center">Тарифы</th>
+                                <th class="text-center">Роли</th>
+                                <th class="text-center">Пользователи</th>
+                                <th class="text-center">Реквизиты</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for f in form %}
+                                <tr>
+                                    <td>{{ f.title }}</td>
+                                    <td class="text-center">{{ f.has_statistics }}</td>
+                                    <td class="text-center">{{ f.has_cashbox }}</td>
+                                    <td class="text-center">{{ f.has_invoices }}</td>
+                                    <td class="text-center">{{ f.has_personal_accounts }}</td>
+                                    <td class="text-center">{{ f.has_apartments }}</td>
+                                    <td class="text-center">{{ f.has_owners }}</td>
+                                    <td class="text-center">{{ f.has_houses }}</td>
+                                    <td class="text-center">{{ f.has_messages }}</td>
+                                    <td class="text-center">{{ f.has_master_requests }}</td>
+                                    <td class="text-center">{{ f.has_meters }}</td>
+                                    <td class="text-center">{{ f.has_site_management }}</td>
+                                    <td class="text-center">{{ f.has_services }}</td>
+                                    <td class="text-center">{{ f.has_tariffs }}</td>
+                                    <td class="text-center">{{ f.has_roles }}</td>
+                                    <td class="text-center">{{ f.has_users }}</td>
+                                    <td class="text-center">{{ f.has_payment_details }}</td>
+                                    {{ f.id }}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <div class="row">
+                        <div class="col-xs-12 text-right">
+                            <div class="form-group margin-top-15 margin-right-15">
+                                <button type="reset" class="btn btn-default">Отменить</button>
+                                <button type="submit" class="btn btn-success">Сохранить</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </section>
+{% endblock content %}

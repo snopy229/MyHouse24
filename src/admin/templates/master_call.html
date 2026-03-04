@@ -1,4 +1,40 @@
 {% extends "base_admin.html" %}
+{% block title %}
+    {% if 'create' in request.path %}
+        Новая заявка
+    {% elif 'edit' in request.path %}
+        Профиль владельца
+    {% endif %}
+{% endblock title %}
+{% block content_header %}
+    {% if 'create' in request.path %}
+        Новая заявка
+    {% elif 'edit' in request.path %}
+        Профиль владельца
+    {% endif %}
+{% endblock content_header %}
+{% block content_url %}
+    {% if 'create' in request.path %}
+        <li>
+            <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+        </li>
+        <li>
+            <a href="{% url 'admin:master-call-list' %}">Вызов мастера</a>
+        </li>
+        <li class="active">Новая заявка</li>
+    {% elif 'edit' in request.path %}
+        <li>
+            <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+        </li>
+        <li>
+            <a href="{% url 'admin:master-call-list' %}">Вызов мастера</a>
+        </li>
+        <li>
+            <a href="{% url 'admin:master-call-detail' mastercall.id %}">Заявка №{{ mastercall.number }}</a>
+        </li>
+        <li class="active">Редактировать</li>
+    {% endif %}
+{% endblock content_url %}
 {% block content %}
     <style>
         .page-header-spec {
@@ -152,7 +188,8 @@
                     data: function (params) {
                         return {
                             q: params.term,
-                            page: params.page
+                            page: params.page,
+                            master_type_id: $('#id_master_type').val()
                         };
                     }
                 }
@@ -168,7 +205,7 @@
                         return {
                             q: params.term,
                             page: params.page,
-                            owner_id: $('#id_owner').val()
+                            owner_id: $('#id_owner').val(),
                         };
                     }
                 }
@@ -215,6 +252,63 @@
                         versionCheck: false
 
                     });
+                }
+            });
+        });
+    </script>
+    <script>
+        $(function () {
+            $('#quickForm').validate({
+                onfocusout: function (element) {
+                    $(element).valid();
+                },
+                rules: {
+                    apartment: {
+                        required: true,
+                    },
+                    description: {
+                        required: true,
+                        minlength: 5
+                    },
+                },
+                messages: {
+                    apartment: {
+                        required: "Необходимо заполнить «Квартира».",
+                    },
+                    description: {
+                        required: "Необходимо заполнить «Описание».",
+                    },
+                },
+                errorClass: 'is-invalid',
+                validClass: 'is-valid',
+                errorElement: 'span',
+
+                errorPlacement: function (error, element) {
+                    error.addClass('invalid-feedback');
+                    element.closest('.form-group').append(error);
+                },
+
+                highlight: function (element, errorClass, validClass) {
+                    $(element).addClass(errorClass).removeClass(validClass);
+
+                    $(element).closest('.form-group')
+                        .find('label')
+                        .addClass('text-danger')
+                        .removeClass('text-success')
+
+                },
+
+                unhighlight: function (element, errorClass, validClass) {
+                    $(element).removeClass(errorClass).addClass(validClass);
+
+                    $(element).closest('.form-group')
+                        .find('label')
+                        .addClass('text-success')
+                        .removeClass('text-danger')
+                },
+
+                submitHandler: function (form) {
+                    form.submit();
                 }
             });
         });

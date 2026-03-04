@@ -1,5 +1,17 @@
 {% extends "base_static.html" %}
 {% block structure %}
+    <style>
+        .profile-no-img-cover {
+            font-size: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .img-cover {
+            object-fit: cover;
+        }
+    </style>
     <body class="hold-transition skin-black-light sidebar-mini fixed">
         <div class="wrapper">
             <header class="main-header">
@@ -29,6 +41,7 @@
                             <li class="dropdown notifications-menu">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                                     <i class="fa fa-bell"></i>
+                                    <span class="label label-primary">{{ new_messages.count }}</span>
                                 </a>
                                 <ul class="dropdown-menu">
                                     {% if not new_messages %}
@@ -44,7 +57,7 @@
                                         </ul>
                                     {% endif %}
                                     <li class="footer">
-                                        <a href="#">Перейти в раздел сообщений</a>
+                                        <a href="{% url 'owner:message-list' %}">Перейти в раздел сообщений</a>
                                     </li>
                                 </ul>
                             </li>
@@ -65,12 +78,13 @@
                                     <li class="user-header bg-yellow">
                                         {% if user.photo %}
                                             <img src="{{ user.photo.url }}"
-                                                 class="img-circle"
+                                                 class="img-circle img-cover"
                                                  width="160"
                                                  height="160"
                                                  alt="{{ user.fullname }}">
                                         {% else %}
-                                            <i class="fa fa-user-circle text-purple"></i>
+                                            <i class="fa fa-user-circle text-purple profile-no-img-cover">
+                                            </i>
                                         {% endif %}
                                         <p>{{ user.fullname }}</p>
                                     </li>
@@ -79,10 +93,24 @@
                                             <a class="btn btn-default btn-flat"
                                                href="{% url 'owner:profile-detail' %}">Профиль</a>
                                         </div>
+                                        {% if request.path != '/admin/' and request.user.is_hijacked %}
+                                            <div>
+                                                <form action="{% url 'hijack:release' %}" method="post">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-default btn-flat">
+                                                        Вернуться в свой
+                                                        аккаунт
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        {% endif %}
                                         <div class="pull-right">
-                                            <a class="btn btn-default btn-flat"
-                                               href="{% url 'user:logout' %}"
-                                               data-method="post">Выход</a>
+                                            <form action="{% url 'user:logout' %}" method="post">
+                                                {% csrf_token %}
+                                                <button class="btn btn-default btn-flat"
+                                                        href="{% url 'user:logout' %}"
+                                                        data-method="post">Выход</button>
+                                            </form>
                                         </div>
                                     </li>
                                 </ul>
@@ -181,9 +209,5 @@
     Разработано <a href="https://avada-media.ua/">AVADA-MEDIA</a>. На базе системы управления <a href="https://avada-media.ua/moydom24/">"МойДом24"</a>.
 </footer>
 </div>
-<script>
-        console.log('jQuery:', typeof $);
-        console.log('AdminLTE:', typeof $.AdminLTE);
-</script>
 </body>
 {% endblock structure %}

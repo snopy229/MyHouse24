@@ -92,16 +92,12 @@
     </head>
     {% block structure %}
     {% endblock structure %}
-    <script type="text/javascript">
-    var name_of_js_function = function () {
-        console.log("hCaptcha готова к работе!");
-    };
-    </script>
-    <script>$.widget.bridge('uibutton', $.ui.button);</script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script src="{% static 'bower_components/bootstrap/dist/js/bootstrap.min.js' %}"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>$.widget.bridge('uibutton', $.ui.button);</script>
     <script src="{% static 'bower_components/raphael/raphael.min.js' %}"></script>
     <script src="{% static 'bower_components/jquery-sparkline/dist/jquery.sparkline.min.js' %}"></script>
     <script src="{% static 'plugins/jvectormap/jquery-jvectormap-1.2.2.min.js' %}"></script>

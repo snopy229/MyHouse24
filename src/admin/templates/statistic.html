@@ -1,5 +1,262 @@
 {% extends "base_admin.html" %}
 {% block title %}
+    Статистика
 {% endblock title %}
+{% block content_header %}
+    Статистика
+{% endblock content_header %}
 {% block content %}
+    <style>
+        .chart-yearly-height {
+            height: 201px;
+        }
+
+        .chart-bar2-height {
+            height: 230px;
+        }
+    </style>
+    <section class="content">
+        <div class="row">
+            <div class="col-xs-12 col-sm-6">
+                <h2 class="page-header">В вашем обслуживании</h2>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-4 col-sm-6 col-xs-12">
+                <div class="small-box bg-primary">
+                    <div class="inner">
+                        <h3>{{ houses }}</h3>
+                        <p>Домов</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fa fa-building"></i>
+                    </div>
+                    <a href="{% url 'admin:house-list' %}" class="small-box-footer">
+                        Перейти в дома <i class="fa fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4 col-sm-6 col-xs-12">
+                <div class="small-box bg-green">
+                    <div class="inner">
+                        <h3>{{ owners }}</h3>
+                        <p>Активных владельцев</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fa fa-users"></i>
+                    </div>
+                    <a href="{% url 'admin:owner-list' %}" class="small-box-footer">
+                        Перейти к владельцам <i class="fa fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4 col-sm-6 col-xs-12">
+                <div class="small-box bg-yellow">
+                    <div class="inner">
+                        <h3>{{ master_calls_in_work }}</h3>
+                        <p>Заявок мастера в работе</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fa fa-wrench"></i>
+                    </div>
+                    <a href="{% url 'admin:master-call-list' %}" class="small-box-footer">
+                        Перейти в заявки <i class="fa fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4 col-sm-6 col-xs-12">
+                <div class="small-box bg-primary">
+                    <div class="inner">
+                        <h3>{{ apartments }}</h3>
+                        <p>Квартир</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fa fa-key"></i>
+                    </div>
+                    <a href="{% url 'admin:flat-list' %}" class="small-box-footer">
+                        Перейти в квартиры <i class="fa fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4 col-sm-6 col-xs-12">
+                <div class="small-box bg-green">
+                    <div class="inner">
+                        <h3>{{ bankbooks }}</h3>
+                        <p>Лицевых счетов</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fa fa-child"></i>
+                    </div>
+                    <a href="{% url 'admin:bankbook-list' %}" class="small-box-footer">
+                        Перейти к счетам <i class="fa fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4 col-sm-6 col-xs-12">
+                <div class="small-box bg-yellow">
+                    <div class="inner">
+                        <h3>{{ new_master_call }}</h3>
+                        <p>Новых заявок мастера</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fa fa-user-plus"></i>
+                    </div>
+                    <a href="{% url 'admin:master-call-list' %}" class="small-box-footer">
+                        Перейти в заявки <i class="fa fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-8 col-md-7 col-xs-12">
+                <div class="box box-default">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">График погашения квитанций, грн</h3>
+                    </div>
+                    <div class="box-body">
+                        <div class="chart">
+                            <canvas id="yearly_bar_chart" class="chart-yearly-height"></canvas>
+                            <div id="barChart-legend" class="text-center"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-5 col-xs-12">
+                <div class="info-box">
+                    <span class="info-box-icon bg-red"><i class="fa fa-money"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Задолженность по счетам, грн</span>
+                        <span class="info-box-number">{{ bankbook_dept }}</span>
+                    </div>
+                </div>
+                <div class="info-box">
+                    <span class="info-box-icon bg-blue"><i class="fa fa-money"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Баланс по счетам, грн</span>
+                        <span class="info-box-number">{{ bankbook_status }}</span>
+                    </div>
+                </div>
+                <div class="info-box">
+                    <span class="info-box-icon bg-green"><i class="fa fa-money"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Состояние кассы, грн</span>
+                        <span class="info-box-number">{{ cashbox_status }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box box-default">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">График приходов и расходов по кассе, грн</h3>
+                    </div>
+                    <div class="box-body">
+                        <div class="chart">
+                            <canvas id="barChart2" class="chart-bar2-height"></canvas>
+                            <div id="barChart2-legend" class="text-center"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 {% endblock content %}
+{% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const ctx = document.getElementById('yearly_bar_chart').getContext('2d');
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['янв', 'февр', 'март', 'апр', 'май', 'июнь', 'июль', 'авг', 'сент', 'окт', 'нояб', 'дек'],
+                    datasets: [{
+                        label: 'Задолженность',
+                        data: {{ bar_data }},
+                        backgroundColor: '#dc4c3c',
+                        borderWidth: 0,
+                        borderRadius: 2
+                    },
+                        {
+                            label: 'Погашение задолженности',
+                            data: {{ income_data }},
+                            backgroundColor: '#00a55a',
+                            borderWidth: 0,
+                            borderRadius: 2
+                        }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                drawBorder: false,
+                                color: '#f0f0f0'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            const bar = document.getElementById('barChart2').getContext('2d');
+
+            new Chart(bar, {
+                type: 'bar',
+                data: {
+                    labels: ['янв', 'февр', 'март', 'апр', 'май', 'июнь', 'июль', 'авг', 'сент', 'окт', 'нояб', 'дек'],
+                    datasets: [{
+                        label: 'Приход',
+                        data: {{ cb_coming|safe  }},
+                        backgroundColor: '#00a55a',
+                        borderWidth: 0,
+                        borderRadius: 2
+                    },
+                        {
+                            label: 'Расход',
+                            data: {{ cb_outgo|safe }},
+                            backgroundColor: '#dc4c3c',
+                            borderWidth: 0,
+                            borderRadius: 2
+                        }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                drawBorder: false,
+                                color: '#f0f0f0'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: true
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock extra_js %}

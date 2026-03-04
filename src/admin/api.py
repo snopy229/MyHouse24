@@ -85,19 +85,38 @@ def list_tariff(request, q: str = Query(None), page: int = 1):
 
 @router.get("/bank_book", response=Select2Response)
 def list_bank_book(request, q: str = Query(None), page: int = 1):
-    qs = BankBook.objects.filter(apartament=None)
-    return get_select2_result(page, qs)
+    qs = BankBook.objects.filter(apartment=None)
+
+    paginator = Paginator(qs, 10)
+    current_page = paginator.get_page(page)
+
+    result = [
+        {"id": item.id, "text": str(item.number)} for item in current_page.object_list
+    ]
+    return {"results": result, "pagination": {"more": current_page.has_next()}}
 
 
 @router.get("/flat", response=Select2Response)
 def list_flat(
-    request, house_id: int | None = Query(None), q: str = Query(None), page: int = 1
+    request,
+    house_id: int | None = Query(None),
+    section_id: int | None = Query(None),
+    floor_id: int | None = Query(None),
+    q: str = Query(None),
+    page: int = 1,
 ):
     if not house_id:
         return {"results": [], "pagination": {"more": False}}
 
     if house_id:
         qs = Apartment.objects.filter(house_id=house_id).order_by("number")
+
+    if section_id is not None:
+        qs = Apartment.objects.filter(section_id=section_id).order_by("number")
+
+    if floor_id is not None:
+        qs = Apartment.objects.filter(floor_id=floor_id).order_by("number")
+
     if q:
         qs = qs.filter(number__icontains=q)
 
@@ -142,15 +161,17 @@ def apartment_owner(request, apartment_id: int):
         return {
             "fullname": "не указано",
             "phone_number": "не указано",
-            "url": None,
+            "url_owner": None,
+            "url_phone": None,
         }
 
     return {
         "fullname": apartment.owner.fullname
         if apartment.owner.fullname
         else apartment.owner.email,
-        "phone_number": apartment.owner.phone_number,
-        "url": reverse("admin:detail-owner", args=(apartment.owner.id,)),
+        "phone_number": str(apartment.owner.phone_number),
+        "url_owner": reverse("admin:detail-owner", args=(apartment.owner.id,)),
+        "url_phone": f"tel:{apartment.owner.phone_number}",
     }
 
 
@@ -215,8 +236,14 @@ def list_owner_with_apartments(
 
 
 @router.get("/master", response=Select2Response)
-def list_master(request, q: str = Query(None), page: int = 1):
-    qs = User.objects.filter(is_staff=True)
+def list_master(
+    request,
+    q: str = Query(None),
+    page: int = 1,
+    master_type_id: str | int | None = Query(None),
+    house_id: str | int | None = Query(None),
+):
+    qs = User.objects.exclude(role__title__in=["Директор", "Управляющий", "Бухгалтер"])
     if q:
         qs = qs.filter(
             Q(username__icontains=q)
@@ -224,6 +251,11 @@ def list_master(request, q: str = Query(None), page: int = 1):
             | Q(last_name__icontains=q)
             | Q(role_title__icontains=q)
         )
+    if master_type_id:
+        qs = User.objects.filter(role__id=master_type_id)
+
+    if house_id:
+        qs = User.objects.filter(owner=house_id)
 
     paginator = Paginator(qs, 10)
     current_page = paginator.get_page(page)
@@ -240,7 +272,7 @@ def list_master(request, q: str = Query(None), page: int = 1):
 
 @router.get("/manager", response=Select2Response)
 def list_manager(request, q: str = Query(None), page: int = 1):
-    qs = User.objects.filter(
+    qs = User.objects.exclude(
         role__title__in=["Управляющий", "Бухгалтер", "Электрик"]
     ).order_by("role__title")
     if q:
@@ -320,3 +352,12 @@ def list_bank_book_owner(
 def get_bank_book(request, apartment_id):
     bank_book = get_object_or_404(BankBook, apartment_id=apartment_id)
     return {"bank_book": bank_book.number}
+
+
+@router.get("/article", response=Select2Response)
+def lisr_article(request, q: str = Query(None), page: int = 1):
+    qs = Article.objects.all().order_by("id")
+    if q:
+        qs = qs.filter(title__icontains=q)
+
+    return get_select2_result(page, qs)

@@ -1,9 +1,9 @@
 from ajax_datatable import AjaxDatatableView
 from django.db import transaction
+from django.forms import inlineformset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
-from django.core.mail import send_mail
 from django.utils.html import format_html
 from django.views.generic import (
     UpdateView,
@@ -13,8 +13,10 @@ from django.views.generic import (
     DeleteView,
     RedirectView,
     DetailView,
+    FormView,
 )
 
+from src.admin.tasks import send_password, send_invite
 from src.settings.forms import (
     UnitsFormSet,
     ServiceFormSet,
@@ -23,20 +25,27 @@ from src.settings.forms import (
     UserForm,
     ServiceCostFormSet,
     TariffsForm,
+    RoleFormSet,
+    ServicesCostForm,
 )
-from src.settings.models import Service, UnitsOfMeasurement, Article, Requisite, Tariffs
+from src.settings.models import (
+    Service,
+    UnitsOfMeasurement,
+    Article,
+    Requisite,
+    Tariffs,
+    ServicesCost,
+)
 from src.user.models import User, Role
 from src.user.choices import Status
 
 
-# Create your views here
 class EditServicesView(TemplateView):
     template_name = "edit_services.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # Загружаем услуги (prefix='services')
         if "services" not in context:
             context["services"] = ServiceFormSet(
                 queryset=Service.objects.all(), prefix="services"
@@ -148,8 +157,15 @@ class RequisiteEdit(UpdateView):
         return obj
 
 
-class UsersPageView(TemplateView):
+class UsersPageView(ListView):
+    model = User
     template_name = "users.html"
+    form_class = UserForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["form"] = self.form_class()
+        return context
 
 
 class UserAjaxTable(AjaxDatatableView):
@@ -172,10 +188,8 @@ class UserAjaxTable(AjaxDatatableView):
             "name": "role",
             "foreign_field": "role__title",
             "visible": True,
-            "searchable": True,
+            "searchable": False,
             "title": "Роль",
-            "choices": list(Role.objects.values_list("id", "title")),
-            "lookup_field": "__id",
             "orderable": True,
         },
         {
@@ -205,12 +219,16 @@ class UserAjaxTable(AjaxDatatableView):
         row["first_name"] = f"{obj.first_name} {obj.second_name}"
         row["role__title"] = obj.role.title if obj.role else "—"
 
+        edit_url = reverse("settings:edit-user", args=[obj.id])
+        delete_url = reverse("settings:delete-user", args=[obj.id])
+
         row["actions"] = format_html(
             '<div class="btn-group btn-group-sm">'
-            '<a href="/admin/settings/user/edit/{0}/" class="btn btn-default"><i class="fa fa-pencil"></i></a>'
-            '<a href="/admin/settings/user/delete/{0}/" class="btn btn-default"><i class="fa fa-trash"></i></a>'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-pencil"></i></a>'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-trash"></i></a>'
             "</div>",
-            obj.id,
+            edit_url,
+            delete_url,
         )
 
         status_text = obj.get_status_display()
@@ -230,13 +248,18 @@ class UserAjaxTable(AjaxDatatableView):
         return
 
     def get_initial_queryset(self, request=None):
-        return self.model.objects.filter(is_staff=True)
+        qs = super().get_initial_queryset().order_by("id")
+        qs = qs.filter(is_staff=True)
+        role = self.request.POST.get("role")
+        if role:
+            qs = qs.filter(role_id=role)
+        return qs
 
 
 class EditUsersPageView(UpdateView):
     model = User
     form_class = UserForm
-    context_object_name = "user"
+    context_object_name = "staff"
     template_name = "edit_user.html"
     success_url = reverse_lazy("settings:users-list")
 
@@ -244,15 +267,7 @@ class EditUsersPageView(UpdateView):
         raw_password = form.cleaned_data.get("password1")
         user_email = form.cleaned_data.get("email")
         if len(raw_password) != 0:
-            try:
-                send_mail(
-                    subject="Изменение пароля",
-                    message=f"Новый пароль: {raw_password}",
-                    from_email=None,
-                    recipient_list=[user_email],
-                )
-            except Exception as e:
-                print(f"Ошибка отправки: {e}")
+            send_password(raw_password, user_email).delay()
 
         return super().form_valid(form)
 
@@ -263,15 +278,7 @@ class SendInvite(RedirectView):
     def get_redirect_url(self, **kwargs):
         user_id = self.kwargs.get("pk")
         user = get_object_or_404(User, pk=user_id)
-        try:
-            send_mail(
-                subject="Тест",
-                message=f"Пользователь:{user.email}, вернись на сайт",
-                from_email=None,
-                recipient_list=[user.email],
-            )
-        except Exception as e:
-            print(f"Ошибка отправки: {e}")
+        send_invite(user.email).delay()
 
         return super().get_redirect_url()
 
@@ -307,12 +314,8 @@ class CreateUser(CreateView):
                     )
 
                 user_email = form.cleaned_data.get("email")
-                send_mail(
-                    subject="Изменение пароля",
-                    message=f"Новый пароль: {raw_password}",
-                    from_email=None,
-                    recipient_list=[user_email],
-                )
+                send_password(raw_password, user_email).delay()
+
         except Exception:
             return self.form_invalid(form)
 
@@ -322,7 +325,7 @@ class CreateUser(CreateView):
 class DetailUser(DetailView):
     model = User
     template_name = "user_detail.html"
-    context_object_name = "user"
+    context_object_name = "staff"
 
 
 class TariffsCreateView(CreateView):
@@ -333,16 +336,20 @@ class TariffsCreateView(CreateView):
 
     def get_initial(self):
         initial = super().get_initial()
-
-        if "duplicate_initial_data" in self.request.session:
-            initial.update(self.request.session.pop("duplicate_initial_data"))
-
+        duplicate_id = self.request.GET.get("duplicate")
+        if duplicate_id:
+            original = Tariffs.objects.get(pk=duplicate_id)
+            initial.update(
+                {
+                    "title": f"{original.title} (копия)",
+                    "description": original.description,
+                }
+            )
         return initial
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        duplicate_id = self.request.session.get("duplicate_tariff_id")
+        duplicate_id = self.request.GET.get("duplicate")
 
         if self.request.POST:
             context["services"] = ServiceCostFormSet(
@@ -352,22 +359,29 @@ class TariffsCreateView(CreateView):
             if duplicate_id:
                 original = Tariffs.objects.get(pk=duplicate_id)
 
-                initial_data = []
-                for service_cost in original.servicescost_set.all():
-                    initial_data.append(
-                        {
-                            "service": service_cost.service,
-                            "cost": service_cost.cost,
-                        }
-                    )
+                initial_data = [
+                    {"service": sc.service_id, "cost": sc.cost}
+                    for sc in original.services.all()
+                ]
 
-                context["services"] = ServiceCostFormSet(
-                    prefix="services", initial=initial_data
+                DuplicateFormSet = inlineformset_factory(
+                    Tariffs,
+                    ServicesCost,
+                    form=ServicesCostForm,
+                    extra=len(initial_data),
+                    can_delete=True,
                 )
 
-                self.request.session.pop("duplicate_tariff_id", None)
+                context["services"] = DuplicateFormSet(
+                    instance=None,
+                    prefix="services",
+                    initial=initial_data,
+                    queryset=ServicesCost.objects.none(),
+                )
             else:
-                context["services"] = ServiceCostFormSet(prefix="services")
+                context["services"] = ServiceCostFormSet(
+                    instance=None, prefix="services"
+                )
 
         return context
 
@@ -375,14 +389,15 @@ class TariffsCreateView(CreateView):
         context = self.get_context_data()
         formset = context["services"]
 
+        if not formset.is_valid():
+            return self.form_invalid(form)
+
         with transaction.atomic():
-            if formset.is_valid():
-                self.object = form.save()
-                formset.instance = self.object
-                formset.save()
-                return super().form_valid(form)
-            else:
-                return self.form_invalid(form)
+            self.object = form.save()
+            formset.instance = self.object
+            formset.save()
+
+        return redirect(self.success_url)
 
 
 class TariffUpdateView(UpdateView):
@@ -422,7 +437,79 @@ class TariffsList(ListView):
     template_name = "tariffs.html"
 
 
+class TariffsAjaxTable(AjaxDatatableView):
+    model = Tariffs
+    initial_order = [[0, "asc"]]
+
+    def get_column_defs(self, request):
+        columns = [
+            {
+                "name": "title",
+                "title": "Название тарифа",
+                "orderable": True,
+                "searchable": False,
+            },
+            {
+                "name": "description",
+                "title": "Описание тарифа,",
+                "orderable": False,
+                "searchable": False,
+            },
+            {
+                "name": "edited_at",
+                "title": "Дата редактирования",
+                "orderable": False,
+                "searchable": False,
+            },
+            {
+                "name": "actions",
+                "title": "",
+                "orderable": False,
+                "searchable": False,
+            },
+        ]
+        return columns
+
+    def customize_row(self, row, obj):
+        base_url = reverse("settings:tariff-create")
+        duplicate_url = f"{base_url}?duplicate={obj.id}"
+        edit_url = reverse("settings:tariff-edit", args=[obj.id])
+        delete_url = reverse("settings:tariff-delete", args=[obj.id])
+
+        row["actions"] = format_html(
+            '<div class="btn-group btn-group-sm">'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-clone"></i></a>'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-pencil"></i></a>'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-trash"></i></a>'
+            "</div>",
+            duplicate_url,
+            edit_url,
+            delete_url,
+        )
+
+        detail_url = reverse("settings:tariff-detail", args=[obj.id])
+        row["DT_RowAttr"] = {"data-href": detail_url, "style": "cursor: pointer;"}
+
+
 class TariffDetail(DetailView):
     model = Tariffs
     context_object_name = "tariff"
     template_name = "tariff_detail.html"
+
+
+class TariffDelete(DeleteView):
+    def get(self, request, pk):
+        tariff = get_object_or_404(Tariffs, pk=pk)
+        tariff.delete()
+        return redirect("settings:tariff-list")
+
+
+class EditRoles(FormView):
+    template_name = "roles.html"
+
+    def get_form(self, form_class=None):
+        return RoleFormSet(self.request.POST or None, queryset=Role.objects.all())
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)

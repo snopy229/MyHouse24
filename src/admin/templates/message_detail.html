@@ -1,0 +1,40 @@
+{% extends "base_admin.html" %}
+{% block title %}
+    Новое сообщение
+{% endblock title %}
+{% block content_header %}
+    Новое сообщение
+{% endblock content_header %}
+{% block content_url %}
+    <li>
+        <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+    </li>
+    <li>
+        <a href="{% url 'admin:message-list' %}">Сообщения</a>
+    </li>
+    <li class="active">Новое сообщение</li>
+{% endblock content_url %}
+{% block content %}
+    <section class="content">
+        <div class="box">
+            <div class="box-body no-padding">
+                <div class="mailbox-read-info">
+                    <h3>{{ message.theme }}</h3>
+                    <h5>
+                        От: {{ message.sender.fullname }}<span class="mailbox-read-time pull-right">{{ message.created_at }}</span>
+                    </h5>
+                </div>
+                <div class="mailbox-read-message">{{ message.message|safe }}</div>
+            </div>
+            <div class="box-footer">
+                <a href="{% url "admin:message-delete" message.id %}"
+                   data-confirm="Удалить?"
+                   data-method="post">
+                    <button type="button" class="btn btn-default">
+                        <i class="fa fa-trash-o"></i> Удалить
+                    </button>
+                </a>
+            </div>
+        </div>
+    </section>
+{% endblock content %}

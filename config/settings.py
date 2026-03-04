@@ -11,12 +11,13 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+
+from django.urls import reverse_lazy
 from environ import Env
 import os
 import sys
 
 env = Env(DEBUG=(bool, False))
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(os.path.join(BASE_DIR, "src"))
@@ -53,6 +54,7 @@ INSTALLED_APPS = [
     "anymail",
     "ajax_datatable",
     "django_select2",
+    "hijack",
 ]
 
 MIDDLEWARE = [
@@ -64,6 +66,9 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "src.admin.middleware.AdminAccessMiddleware",
+    "src.admin.middleware.Redirect404ToHomeMiddleware",
+    "src.owner.middleware.OwnerRedirect404ToHomeMiddleware",
+    "hijack.middleware.HijackUserMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -245,3 +250,15 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 1_209_600
+
+LOGIN_REDIRECT_URL = reverse_lazy("owner:profile-detail")
+
+LOGOUT_REDIRECT_URL = reverse_lazy("admin:statistic")
+
+HIJACK_INSERT_BEFORE = None
+
+HIJACK_INSERT_AFTER = None
+
+CELERY_BROKER_URL = env("CELERY_BROKER_URL")
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_RESULT_BACKEND = "redis://localhost:6379/0"

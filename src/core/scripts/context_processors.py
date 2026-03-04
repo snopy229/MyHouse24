@@ -20,7 +20,7 @@ def contacts(request):
 
 
 def new_owners(request):
-    new_owners = len(User.objects.filter(is_staff=False, status="NEW"))
+    new_owners = User.objects.filter(is_staff=False, status="new").order_by("email")
     return {
         "new_owners": new_owners,
     }

@@ -4,173 +4,187 @@
         .profile-img-cover {
             width: 160px;
             height: 160px;
-            object-fit: cover; /* Это "магическая" строчка, которая уберет овал */
+            object-fit: cover;
             border-radius: 50%;
-            display: block; /* Убираем поведение текста */
+            display: block;
         }
+
     </style>
     <section class="content-header">
         <h1>Профиль</h1>
         <ul class="breadcrumb">
-            <li>
-                <a href="#"><i class="fa fa-home"></i> Главная</a>
-            </li>
-            <li class="active">Профиль</li>
-        </ul>
-    </section>
-    <section class="content">
-        <div class="row">
-            <div class="col-lg-3">
-                <div class="row">
-                    <div class="col-md-6 col-lg-12">
-                        <div class="box">
-                            <div class="box-body box-profile">
-                                {% if user.photo %}
-                                    <img class="profile-user-img img-circle profile-img-cover"
-                                         src="{{ user.photo.url }}"
-                                         width="160"
-                                         height="160"
-                                         alt="Аватар">
-                                {% else %}
-                                    <i class="fa fa-user-circle text-purple"></i>
-                                {% endif %}
-                                <h3 class="profile-username text-center">{{ user.email }}</h3>
-                                <p class="text-muted text-center">Владелец квартиры</p>
-                                <ul class="list-group list-group-unbordered">
-                                    <li class="list-group-item">
-                                        <span>Телефон</span>
-                                        <span class="pull-right">{{ user.phone_number|default:'' }}</span>
-                                    </li>
-                                    <li class="list-group-item">
-                                        <span>Viber</span>
-                                        <span class="pull-right">{{ user.viber|default:'' }}</span>
-                                    </li>
-                                    <li class="list-group-item">
-                                        <span>Telegram</span>
-                                        <span class="pull-right">{{ user.telegram|default:'' }}</span>
-                                    </li>
-                                    <li class="list-group-item">
-                                        <span>Email</span>
-                                        <span class="pull-right">{{ user.email }}</span>
-                                    </li>
-                                </ul>
-                                <a href="#" class="btn btn-primary btn-block">Изменить</a>
-                            </div>
+            {% if user.apartment_set.first %}
+                <li>
+                <a href="{% url 'owner:apartment-detail' user.apartment_set.first.id %}"><i class="fa fa-home"></i>
+            Главная</a>
+        </li>
+    {% else %}
+        <li>
+        <a href="{% url 'owner:profile-detail' %}"><i class="fa fa-home"></i>
+    Главная</a>
+</li>
+{% endif %}
+<li class="active">Профиль</li>
+</ul>
+</section>
+<section class="content">
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="row">
+                <div class="col-md-6 col-lg-12">
+                    <div class="box">
+                        <div class="box-body box-profile">
+                            {% if user.photo %}
+                                <img class="profile-user-img img-circle profile-img-cover"
+                                     src="{{ user.photo.url }}"
+                                     width="160"
+                                     height="160"
+                                     alt="Аватар">
+                            {% else %}
+                                <i class="fa fa-user-circle text-purple profile-no-img-cover"></i>
+                            {% endif %}
+                            <h3 class="profile-username text-center">{{ user.email }}</h3>
+                            <p class="text-muted text-center">Владелец квартиры</p>
+                            <ul class="list-group list-group-unbordered">
+                                <li class="list-group-item">
+                                    <span>ID</span>
+                                    <span class="pull-right">{{ user.id_user }}</span>
+                                </li>
+                                <li class="list-group-item">
+                                    <span>Телефон</span>
+                                    <span class="pull-right">{{ user.phone_number|default:'' }}</span>
+                                </li>
+                                <li class="list-group-item">
+                                    <span>Viber</span>
+                                    <span class="pull-right">{{ user.viber|default:'' }}</span>
+                                </li>
+                                <li class="list-group-item">
+                                    <span>Telegram</span>
+                                    <span class="pull-right">{{ user.telegram|default:'' }}</span>
+                                </li>
+                                <li class="list-group-item">
+                                    <span>Email</span>
+                                    <span class="pull-right">{{ user.email }}</span>
+                                </li>
+                            </ul>
+                            <a href="{% url 'owner:profile-edit' %}"
+                               class="btn btn-primary btn-block">Изменить</a>
                         </div>
                     </div>
-                    <div class="col-md-6 col-lg-12">
-                        <h3 class="page-header">Обо мне (заметки)</h3>
-                        <div class="box">
-                            <div class="box-body box-profile">
-                                {% if not user.about_owner %}
-                                    Нет заметок
-                                {% else %}
-                                    {{ user.about_owner }}
-                                {% endif %}
-                            </div>
+                </div>
+                <div class="col-md-6 col-lg-12">
+                    <h3 class="page-header">Обо мне (заметки)</h3>
+                    <div class="box">
+                        <div class="box-body box-profile">
+                            {% if not user.about_owner %}
+                                Нет заметок
+                            {% else %}
+                                {{ user.about_owner }}
+                            {% endif %}
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-9">
-                <h2 class="page-header">Мои квартиры</h2>
-                {% if not user.apartment_set.all %}
+        </div>
+        <div class="col-lg-9">
+            <h2 class="page-header">Мои квартиры</h2>
+            {% if not user.apartment_set.all %}
+                <div class="box">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Квартиры пока не добавлены</h3>
+                    </div>
+                </div>
+            {% else %}
+                {% for apartment in user.apartment_set.all %}
                     <div class="box">
                         <div class="box-header with-border">
-                            <h3 class="box-title">Квартиры пока не добавлены</h3>
+                            <h3 class="box-title">Описание квартиры</h3>
+                        </div>
+                        <div class="box-body">
+                            <p>{{ apartment.house.title }}, кв. {{ apartment.number }}</p>
+                            <div class="row">
+                                <div class="col-xs-12 col-md-6">
+                                    <img src=" {% if apartment.house.image1 %}{{ apartment.house.image1.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
+                                         class="img-responsive largeImg margin-bottom-30"
+                                         width="500"
+                                         height="300"
+                                         alt="Фото дома 1">
+                                </div>
+                                <div class="col-xs-6 col-md-3">
+                                    <img src=" {% if apartment.house.image2 %}{{ apartment.house.image2.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
+                                         class="img-responsive smallImg margin-bottom-30"
+                                         width="250"
+                                         height="150"
+                                         alt="Фото дома 2">
+                                </div>
+                                <div class="col-xs-6 col-md-3">
+                                    <img src=" {% if apartment.house.image3 %}{{ apartment.house.image3.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
+                                         class="img-responsive smallImg margin-bottom-30"
+                                         width="250"
+                                         height="150"
+                                         alt="Фото дома 3">
+                                </div>
+                                <div class="col-xs-6 col-md-3">
+                                    <img src=" {% if apartment.house.image4 %}{{ apartment.house.image4.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
+                                         class="img-responsive smallImg margin-bottom-30"
+                                         width="250"
+                                         height="150"
+                                         alt="Фото дома 4">
+                                </div>
+                                <div class="col-xs-6 col-md-3">
+                                    <img src=" {% if apartment.house.image5 %}{{ apartment.house.image5.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
+                                         class="img-responsive smallImg margin-bottom-30"
+                                         width="250"
+                                         height="150"
+                                         alt="Фото дома 5">
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th colspan="2">Описание</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th class="col-min-200 fw-normal">Название дома</th>
+                                            <th class="fw-normal">{{ apartment.house.title }}</th>
+                                        </tr>
+                                        <tr>
+                                            <td>Адрес</td>
+                                            <td>{{ apartment.address|default:'' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>№ квартиры</td>
+                                            <td>{{ apartment.number|default:'' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Площадь</td>
+                                            <td>
+                                                {% if apartment.area %}{{ apartment.area }}м<sup>2</sup>{% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Этаж</td>
+                                            <td>{{ apartment.floor|default:'' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Секция</td>
+                                            <td>{{ apartment.section|default:'' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Лицевой счет</td>
+                                            <td>{{ apartment.bankbook.number|default:'' }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                {% else %}
-                    {% for apartment in user.apartment_set.all %}
-                        <div class="box">
-                            <div class="box-header with-border">
-                                <h3 class="box-title">Описание квартиры</h3>
-                            </div>
-                            <div class="box-body">
-                                <p>{{ apartment.house.title }}, кв. {{ apartment.number }}</p>
-                                <div class="row">
-                                    <div class="col-xs-12 col-md-6">
-                                        <img src="  {% if apartment.house.image1 %}{{ apartment.house.image1.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
-                                             class="img-responsive largeImg margin-bottom-30"
-                                             width="500"
-                                             height="300"
-                                             alt="Фото дома 1">
-                                    </div>
-                                    <div class="col-xs-6 col-md-3">
-                                        <img src="  {% if apartment.house.image2 %}{{ apartment.house.image2.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
-                                             class="img-responsive smallImg margin-bottom-30"
-                                             width="250"
-                                             height="150"
-                                             alt="Фото дома 2">
-                                    </div>
-                                    <div class="col-xs-6 col-md-3">
-                                        <img src="  {% if apartment.house.image3 %}{{ apartment.house.image3.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
-                                             class="img-responsive smallImg margin-bottom-30"
-                                             width="250"
-                                             height="150"
-                                             alt="Фото дома 3">
-                                    </div>
-                                    <div class="col-xs-6 col-md-3">
-                                        <img src="  {% if apartment.house.image4 %}{{ apartment.house.image4.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
-                                             class="img-responsive smallImg margin-bottom-30"
-                                             width="250"
-                                             height="150"
-                                             alt="Фото дома 4">
-                                    </div>
-                                    <div class="col-xs-6 col-md-3">
-                                        <img src="  {% if apartment.house.image5 %}{{ apartment.house.image5.url }}{% else %}https://myhouse24.demodev.cc/upload/placeholder.jpg{% endif %}"
-                                             class="img-responsive smallImg margin-bottom-30"
-                                             width="250"
-                                             height="150"
-                                             alt="Фото дома 5">
-                                    </div>
-                                </div>
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-striped">
-                                        <thead>
-                                            <tr>
-                                                <th colspan="2">Описание</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <th class="col-min-200 fw-normal">Название дома</th>
-                                                <th class="fw-normal">{{ apartment.house.title }}</th>
-                                            </tr>
-                                            <tr>
-                                                <td>Адрес</td>
-                                                <td>{{ apartment.address|default:'' }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>№ квартиры</td>
-                                                <td>{{ apartment.number|default:'' }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Площадь</td>
-                                                <td>
-                                                    {% if apartment.area %}{{ apartment.area }}м<sup>2</sup>{% endif %}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>Этаж</td>
-                                                <td>{{ apartment.floor|default:'' }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Секция</td>
-                                                <td>{{ apartment.section|default:'' }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Лицевой счет</td>
-                                                <td>{{ apartment.bankbook.number|default:'' }}</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            </div>
+                {% endfor %}
+            {% endif %}
         </div>
-    </section>
+    </div>
+</section>
 {% endblock content %}

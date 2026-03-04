@@ -1,7 +1,24 @@
 {% extends "base_admin.html" %}
+{% block title %}
+    Заявки вызова мастера
+{% endblock title %}
+{% block content_header %}
+    Заявки вызова мастера
+{% endblock content_header %}
+{% block content_url %}
+    <li>
+        <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+    </li>
+    <li class="active">Заявки вызова мастера</li>
+{% endblock content_url %}
 {% block content %}
     <section class="content">
         {{ form.master }}
+        <select name="" id="id_master_type">
+            <option value=""></option>
+            {% for master_type in master_types %}<option value="{{ master_type }}">{{ master_type }}</option>{% endfor %}
+            <option value="noone">Любой специалист</option>
+        </select>
         <div class="row">
             <div class="col-xs-12">
                 <div class="pull-right margin-bottom">
@@ -133,8 +150,29 @@
 
                         }
 
+                        function setupCustomSelect(colName, selectId) {
+                            var column = api.column(colName + ':name');
+                            if (column.index() !== undefined) {
+                                var $cell = $(column.footer());
+
+                                if ($cell.length === 0 || $cell.is(':empty')) {
+                                    $cell = $('#master-call-table thead tr:eq(1) th').eq(column.index());
+                                }
+
+                                $cell.empty();
+
+                                var $select = $(selectId);
+                                $select.appendTo($cell);
+
+                                $cell.on('click', function (e) {
+                                    e.stopPropagation();
+                                });
+                            }
+                        }
+
                         setupColumnFilter('master', '#id_master', '/api/admin/master', null);
                         setupRangeFilter('date')
+                        setupCustomSelect('master_type', '#id_master_type')
 
                         $('#id_master').on('change.select2', function () {
                             $('#master-call-table').DataTable().ajax.reload();

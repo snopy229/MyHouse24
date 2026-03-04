@@ -21,10 +21,11 @@
             <div class="box-header with-border">
                 <h3 class="box-title"></h3>
                 <div class="box-tools">
-                    <a href="https://myhouse24.demodev.cc/cabinet/?token=1GXUmIU2uMZi1jjYYRw1_AHDv5wUBfMi"
-                       target="_blank"
-                       class="btn btn-default btn-sm"><i class="fa fa-external-link"></i> Перейти в
-                    кабинет</a>
+                    <form action="{% url 'hijack:acquire' %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="user_pk" value="{{ owner.pk }}">
+                        <button type="submit" class="btn btn-primary btn-s">Войти как пользователь</button>
+                    </form>
                     <a href="{% url 'admin:edit-owner' pk=owner.id %}"
                        class="btn btn-primary btn-sm">
                         <span class="hidden-xs">Редактировать профиль</span><i class="fa fa-pencil visible-xs" aria-hidden="true"></i>
@@ -133,7 +134,7 @@
                                             </td>
                                             <td>
                                                 {% if apartment.bankbook_set %}
-                                                    <a href="">{{ apartment.bankbook_set.number }}</a>
+                                                    <a href="{% url 'admin:bankbook-detail' apartment.bankbook_set.id %}">{{ apartment.bankbook_set.number }}</a>
                                                 {% else %}
                                                     не указано
                                                 {% endif %}

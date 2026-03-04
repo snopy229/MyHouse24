@@ -31,6 +31,7 @@ urlpatterns = [
     path("select2/", include("django_select2.urls")),
     path("owner/", include("src.owner.urls")),
     path("", MainPageDetail.as_view(), name="home"),
+    path("hijack/", include("hijack.urls")),
 ]
 
 if settings.DEBUG:

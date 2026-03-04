@@ -1,0 +1,123 @@
+{% extends "base_admin.html" %}
+{% block title %}
+    Настройка шаблонов
+{% endblock title %}
+{% block content_header %}
+    Настройка шаблонов
+{% endblock content_header %}
+{% block content_url %}
+    <li>
+        <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+    </li>
+    <li>
+        <a href="{% url 'admin:receipt-list' %}">Квитанции</a>
+    </li>
+    <li class="active">Настройка шаблонов</li>
+{% endblock content_url %}
+{% block content %}
+    <section class="content">
+        <div class="box">
+            <div class="box-header with-border">
+                <h3 class="box-title">Список шаблонов</h3>
+            </div>
+            <div class="box-body">
+                {% for template in templates %}
+                    <div class="template">
+                        <p>
+                            {{ template.name }}
+                            {% if template.is_default %}<span class="text-bold">(по-умолчанию)</span>{% endif %}
+                        </p>
+                    <a href="{{ template.template.url }}" download><i class="fa fa-download" aria-hidden="true"></i>
+                Скачать шаблон</a>
+                <a href="{% url 'admin:receipt-template-set-default' template.id %}"
+                   class="text-success">
+                    Назначить шаблоном
+                    по
+                умоланию</a>
+            <a href="{% url 'admin:receipt-template-delete' template.id %}"
+               class="text-danger"
+               data-confirm="Вы уверены, что хотите удалить этот элемент?"><i class="fa fa-trash" aria-hidden="true"></i>
+            Удалить
+        шаблон</a>
+    </div>
+{% endfor %}
+<form id="quickForm" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row">
+        <div class="col-xs-12 col-sm-6">
+            <div class="form-group field-invoicetemplateform-file">
+                <label class="control-label" for="invoicetemplateform-file">
+                    Загрузить пользовательский
+                    шаблон
+                </label>
+                {{ form.template }}
+                <div class="help-block"></div>
+            </div>
+            <div class="form-group field-invoicetemplateform-title required">
+                <label class="control-label" for="invoicetemplateform-title">Название</label>
+                {{ form.name }}
+                <div class="help-block"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 text-center">
+                <button type="reset" class="btn btn-default">Отменить</button>
+                <button type="submit" class="btn btn-success">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</form>
+</div>
+</div>
+</section>
+<script>
+        $(function () {
+            $('#quickForm').validate({
+                onfocusout: function (element) {
+                    $(element).valid();
+                },
+                rules: {
+                    name: {
+                        required: true,
+                    },
+                },
+                messages: {
+                    name: {
+                        required: "Необходимо заполнить «Квартира».",
+                    },
+                },
+                errorClass: 'is-invalid',
+                validClass: 'is-valid',
+                errorElement: 'span',
+
+                errorPlacement: function (error, element) {
+                    error.addClass('invalid-feedback');
+                    element.closest('.form-group').append(error);
+                },
+
+                highlight: function (element, errorClass, validClass) {
+                    $(element).addClass(errorClass).removeClass(validClass);
+
+                    $(element).closest('.form-group')
+                        .find('label')
+                        .addClass('text-danger')
+                        .removeClass('text-success')
+
+                },
+
+                unhighlight: function (element, errorClass, validClass) {
+                    $(element).removeClass(errorClass).addClass(validClass);
+
+                    $(element).closest('.form-group')
+                        .find('label')
+                        .addClass('text-success')
+                        .removeClass('text-danger')
+                },
+
+                submitHandler: function (form) {
+                    form.submit();
+                }
+            });
+        });
+</script>
+{% endblock content %}

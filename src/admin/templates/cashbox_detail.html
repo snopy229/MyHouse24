@@ -1,0 +1,195 @@
+{% extends "base_admin.html" %}
+{% block title %}
+    {% if cashbox.status == 'CM' %}
+        Приходная ведомость
+    {% elif cashbox.status == 'OG' %}
+        Расходная ведомость
+    {% endif %}
+{% endblock title %}
+{% block content_header %}
+    {% if cashbox.status == 'CM' %}
+        Приходная ведомость
+    {% elif cashbox.status == 'OG' %}
+        Расходная ведомость
+    {% endif %}
+{% endblock content_header %}
+{% block content_url %}
+    {% if cashbox.status == 'CM' %}
+        <li>
+            <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+        </li>
+        <li>
+            <a href="{% url 'admin:cashbox-list' %}">Платежи</a>
+        </li>
+        <li class="active">Приходная ведомость №{{ cashbox.number }}</li>
+    {% elif cashbox.status == 'OG' %}
+        <li>
+            <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+        </li>
+        <li>
+            <a href="{% url 'admin:cashbox-list' %}">Платежи</a>
+        </li>
+        <li class="active">Расходная ведомость №{{ cashbox.number }}</li>
+    {% endif %}
+{% endblock content_url %}
+{% block content %}
+    <section class="content">
+        <div class="row">
+            <div class="col-xs-12 col-md-7 col-lg-6">
+                <div class="page-header-spec">
+                    <div class="form-group">
+                        <div class="input-group date">
+                            <div class="input-group-addon">№</div>
+                            <div class="form-control pull-right">{{ cashbox.number }}</div>
+                        </div>
+                    </div>
+                    <span class="label-mid">от</span>
+                    <div class="form-group">
+                        <div class="input-group date">
+                            <div class="input-group-addon">
+                                <i class="glyphicon glyphicon-calendar"></i>
+                            </div>
+                            <div class="form-control pull-right">{{ cashbox.date }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="box">
+            <div class="box-header with-border">
+                <h3 class="box-title">Приходная ведомость</h3>
+                <div class="box-tools">
+                    {% if cashbox.status == 'CM' %}
+                        <a href="{% url 'admin:cashbox-create-in' %}?source_id={{ cashbox.id }}"
+                           class="btn btn-default btn-sm">
+                            <span class="hidden-xs">Копировать</span><i class="fa fa-print visible-xs" aria-hidden="true"></i></a>
+                    {% elif cashbox.status == 'OG' %}
+                        <a href="{% url 'admin:cashbox-create-out' %}?source_id={{ cashbox.id }}"
+                           class="btn btn-default btn-sm">
+                            <span class="hidden-xs">Копировать</span><i class="fa fa-print visible-xs" aria-hidden="true"></i>
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'admin:cashbox-delete' cashbox.id %}"
+                       class="btn btn-default btn-sm"
+                       data-method="post"
+                       data-confirm="Вы уверены, что хотите удалить этот элемент?">
+                        <span class="hidden-xs">Удалить</span><i class="fa fa-envelope-o visible-xs" aria-hidden="true"></i>
+                    </a>
+                    {% if cashbox.status == 'CM' %}
+                        <a href="{% url 'admin:cashbox-edit-in' cashbox.id %}"
+                           class="btn btn-primary btn-sm">
+                            <span class="hidden-xs">Редактировать ведомость</span>
+                            <i class="fa fa-pencil visible-xs" aria-hidden="true"></i>
+                        </a>
+                    {% elif cashbox.status == 'OG' %}
+                        <a href="{% url 'admin:cashbox-edit-out' cashbox.id %}"
+                           class="btn btn-primary btn-sm">
+                            <span class="hidden-xs">Редактировать ведомость</span>
+                            <i class="fa fa-pencil visible-xs" aria-hidden="true"></i>
+                        {% endif %}
+                    </a>
+                    <a class="btn btn-default btn-sm"
+                       href="#"
+                       onclick="downloadFile(); return false;">
+                        <span class="hidden-xs">Выгрузить в Excel</span><i class="fa fa-pencil visible-xs" aria-hidden="true"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="box-body">
+                <table class="table table-bordered table-striped table-view">
+                    <tbody>
+                        <tr>
+                            <td>Владелец квартиры</td>
+                            <td>
+                                {% if cashbox.owner %}
+                                    <a href="{% url 'admin:detail-owner' cashbox.owner.id %}">{{ cashbox.owner.fullname }}</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Лицевой счет</td>
+                            <td>
+                                {% if cashbox.bank_book %}
+                                    <a href="{% url 'admin:bankbook-detail' cashbox.bank_book.id %}">{{ cashbox.bank_book.number }}</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Статья</td>
+                            <td>
+                                {% if cashbox.article %}{{ cashbox.article.title }}{% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Квитанция</td>
+                            <td>
+                                {% if cashbox.receipt %}
+                                    <a href="{% url 'admin:receipt-detail' cashbox.receipt.id %}">{{ cashbox.bank_book.number }}</a>
+                                {% else %}
+                                    не указано
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Менеджер</td>
+                            <td>
+                                {% if cashbox.manager %}
+                                    <a href="{% url 'settings:user-detail' cashbox.manager.id %}">{{ cashbox.manager.fullname }}</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Сумма</td>
+                            <td>
+                                <span class="text-green">{{ cashbox.sum }}</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Комментарий</td>
+                            <td>{{ cashbox.comment|default:'' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+    <script>
+        async function downloadFile() {
+            try {
+                const startResponse = await fetch("{% url 'admin:cashbox-download' cashbox.id %}");
+                const {task_id} = await startResponse.json();
+                let baseUrl = "{% url 'admin:export-status' task_id='0' %}";
+
+                const interval = setInterval(async () => {
+                    try {
+                        const res = await fetch(baseUrl.replace('0', task_id));
+
+                        if (!res.ok) throw new Error();
+
+                        const data = await res.json();
+
+                        if (data.status === 'done') {
+                            clearInterval(interval);
+
+                            if (data.url) {
+                                const link = document.createElement('a');
+                                link.href = data.url;
+                                link.setAttribute('download', '');
+                                document.body.appendChild(link);
+                                link.click();
+                                link.remove();
+                            }
+                        } else if (data.status === 'error') {
+                            clearInterval(interval);
+                        }
+                    } catch (err) {
+                        clearInterval(interval);
+                    }
+                }, 1500);
+
+            } catch (error) {
+                console.error(error);
+            }
+        }
+    </script>
+{% endblock content %}

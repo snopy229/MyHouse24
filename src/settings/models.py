@@ -30,6 +30,9 @@ class Article(models.Model):
     title = models.CharField(max_length=200)
     type = models.CharField(choices=TransactionType)
 
+    def __str__(self):
+        return self.title
+
 
 class Tariffs(models.Model):
     title = models.CharField(max_length=200)

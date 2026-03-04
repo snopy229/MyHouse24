@@ -3,14 +3,14 @@
     {% if 'create' in request.path %}
         Новый лицевой счет
     {% elif 'edit' in request.path %}
-        Профиль владельца
+        Лицевой счет
     {% endif %}
 {% endblock title %}
 {% block content_header %}
     {% if 'create' in request.path %}
         Новый лицевой счет
     {% elif 'edit' in request.path %}
-        Профиль владельца
+        Лицевой счет
     {% endif %}
 {% endblock content_header %}
 {% block content_url %}
@@ -30,7 +30,7 @@
             <a href="{% url 'admin:bankbook-list' %}">Лицевые счета</a>
         </li>
         <li>
-            <a href="#">Лицевой счет №{{ bankbook.number }}</a>
+            <a href="{% url 'admin:bankbook-detail' bankbook.id %}">Лицевой счет №{{ bankbook.number }}</a>
         </li>
         <li class="active">Редактированиеь</li>
     {% endif %}
@@ -79,7 +79,10 @@
                                 </a>
                             </p>
                             <p>
-                                <b>Телефон:</b><span id="user-phone">не выбран</span>
+                                <b>Телефон:</b>
+                                <a id="phone-link" href="#" class="disabled" target="_blank">
+                                    <span id="user-phone">не выбран</span>
+                                </a>
                             </p>
                         </div>
                     </div>
@@ -169,11 +172,23 @@
                     dataType: 'json',
                     delay: 250,
                     data: function (params) {
-                        return {
+                        let requestData = {
                             q: params.term,
-                            page: params.page,
-                            house_id: $('#id_house').val()
+                            page: params.page || 1
                         };
+
+                        let houseId = $('#id_house').val();
+                        let sectionId = $('#id_section').val();
+
+                        if (houseId) {
+                            requestData.house_id = houseId;
+                        }
+
+                        if (sectionId) {
+                            requestData.section_id = sectionId;
+                        }
+
+                        return requestData;
                     },
                     processResults: function (data) {
                         return {
@@ -189,8 +204,9 @@
                 $.get(`/api/admin/apartment/${apartmentId}/owner`, function (data) {
                     $('#user-fullname').text(data.fullname);
                     $('#user-phone').text(data.phone_number);
+                    $('#phone-link').text(data.url_phone);
                     if (data.url) {
-                        $('#user-link').attr('href', data.url).removeClass('disabled');
+                        $('#user-link').attr('href', data.url_owner).removeClass('disabled');
                     } else {
                         $('#user-link').attr('href', '#').addClass('disabled');
                     }

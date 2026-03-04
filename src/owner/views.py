@@ -5,9 +5,10 @@ from ajax_datatable import AjaxDatatableView
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.checks import messages
+from django.core.mail import send_mail
 from django.db.models import Sum, Q
 from django.db.models.functions import TruncMonth
-from django.http import HttpResponse, HttpResponseRedirect, request
+from django.http import HttpResponseRedirect, request, HttpResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -21,10 +22,12 @@ from django.views.generic import (
     TemplateView,
     DeleteView,
     ListView,
+    UpdateView,
 )
 from rest_framework.reverse import reverse_lazy
 from weasyprint import HTML
 
+from src.admin.forms import OwnerForm
 from src.admin.choices import StatusCall, StatusReceipt
 from src.owner.forms import MasterCallForm, CashBoxForm
 from src.admin.models import (
@@ -38,6 +41,10 @@ from src.admin.models import (
     ServiceFullCost,
 )
 from src.user.views import User
+
+
+class Error(TemplateView):
+    template_name = "owner_error.html"
 
 
 class ApartmentOwnerDetail(DetailView):
@@ -127,6 +134,34 @@ class ProfileDetail(LoginRequiredMixin, DetailView):
 
     def get_object(self, queryset=None):
         return self.request.user
+
+
+class EditUser(LoginRequiredMixin, UpdateView):
+    model = User
+    template_name = "owner_edit.html"
+    context_object_name = "owner"
+    form_class = OwnerForm
+
+    def get_object(self, queryset=...):
+        return self.request.user
+
+    def form_valid(self, form):
+        user = form.save(commit=False)
+        user.is_staff = False
+        user_email = form.cleaned_data.get("email")
+        raw_password = form.cleaned_data.get("password1")
+        if len(raw_password) != 0:
+            try:
+                send_mail(
+                    subject="Создания пароля",
+                    message=f"Новый пароль: {raw_password}",
+                    from_email=None,
+                    recipient_list=[user_email],
+                )
+            except Exception as e:
+                print(f"Ошибка отправки: {e}")
+
+        return HttpResponseRedirect(reverse_lazy("owner:profile-detail"))
 
 
 class MasterCallListView(LoginRequiredMixin, TemplateView):
@@ -380,6 +415,7 @@ class ReceiptAjaxTable(AjaxDatatableView):
         return columns
 
     def customize_row(self, row, obj):
+        css_class = ""
         if obj.status == StatusReceipt.PAID:
             css_class = "label label-success"
         elif obj.status == StatusReceipt.PART:
@@ -404,9 +440,6 @@ class ReceiptAjaxTable(AjaxDatatableView):
         if apartment_id:
             qs = qs.filter(apartment_id=apartment_id)
 
-        print(
-            f"DEBUG: User: {self.request.user}, PK: {apartment_id}, Count: {qs.count()}"
-        )
         return qs
 
 

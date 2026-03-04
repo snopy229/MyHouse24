@@ -1,4 +1,19 @@
 {% extends "base_admin.html" %}
+{% block title %}
+    Новое сообщение
+{% endblock title %}
+{% block content_header %}
+    Новое сообщение
+{% endblock content_header %}
+{% block content_url %}
+    <li>
+        <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+    </li>
+    <li>
+        <a href="{% url 'admin:message-list' %}">Сообщения</a>
+    </li>
+    <li class="active">Новое сообщение</li>
+{% endblock content_url %}
 {% block content %}
     <section class="content">
         <div class="box">
@@ -111,10 +126,28 @@
                     dataType: 'json',
                     delay: 250,
                     data: function (params) {
-                        return {
+                        let requestData = {
                             q: params.term,
-                            page: params.page,
-                            house_id: $('#id_house').val()
+                            page: params.page || 1
+                        };
+
+                        let houseId = $('#id_house').val();
+                        let sectionId = $('#id_section').val();
+
+                        if (houseId) {
+                            requestData.house_id = houseId;
+                        }
+
+                        if (sectionId) {
+                            requestData.section_id = sectionId;
+                        }
+
+                        return requestData;
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.results,
+                            pagination: data.pagination
                         };
                     }
                 }

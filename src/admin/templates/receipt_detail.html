@@ -1,4 +1,19 @@
 {% extends "base_admin.html" %}
+{% block title %}
+    Квитанция
+{% endblock title %}
+{% block content_header %}
+    Квитанция
+{% endblock content_header %}
+{% block content_url %}
+    <li>
+        <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+    </li>
+    <li>
+        <a href="{% url 'admin:receipt-list' %}">Квитанция</a>
+    </li>
+    <li class="active">Квитанция №{{ receipt.number }}</li>
+{% endblock content_url %}
 {% block content %}
     <section class="content">
         <div class="row">
@@ -7,7 +22,7 @@
                     <div class="form-group">
                         <div class="input-group date">
                             <div class="input-group-addon">№</div>
-                            <div class="form-control pull-right">04022601496</div>
+                            <div class="form-control pull-right">{{ receipt.number }}</div>
                         </div>
                     </div>
                     <span class="label-mid">от</span>
@@ -16,7 +31,7 @@
                             <div class="input-group-addon">
                                 <i class="glyphicon glyphicon-calendar"></i>
                             </div>
-                            <div class="form-control pull-right">04.02.2026</div>
+                            <div class="form-control pull-right">{{ receipt.date }}</div>
                         </div>
                     </div>
                 </div>
@@ -26,10 +41,12 @@
             <div class="box-header with-border">
                 <h3 class="box-title">Просмотр квитанции</h3>
                 <div class="box-tools">
-                    <a href="#" class="btn btn-default btn-sm">
+                    <a href="{% url 'admin:receipt-templates' receipt.id %}"
+                       class="btn btn-default btn-sm">
                         <span class="hidden-xs">Печать</span><i class="fa fa-print visible-xs" aria-hidden="true"></i>
                     </a>
-                    <a href="#" class="btn btn-default btn-sm">
+                    <a href="{% url 'admin:receipt-templates' receipt.id %}"
+                       class="btn btn-default btn-sm">
                         <span class="hidden-xs">Отправить на e-mail</span><i class="fa fa-envelope-o visible-xs" aria-hidden="true"></i>
                     </a>
                     <a href="{% url 'admin:receipt-edit' receipt.pk %}"

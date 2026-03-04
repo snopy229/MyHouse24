@@ -1,4 +1,16 @@
 {% extends "base_admin.html" %}
+{% block title %}
+    Тарифы
+{% endblock title %}
+{% block content_header %}
+    Тарифы
+{% endblock content_header %}
+{% block content_url %}
+    <li>
+        <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+    </li>
+    <li class="active">Тарифы</li>
+{% endblock content_url %}
 {% block content %}
     <style>
         .col-actions {
@@ -19,51 +31,8 @@
                 <div class="box">
                     <div id="w0" class="grid-view">
                         <div class="box-body table-responsive no-padding">
-                            <table class="table table-bordered table-hover table-striped linkedRow">
-                                <thead>
-                                    <tr>
-                                        <th>
-                                            <a data-sort="name">Название тарифа</a>
-                                        </th>
-                                        <th>Описание тарифа</th>
-                                        <th>Дата редактирования</th>
-                                        <th class="col-actions">&nbsp;</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for tariff in tariffs %}
-                                        <tr data-href="/admin/tariff/{{ tariff.pk }}" data-key="{{ tariff.pk }}">
-                                            <td>{{ tariff.title }}</td>
-                                            <td>{{ tariff.description }}</td>
-                                            <td>{{ tariff.edited_at }}</td>
-                                            <td>
-                                                <div class="btn-group pull-right">
-                                                    <a class="btn btn-default btn-sm"
-                                                       href="#"
-                                                       title="Копировать"
-                                                       data-toggle="tooltip">
-                                                        <i class="fa fa-clone"></i>
-                                                    </a>
-                                                    <a class="btn btn-default btn-sm"
-                                                       href="#"
-                                                       title="Редактировать"
-                                                       data-toggle="tooltip">
-                                                        <i class="fa fa-pencil"></i>
-                                                    </a>
-                                                    <a class="btn btn-default btn-sm"
-                                                       href="#"
-                                                       title="Удалить"
-                                                       data-toggle="tooltip"
-                                                       data-pjax="0"
-                                                       data-method="post"
-                                                       data-confirm="Вы уверены, что хотите удалить этот элемент?">
-                                                        <i class="fa fa-trash"></i>
-                                                    </a>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
+                            <table id="tariff-table"
+                                   class="table table-bordered table-hover table-striped linkedRow">
                             </table>
                         </div>
                         <div class="box-footer clearfix"></div>
@@ -73,3 +42,35 @@
         </div>
     </section>
 {% endblock content %}
+{% block extra_js %}
+    <script language="javascript">
+        $(document).ready(function () {
+            AjaxDatatableViewUtils.initialize_table(
+                $('#tariff-table'),
+                "{% url 'settings:tariffs-table' %}",
+                {
+                    width: '100%',
+                    processing: false,
+                    autoWidth: false,
+                    scrollX: false,
+                    lengthChange: false,
+                    pageLength: 50,
+                    searching: true,
+                    pagingType: 'numbers',
+                    showing: false,
+                    dom: '<"box-body"t><"box-footer clearfix"p>',
+                    info: false,
+                    bFilter: true,
+                    ordering: true,
+                    order: [[0, 'asc']],
+                },
+            );
+            $('body').on('click', 'tr[data-href]', function (e) {
+                if ($(e.target).closest('a, button, .btn').length) {
+                    return;
+                }
+                window.location = $(this).data('href');
+            });
+        });
+    </script>
+{% endblock extra_js %}

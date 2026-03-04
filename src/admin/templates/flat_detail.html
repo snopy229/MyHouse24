@@ -37,14 +37,25 @@
             <div class="box-header with-border">
                 <h3 class="box-title">Просмотр квартиры</h3>
                 <div class="box-tools">
-                    <button class="btn btn-default btn-sm disabled"
-                            data-confirm="Лицевой счет неактивен">
-                        <span class="hidden-xs"><i class="fa fa-dollar"></i> Принять платеж</span><i class="fa fa-pencil visible-xs" aria-hidden="true"></i>
-                    </button>
-                    <button class="btn btn-default btn-sm disabled"
-                            data-confirm="Лицевой счет неактивен">
-                        <span class="hidden-xs"><i class="fa fa-files-o"></i> Оформить квитанцию</span><i class="fa fa-pencil visible-xs" aria-hidden="true"></i>
-                    </button>
+                    {% if apartment.bankbook.status != 'ACTIVE' or not apartment.bankbook %}
+                        <button class="btn btn-default btn-sm disabled"
+                                data-confirm="Лицевой счет неактивен или не привязан к квартире">
+                            <span class="hidden-xs"><i class="fa fa-dollar"></i> Принять платеж</span><i class="fa fa-pencil visible-xs" aria-hidden="true"></i>
+                        </button>
+                        <button class="btn btn-default btn-sm disabled"
+                                data-confirm="Лицевой счет неактивен или не привязан к квартире">
+                            <span class="hidden-xs"><i class="fa fa-files-o"></i> Оформить квитанцию</span><i class="fa fa-pencil visible-xs" aria-hidden="true"></i>
+                        </button>
+                    {% else %}
+                        <a href="{% url 'admin:cashbox-create-in' %}?bankbook_id={{ apartment.bankbook.id }}"
+                           class="btn btn-default btn-sm">
+                            <span class="hidden-xs"><i class="fa fa-dollar"></i> Принять платеж</span><i class="fa fa-pencil visible-xs" aria-hidden="true"></i>
+                        </a>
+                        <a href="{% url 'admin:receipt-create' %}?source_id={{ apartment.bankbook.id }}"
+                           class="btn btn-default btn-sm">
+                            <span class="hidden-xs"><i class="fa fa-files-o"></i> Оформить квитанцию</span><i class="fa fa-pencil visible-xs" aria-hidden="true"></i>
+                        </a>
+                    {% endif %}
                     <a href="{% url 'admin:edit-flat' pk=apartment.id %}"
                        class="btn btn-primary btn-sm">
                         <span class="hidden-xs">Редактировать квартиру</span><i class="fa fa-pencil visible-xs" aria-hidden="true"></i>
@@ -58,11 +69,17 @@
                             <tbody>
                                 <tr>
                                     <td>Лицевой счет</td>
-                                    <td>{{ apartment.bank_book_set.number }}</td>
+                                    <td>
+                                        {% if apartment.bankbook %}
+                                            <a href="{% url 'admin:bankbook-detail' apartment.bankbook.id %}">{{ apartment.bankbook.number }}</a>
+                                        {% else %}
+                                            Не указано
+                                        {% endif %}
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>Номер квартиры</td>
-                                    <td>{{ apartment.number|default:'не указано' }}</td>
+                                    <td>{{ apartment.number }}</td>
                                 </tr>
                                 <tr>
                                     <td>Площадь</td>
@@ -87,10 +104,8 @@
                                 <tr>
                                     <td>Владелец</td>
                                     <td>
-                                        {% if apartment.owner.first_name or apartment.owner.second_name or apartment.owner.third_name %}
-                                            {{ apartment.owner.first_name|default:'' }}
-                                            {{ apartment.owner.second_name|default:'' }}
-                                            {{ apartment.owner.third_name|default:'' }}
+                                        {% if apartment.owner %}
+                                            <a href="{% url 'admin:detail-owner' apartment.owner.id %}">{{ apartment.owner.fullname }}</a>
                                         {% else %}
                                             не указано
                                         {% endif %}
@@ -98,7 +113,13 @@
                                 </tr>
                                 <tr>
                                     <td>Тариф</td>
-                                    <td>{{ apartment.tariff.title }}</td>
+                                    <td>
+                                        {% if apartment.tariff %}
+                                            <a href="{% url 'settings:tariff-detail' apartment.tariff.id %}">{{ apartment.tariff.title }}</a>
+                                        {% else %}
+                                            Не указано
+                                        {% endif %}
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -108,11 +129,16 @@
                                 показания счетчиков</a>
                             </p>
                             <p>
-                                <a href="#">Посмотреть
-                                приходы</a>
+                                {% if apartment.bankbook %}
+                                    <a href="{% url "admin:cashbox-list" %}?bank_book_id={{ apartment.bankbook.id }}">Посмотреть
+                                    приходы</a>
+                                {% else %}
+                                    <a href="#">Посмотреть приходы</a>
+                                {% endif %}
                             </p>
                             <p>
-                                <a href="#">Посмотреть квитанции</a>
+                                <a href="{% url "admin:receipt-list" %}?apartment_id={{ apartment.id }}">Посмотреть
+                                квитанции</a>
                             </p>
                         </div>
                     </div>

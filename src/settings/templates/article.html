@@ -1,7 +1,37 @@
 {% extends "base_admin.html" %}
 {% block title %}
-    Редактирование статьи
+    {% if 'create' in request.path %}
+        Редактирование
+    {% elif 'edit' in request.path %}
+        Редактирование
+    {% endif %}
 {% endblock title %}
+{% block content_header %}
+    {% if 'create' in request.path %}
+        Редактирование
+    {% elif 'edit' in request.path %}
+        Редактирование
+    {% endif %}
+{% endblock content_header %}
+{% block content_url %}
+    {% if 'create' in request.path %}
+        <li>
+            <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+        </li>
+        <li>
+            <a href="{% url 'settings:article-list' %}"><i class="fa fa-home"></i>Статьи приходов/расходов</a>
+        </li>
+        <li class="active">Редактирование</li>
+    {% elif 'edit' in request.path %}
+        <li>
+            <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+        </li>
+        <li>
+            <a href="{% url 'settings:article-list' %}">Статьи приходов/расходов</a>
+        </li>
+        <li class="active">Редактирование</li>
+    {% endif %}
+{% endblock content_url %}
 {% block content %}
     <section class="content">
         <div class="box">

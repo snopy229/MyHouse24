@@ -1,0 +1,46 @@
+{% extends "base_admin.html" %}
+{% block title %}
+    Пригласить владельца квартир
+{% endblock title %}
+{% block content_header %}
+    Пригласить владельца квартир
+{% endblock content_header %}
+{% block content_url %}
+    <li>
+        <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+    </li>
+    <li>
+        <a href="{% url 'admin:owner-list' %}">Владельцы квартир</a>
+    </li>
+    <li class="active">Пригласить владельца квартир</li>
+{% endblock content_url %}
+{% block content %}
+    <section class="content">
+        <div class="box">
+            <div class="box-header with-border">
+                <h3 class="box-title">Отправить приглашение</h3>
+            </div>
+            <div class="box-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-6">
+                            <div class="form-group field-email">
+                                <label class="control-label" for="email">Email</label>
+                                {{ form.email }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-12 text-center">
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-success">Отправить приглашение</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div
+</section>
+{% endblock content %}

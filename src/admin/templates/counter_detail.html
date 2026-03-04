@@ -7,13 +7,14 @@
 {% endblock content_header %}
 {% block content_url %}
     <li>
-        <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+        <a href="{% url 'admin:statistic' %}"><i class=" fa fa-home"></i>Главная</a>
     </li>
     <li>
-        <a href="{% url 'admin:counter-list' %}"><i class="fa fa-home"></i> Счетчики</a>
+        <a href="{% url 'admin:counter-list' %}">Счетчики</a>
     </li>
     <li>
-        <a href="{% url "admin:counter-specific-list" %}?apartment_id={{ counter.apartment.id }}"><i class=" fa fa-home"></i> Показания счетчиков, кв.{{ counter.apartment.number }}</a>
+        <a href="{% url "admin:counter-specific-list" %}?apartment_id={{ counter.apartment.id }}"> Показания счетчиков,
+        кв.{{ counter.apartment.number }}</a>
     </li>
     <li class="active">Показание счетчикa №{{ counter.number }}</li>
 {% endblock content_url %}
@@ -78,7 +79,7 @@
                                 <tr>
                                     <td>Пользователь</td>
                                     <td>
-                                        <a href="{% url 'admin:detail-owner' pk=counter.apartment.owner.id %} pk=counter.apartment.owner.id %} ">
+                                        <a href="{% url 'admin:detail-owner' counter.apartment.owner.id %} pk=counter.apartment.owner.id %} ">
                                         {{ counter.apartment.owner.fullname }} </a>
                                     </td>
                                 </tr>
@@ -93,7 +94,7 @@
                                 <tr>
                                     <td>Статус</td>
                                     <td>
-                                        <small class="label label-success">{{ counter.status }}</small>
+                                        <small class="label label-success">{{ counter.get_status_display }}</small>
                                     </td>
                                 </tr>
                             </tbody>

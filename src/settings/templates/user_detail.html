@@ -1,4 +1,19 @@
 {% extends "base_admin.html" %}
+{% block title %}
+    Пользователь
+{% endblock title %}
+{% block content_header %}
+    Пользователь
+{% endblock content_header %}
+{% block content_url %}
+    <li>
+        <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+    </li>
+    <li>
+        <a href="{% url 'settings:users-list' %}">Пользователи</a>
+    </li>
+    <li class="active">Пользователь</li>
+{% endblock content_url %}
 {% block content %}
     <section class="content">
         <div class="box">
@@ -19,9 +34,8 @@
                                 <tr>
                                     <td>Пользователь</td>
                                     <td>
-                                        {% if user.first_name or user.second_name %}
-                                            {{ user.first_name|default:'' }}
-                                            {{ user.second_name|default:'' }}
+                                        {% if staff.fullname %}
+                                            {{ staff.fullname }}
                                         {% else %}
                                             не указано
                                         {% endif %}
@@ -29,24 +43,24 @@
                                 </tr>
                                 <tr>
                                     <td>Роль</td>
-                                    <td>{{ user.role|default:'(не задано)' }}</td>
+                                    <td>{{ staff.role|default:'(не задано)' }}</td>
                                 </tr>
                                 <tr>
                                     <td>Телефон</td>
-                                    <td>{{ user.phone_number|default:'(не задано)' }}</td>
+                                    <td>{{ staff.phone_number|default:'(не задано)' }}</td>
                                 </tr>
                                 <tr>
                                     <td>Email(логин)</td>
-                                    <td>{{ user.email|default:'(не задано)' }}</td>
+                                    <td>{{ staff.email|default:'(не задано)' }}</td>
                                 </tr>
                                 <tr>
                                     <td>Статус</td>
                                     <td>
-                                        {% if user.status == 'active' %}
+                                        {% if staff.status == 'active' %}
                                             <small class="label label-success">Активен</small>
-                                        {% elif user.status == 'new' %}
+                                        {% elif staff.status == 'new' %}
                                             <small class="label label-warning">Новый</small>
-                                        {% elif user.status == 'inactive' %}
+                                        {% elif staff.status == 'inactive' %}
                                             <small class="label label-danger">Отключен</small>
                                         {% endif %}
                                     </td>

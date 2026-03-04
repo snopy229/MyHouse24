@@ -26,7 +26,10 @@ dependencies = [
     "django-redis (>=6.0.0,<7.0.0)",
     "openpyxl (>=3.1.5,<4.0.0)",
     "djangorestframework-simplejwt (>=5.5.1,<6.0.0)",
-    "weasyprint (>=68.0,<69.0)"
+    "weasyprint (>=68.0,<69.0)",
+    "django-hijack (>=3.7.6,<4.0.0)",
+    "redis (>=7.2.0,<8.0.0)",
+    "gunicorn (>=25.1.0,<26.0.0)"
 ]
 
 

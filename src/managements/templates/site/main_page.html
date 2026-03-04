@@ -1,23 +1,43 @@
-{% extends 'base_main.html' %}
+{% extends "base_main.html" %}
 {% block meta %}
     <meta name="title" content="{{ main_page.seo_block.title }}">
     <meta name="description" content="{{ main_page.seo_block.description }}">
     <meta name="keywords" content="{{ main_page.seo_block.keywords }}">
-{% endblock %}
-{% block title %}Главная страница{% endblock %}
+{% endblock meta %}
+{% block title %}
+    Главная страница
+{% endblock title %}
 {% block content %}
     <div class="slider">
         <div>
             <div class="slideTitle hidden-xs">{{ main_page.title }}</div>
-            {% if main_page.slide1 %}<img src="{{ main_page.slide1.url }}" class="img-responsive" alt="">{% endif %}
+            {% if main_page.slide1 %}
+                <img src="{{ main_page.slide1.url }}"
+                     class="img-responsive"
+                     alt=""
+                     width="800"
+                     height="400">
+            {% endif %}
         </div>
         <div>
             <div class="slideTitle hidden-xs">{{ main_page.title }}</div>
-            {% if main_page.slide2 %}<img src="{{ main_page.slide2.url }}" class="img-responsive" alt="">{% endif %}
+            {% if main_page.slide2 %}
+                <img src="{{ main_page.slide2.url }}"
+                     class="img-responsive"
+                     alt=""
+                     width="800"
+                     height="400">
+            {% endif %}
         </div>
         <div>
             <div class="slideTitle hidden-xs">{{ main_page.title }}</div>
-            {% if main_page.slide3 %}<img src="{{ main_page.slide3.url }}" class="img-responsive" alt="">{% endif %}
+            {% if main_page.slide3 %}
+                <img src="{{ main_page.slide3.url }}"
+                     class="img-responsive"
+                     alt=""
+                     width="800"
+                     height="400">
+            {% endif %}
         </div>
     </div>
     <div class="info">
@@ -28,12 +48,6 @@
                         <h1>{{ main_page.title }}</h1>
                     </div>
                     <div class="box">
-                        <b></b>
-                        <h3></h3>
-                        <p>
-                            <b><i></i></b>
-                        </p>
-                        <b></b>
                         <blockquote>
                             <blockquote>
                                 <blockquote>
@@ -42,7 +56,7 @@
                                             <blockquote>
                                                 <blockquote>
                                                     <blockquote>
-                                                        <p></p>
+                                                        .
                                                     </blockquote>
                                                 </blockquote>
                                             </blockquote>
@@ -55,21 +69,11 @@
                         <p>
                             <a target="_blank"
                                rel="nofollow"
-                               href="https://myhouse24.avada-media.ua/"><b></b>https://myhouse24.avada-media.ua/</a>&nbsp;<b></b><i><b></b><b></b></i><b><i></i></b><b></b><b></b><b></b>
+                               href="https://myhouse24.avada-media.ua/">https://myhouse24.avada-media.ua/</a>
                         </p>
-                        <p></p>
-                        <p></p>
                         <div class="row">
                             <div class="col-xs-4">
-                                <a href="/about" class="btn btn-primary">Подробнее</a>
-                            </div>
-                            <div class="col-xs-8">
-                                <a href="https://itunes.apple.com/us/app/%D0%BC%D0%BE%D0%B9%D0%B4%D0%BE%D0%BC24/id1308075440?l=ru&ls=1&mt=8">
-                                    <img src="/img/appstore.png" class="img-responsive imgStore" alt="">
-                                </a>
-                                <a href="https://play.google.com/store/apps/details?id=com.avadamedia.program.myhouse24&hl=uk">
-                                    <img src="/img/googleplay.png" class="img-responsive imgStore" alt="">
-                                </a>
+                                <a href="{% url 'managements:about_us' %}" class="btn btn-primary">Подробнее</a>
                             </div>
                         </div>
                     </div>
@@ -109,7 +113,13 @@
                 </div>
                 <div class="col-xs-12 col-sm-6 col-md-4 advantage-item">
                     <div class="thumbnail">
-                        {% if main_page.block_image_1 %}<img src="{{ main_page.block_image_1.url }}" class="img-responsive" alt="">{% endif %}
+                        {% if main_page.block_image_1 %}
+                            <img src="{{ main_page.block_image_1.url }}"
+                                 class="img-responsive"
+                                 alt=""
+                                 width="300"
+                                 height="200">
+                        {% endif %}
                         <div class="caption">
                             <h3>{{ main_page.title_1 }}</h3>
                             {{ main_page.description_1 | safe }}
@@ -118,7 +128,13 @@
                 </div>
                 <div class="col-xs-12 col-sm-6 col-md-4 advantage-item">
                     <div class="thumbnail">
-                        {% if main_page.block_image_2 %}<img src="{{ main_page.block_image_2.url }}" class="img-responsive" alt="">{% endif %}
+                        {% if main_page.block_image_2 %}
+                            <img src="{{ main_page.block_image_2.url }}"
+                                 class="img-responsive"
+                                 alt=""
+                                 width="300"
+                                 height="200">
+                        {% endif %}
                         <div class="caption">
                             <h3>{{ main_page.title_2 }}</h3>
                             {{ main_page.description_2 | safe }}
@@ -127,7 +143,13 @@
                 </div>
                 <div class="col-xs-12 col-sm-6 col-md-4 advantage-item">
                     <div class="thumbnail">
-                        {% if main_page.block_image_3 %}<img src="{{ main_page.block_image_3.url }}" class="img-responsive" alt="">{% endif %}
+                        {% if main_page.block_image_3 %}
+                            <img src="{{ main_page.block_image_3.url }}"
+                                 class="img-responsive"
+                                 alt=""
+                                 width="300"
+                                 height="200">
+                        {% endif %}
                         <div class="caption">
                             <h3>{{ main_page.title_3 }}</h3>
                             {{ main_page.description_3 | safe }}
@@ -136,7 +158,13 @@
                 </div>
                 <div class="col-xs-12 col-sm-6 col-md-4 advantage-item">
                     <div class="thumbnail">
-                        {% if main_page.block_image_4 %}<img src="{{ main_page.block_image_4.url }}" class="img-responsive" alt="">{% endif %}
+                        {% if main_page.block_image_4 %}
+                            <img src="{{ main_page.block_image_4.url }}"
+                                 class="img-responsive"
+                                 alt=""
+                                 width="300"
+                                 height="200">
+                        {% endif %}
                         <div class="caption">
                             <h3>{{ main_page.title_4 }}</h3>
                             {{ main_page.description_4 | safe }}
@@ -145,7 +173,13 @@
                 </div>
                 <div class="col-xs-12 col-sm-6 col-md-4 advantage-item">
                     <div class="thumbnail">
-                        {% if main_page.block_image_5 %}<img src="{{ main_page.block_image_5.url }}" class="img-responsive" alt="">{% endif %}
+                        {% if main_page.block_image_5 %}
+                            <img src="{{ main_page.block_image_5.url }}"
+                                 class="img-responsive"
+                                 alt=""
+                                 width="300"
+                                 height="200">
+                        {% endif %}
                         <div class="caption">
                             <h3>{{ main_page.title_5 }}</h3>
                             {{ main_page.description_5 | safe }}
@@ -154,7 +188,13 @@
                 </div>
                 <div class="col-xs-12 col-sm-6 col-md-4 advantage-item">
                     <div class="thumbnail">
-                        {% if main_page.block_image_6 %}<img src="{{ main_page.block_image_6.url }}" class="img-responsive" alt="">{% endif %}
+                        {% if main_page.block_image_6 %}
+                            <img src="{{ main_page.block_image_6.url }}"
+                                 class="img-responsive"
+                                 alt=""
+                                 width="300"
+                                 height="200">
+                        {% endif %}
                         <div class="caption">
                             <h3>{{ main_page.title_6 }}</h3>
                             {{ main_page.description_6 | safe }}
@@ -164,4 +204,4 @@
             </div>
         </div>
     </div>
-{% endblock %}
+{% endblock content %}

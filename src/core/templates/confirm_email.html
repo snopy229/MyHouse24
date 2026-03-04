@@ -1,0 +1,4 @@
+{% autoescape off %}
+    Подтвердить электронную почту:
+    http://{{ domain }}{% url 'user:confirm_email' uidb64=uid token=token %}
+{% endautoescape %}

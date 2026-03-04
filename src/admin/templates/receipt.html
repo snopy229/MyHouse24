@@ -1,4 +1,40 @@
 {% extends "base_admin.html" %}
+{% block title %}
+    {% if 'create' in request.path %}
+        Новая квитанция
+    {% elif 'edit' in request.path %}
+        Квитанция
+    {% endif %}
+{% endblock title %}
+{% block content_header %}
+    {% if 'create' in request.path %}
+        Новая квитанция
+    {% elif 'edit' in request.path %}
+        Квитанция
+    {% endif %}
+{% endblock content_header %}
+{% block content_url %}
+    {% if 'create' in request.path %}
+        <li>
+            <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+        </li>
+        <li>
+            <a href="{% url 'admin:receipt-list' %}">Квитанции</a>
+        </li>
+        <li class="active">Новый лицевой счет</li>
+    {% elif 'edit' in request.path %}
+        <li>
+            <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+        </li>
+        <li>
+            <a href="{% url 'admin:receipt-list' %}">Квитанции</a>
+        </li>
+        <li>
+            <a href="{% url 'admin:receipt-detail' receipt.id %}">Квитанция №{{ receipt.number }}</a>
+        </li>
+        <li class="active">Редактированиеь</li>
+    {% endif %}
+{% endblock content_url %}
 {% block content %}
     <section class="content">
         <div class="invoice-create">
@@ -301,10 +337,28 @@
                     dataType: 'json',
                     delay: 250,
                     data: function (params) {
-                        return {
+                        let requestData = {
                             q: params.term,
-                            page: params.page,
-                            house_id: $('#id_house').val(),
+                            page: params.page || 1
+                        };
+
+                        let houseId = $('#id_house').val();
+                        let sectionId = $('#id_section').val();
+
+                        if (houseId) {
+                            requestData.house_id = houseId;
+                        }
+
+                        if (sectionId) {
+                            requestData.section_id = sectionId;
+                        }
+
+                        return requestData;
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.results,
+                            pagination: data.pagination
                         };
                     }
                 }
@@ -635,6 +689,65 @@
                     },
                 }
             );
+        });
+    </script>
+    <script>
+        $(function () {
+            $('#invoice-form').validate({
+                onfocusout: function (element) {
+                    $(element).valid();
+                },
+                rules: {
+                    apartment: {
+                        required: true,
+                    },
+                    tariff: {
+                        required: true,
+                    },
+                },
+                messages: {
+                    apartment: {
+                        required: "Необходимо заполнить «Квартира».",
+                    },
+                    tariff: {
+                        required: "Необходимо заполнить «Тариф».",
+                    },
+                },
+                errorClass: 'is-invalid',
+                validClass: 'is-valid',
+                errorElement: 'span',
+
+                errorPlacement: function (error, element) {
+                    error.addClass('invalid-feedback');
+                    element.closest('.form-group').append(error);
+                },
+
+                highlight: function (element, errorClass, validClass) {
+                    $(element).addClass(errorClass).removeClass(validClass);
+
+                    $(element).closest('.form-group')
+                        .find('label')
+                        .addClass('text-danger')
+                        .removeClass('text-success')
+
+                },
+
+                unhighlight: function (element, errorClass, validClass) {
+                    $(element).removeClass(errorClass).addClass(validClass);
+
+                    $(element).closest('.form-group')
+                        .find('label')
+                        .addClass('text-success')
+                        .removeClass('text-danger')
+                },
+
+                submitHandler: function (form) {
+                    form.submit();
+                }
+            });
+            $('select').on('select2:select select2:unselect select2:close', function (e) {
+                $(this).valid();
+            });
         });
     </script>
 {% endblock extra_js %}

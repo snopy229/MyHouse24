@@ -12,11 +12,7 @@ class Command(BaseCommand):
             return
         roles = [
             {
-                "title": "Директор",
-            },
-            {
                 "title": "Управляющий",
-                "has_roles": True,
             },
             {
                 "title": "Бухгалтер",
@@ -26,6 +22,9 @@ class Command(BaseCommand):
             },
             {
                 "title": "Сантехник",
+            },
+            {
+                "title": "Слесарь",
             },
         ]
         for role_data in roles:

@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db import transaction
 from django.http import JsonResponse
 from django.urls import reverse, reverse_lazy
@@ -8,14 +9,13 @@ from django.views.generic import (
     ListView,
 )
 
+from src.admin.views import RedirectMixin
 from .forms import (
     MainPageForm,
     SeoBlockForm,
     ContactsForm,
     ServicesAndSeoBlockForm,
     ServicesForSiteFormSet,
-    TariffsAndSeoBlockForm,
-    TariffsForSiteFormSet,
     AboutUsAndSeoBlockForm,
     DocumentFormSet,
 )
@@ -26,7 +26,6 @@ from .models import (
     ServicesAndSeoBlock,
     ServicesForSite,
     TariffsForSite,
-    TariffsAndSeoBlock,
     AboutUsAndSeoBlock,
     Document,
     Images,
@@ -34,11 +33,12 @@ from .models import (
 
 
 # Create your views here.
-class EditMainPage(UpdateView):
+class EditMainPage(RedirectMixin, PermissionRequiredMixin, UpdateView):
     model = "MainPage"
     form_class = MainPageForm
     template_name = "admin/main_page.html"
     context_object_name = "main_page"
+    permission_required = "role.has_site_management"
 
     def get_object(self, queryset=None):
         obj = MainPage.objects.first()
@@ -86,11 +86,12 @@ class MainPageDetail(DetailView):
         return obj
 
 
-class EditContactsPage(UpdateView):
+class EditContactsPage(RedirectMixin, PermissionRequiredMixin, UpdateView):
     model = "Contacts"
     form_class = ContactsForm
     template_name = "admin/contacts.html"
     context_object_name = "contacts"
+    permission_required = "role.has_site_management"
 
     def get_object(self, queryset=None):
         obj = Contacts.objects.first()
@@ -138,10 +139,11 @@ class ContactsDetail(DetailView):
         return obj
 
 
-class EditServicesPage(UpdateView):
+class EditServicesPage(RedirectMixin, PermissionRequiredMixin, UpdateView):
     model = ServicesAndSeoBlock
     form_class = ServicesAndSeoBlockForm
     template_name = "admin/services.html"
+    permission_required = "role.has_site_management"
 
     def get_object(self, queryset=None):
         obj = ServicesAndSeoBlock.objects.first()
@@ -184,8 +186,9 @@ class EditServicesPage(UpdateView):
         return reverse("admin:statistic")
 
 
-class DeleteServiceView(DeleteView):
+class DeleteServiceView(RedirectMixin, PermissionRequiredMixin, DeleteView):
     model = ServicesForSite
+    permission_required = "role.has_site_management"
 
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -201,52 +204,9 @@ class ServicesView(ListView):
     context_object_name = "services"
 
 
-class EditTariffsPage(UpdateView):
-    model = TariffsAndSeoBlock
-    form_class = TariffsAndSeoBlockForm
-    template_name = "admin/tariffs.html"
-
-    def get_object(self, queryset=None):
-        obj = TariffsAndSeoBlock.objects.first()
-        if not obj:
-            seo_block = SeoBlock.objects.create()
-            obj = TariffsAndSeoBlock.objects.create(seo_block=seo_block)
-        return obj
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        seo_instance = self.object.seo_block
-        if self.request.POST:
-            context["seo_form"] = SeoBlockForm(self.request.POST, instance=seo_instance)
-            context["tariffs_formset"] = TariffsForSiteFormSet(
-                self.request.POST, self.request.FILES, instance=self.object
-            )
-        else:
-            context["seo_form"] = SeoBlockForm(instance=seo_instance)
-            context["tariffs_formset"] = TariffsForSiteFormSet(instance=self.object)
-        return context
-
-    def form_valid(self, form):
-        context = self.get_context_data()
-        seo_form = context["seo_form"]
-        tariffs_formset = context["tariffs_formset"]
-
-        if seo_form.is_valid() and tariffs_formset.is_valid():
-            with transaction.atomic():
-                self.object = form.save()
-                seo_form.save()
-                tariffs_formset.save()
-            return super().form_valid(form)
-        else:
-            print(f"ERRORS: {seo_form.errors}")
-            print(f"ERRORS: {tariffs_formset.errors}")
-
-    def get_success_url(self):
-        return reverse("admin:statistic")
-
-
-class DeleteTariffView(DeleteView):
+class DeleteTariffView(RedirectMixin, PermissionRequiredMixin, DeleteView):
     model = TariffsForSite
+    permission_required = "role.has_site_management"
 
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -256,11 +216,12 @@ class DeleteTariffView(DeleteView):
     post = delete
 
 
-class EditAboutUsPage(UpdateView):
+class EditAboutUsPage(RedirectMixin, PermissionRequiredMixin, UpdateView):
     model = AboutUsAndSeoBlock
     form_class = AboutUsAndSeoBlockForm
     template_name = "admin/about_us.html"
     context_object_name = "about_us"
+    permission_required = "role.has_site_management"
 
     def get_object(self, queryset=None):
         obj = AboutUsAndSeoBlock.objects.first()
@@ -301,9 +262,22 @@ class EditAboutUsPage(UpdateView):
         return reverse("admin:statistic")
 
 
-class DeleteImageView(DeleteView):
+class AboutUsPage(DetailView):
+    model = AboutUsAndSeoBlock
+    template_name = "site/about_us.html"
+
+    def get_object(self, queryset=None):
+        obj = AboutUsAndSeoBlock.objects.first()
+        if not obj:
+            seo_block = SeoBlock.objects.create()
+            obj = AboutUsAndSeoBlock.objects.create(seo_block=seo_block)
+        return obj
+
+
+class DeleteImageView(RedirectMixin, PermissionRequiredMixin, DeleteView):
     model = Images
     success_url = reverse_lazy("admin:statistic")
+    permission_required = "role.has_site_management"
 
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -313,8 +287,9 @@ class DeleteImageView(DeleteView):
     post = delete
 
 
-class DeleteDocument(DeleteView):
+class DeleteDocument(RedirectMixin, PermissionRequiredMixin, DeleteView):
     model = Document
+    permission_required = "role.has_site_management"
 
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()

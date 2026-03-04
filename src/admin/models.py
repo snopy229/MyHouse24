@@ -1,18 +1,18 @@
 from ckeditor.fields import RichTextField
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.core.validators import FileExtensionValidator
+from django.db import models, transaction
 from django.utils import timezone
 
 from .choices import (
     StatusBankBook,
     StatusCounter,
     StatusCall,
-    MasterType,
     StatusReceipt,
     StatusCashBox,
 )
 from src.settings.models import Tariffs, Service, UnitsOfMeasurement, Article
-from src.user.models import User
+from src.user.models import User, Role
 
 
 # Create your models here.
@@ -68,20 +68,24 @@ class Apartment(models.Model):
 
 
 class BankBook(models.Model):
-    number = models.IntegerField(unique=True)
+    number = models.CharField(unique=True)
     status = models.CharField(
-        choices=StatusBankBook, max_length=10, blank=True, null=True
+        choices=StatusBankBook, max_length=10, blank=True, null=True, default="ACTIVE"
     )
-    apartment = models.OneToOneField(Apartment, on_delete=models.CASCADE)
-    house = models.ForeignKey(House, on_delete=models.CASCADE)
-    section = models.ForeignKey(Section, on_delete=models.CASCADE)
+    apartment = models.OneToOneField(
+        Apartment, on_delete=models.CASCADE, blank=True, null=True
+    )
+    house = models.ForeignKey(House, on_delete=models.CASCADE, blank=True, null=True)
+    section = models.ForeignKey(
+        Section, on_delete=models.CASCADE, blank=True, null=True
+    )
 
     def __str__(self):
         return str(self.number)
 
 
 class Counter(models.Model):
-    number = models.IntegerField(unique=True)
+    number = models.CharField(unique=True, max_length=11)
     date = models.DateField()
     status = models.CharField(choices=StatusCounter, default="NEW")
     house = models.ForeignKey(House, on_delete=models.CASCADE, blank=True, null=True)
@@ -99,12 +103,13 @@ class MasterCall(models.Model):
     owner = models.ForeignKey(
         User, on_delete=models.CASCADE, blank=True, null=True, related_name="owner_set"
     )
-    master_type = models.CharField(choices=MasterType, default="ANY")
+    master_type = models.ForeignKey(Role, on_delete=models.CASCADE)
     description = models.TextField(blank=True, null=True)
     comment = RichTextField(blank=True, null=True)
     master = models.ForeignKey(
         User, on_delete=models.CASCADE, blank=True, null=True, related_name="master_set"
     )
+    created_at = models.DateTimeField(auto_now_add=True)
     apartment = models.ForeignKey(Apartment, on_delete=models.CASCADE)
     call_status = models.CharField(
         choices=StatusCall, blank=True, null=True, default="NEW"
@@ -112,19 +117,19 @@ class MasterCall(models.Model):
 
 
 class Receipt(models.Model):
-    number = models.IntegerField()
+    number = models.CharField(unique=True, max_length=11)
     date = models.DateField()
     house = models.ForeignKey(House, on_delete=models.CASCADE, blank=True, null=True)
-    apartment = models.ForeignKey(Apartment, on_delete=models.CASCADE)
+    apartment = models.ForeignKey(Apartment, on_delete=models.PROTECT)
     section = models.ForeignKey(
-        Section, on_delete=models.CASCADE, blank=True, null=True
+        Section, on_delete=models.PROTECT, blank=True, null=True
     )
     status = models.CharField(choices=StatusReceipt, default="UPD", max_length=10)
-    tariff = models.ForeignKey(Tariffs, on_delete=models.CASCADE, blank=True, null=True)
+    tariff = models.ForeignKey(Tariffs, on_delete=models.PROTECT, blank=True, null=True)
     date_from = models.DateField()
     date_to = models.DateField()
     bankbook = models.ForeignKey(
-        BankBook, on_delete=models.CASCADE, blank=True, null=True
+        BankBook, on_delete=models.PROTECT, blank=True, null=True
     )
     is_catch = models.BooleanField(default=True)
     counter_ids = models.JSONField(
@@ -175,15 +180,17 @@ class MessageStatus(models.Model):
 
 class XlsTemplate(models.Model):
     name = models.CharField(max_length=40)
-    template = models.FilePathField()
+    template = models.FileField(
+        upload_to="templates/",
+        validators=[FileExtensionValidator(allowed_extensions=["xls", "xlsx"])],
+    )
     is_default = models.BooleanField(default=False)
 
-    def save(self, *args, **kwargs):
-        if self.is_default:
-            XlsTemplate.objects.exclude(pk=self.pk).filter(is_default=True).update(
-                is_default=False
-            )
-        super().save(*args, **kwargs)
+    def set_as_default(self):
+        with transaction.atomic():
+            XlsTemplate.objects.filter(is_default=True).update(is_default=False)
+            self.is_default = True
+            self.save(update_fields=["is_default"])
 
     def __str__(self):
         return f"{self.name}{" (по умолчанию)" if self.is_default else ''}"
@@ -224,9 +231,9 @@ class CashBox(models.Model):
 
     def save(self, *args, generate_number=False, **kwargs):
         if generate_number and not self.number:
-            today = timezone.now().strftime("%d%m%Y%")
+            today = timezone.now().strftime("%d%m%Y")
             last_box = CashBox.objects.order_by("-id").first()
             next_id = (last_box.id + 1) if last_box else 0
-            self.number = f"{next_id}{today}"
+            self.number = f"{today}{next_id}"
             self.date = timezone.now().date().strftime("%Y-%m-%d")
         super().save(*args, **kwargs)

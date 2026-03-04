@@ -1,6 +1,14 @@
 from django.urls import path
 
-from settings.views import DetailUser, ArticleAjaxTable, TariffUpdateView, TariffDetail
+from settings.views import (
+    DetailUser,
+    ArticleAjaxTable,
+    TariffUpdateView,
+    TariffDetail,
+    EditRoles,
+    TariffDelete,
+    TariffsAjaxTable,
+)
 from src.settings.views import (
     EditServicesView,
     ArticleList,
@@ -39,4 +47,7 @@ urlpatterns = [
     path("tariff/create/", TariffsCreateView.as_view(), name="tariff-create"),
     path("tariff/edit/<int:pk>/", TariffUpdateView.as_view(), name="tariff-edit"),
     path("tariff/detail/<int:pk>/", TariffDetail.as_view(), name="tariff-detail"),
+    path("tariff/delete/<int:pk>/", TariffDelete.as_view(), name="tariff-delete"),
+    path("tariffs/table/", TariffsAjaxTable.as_view(), name="tariffs-table"),
+    path("roles/", EditRoles.as_view(), name="roles"),
 ]

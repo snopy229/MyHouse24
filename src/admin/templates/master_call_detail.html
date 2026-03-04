@@ -1,0 +1,120 @@
+{% extends "base_admin.html" %}
+{% block title %}
+    Квитанция
+{% endblock title %}
+{% block content_header %}
+    Квитанция
+{% endblock content_header %}
+{% block content_url %}
+    <li>
+        <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+    </li>
+    <li>
+        <a href="{% url 'admin:receipt-list' %}">Квитанция</a>
+    </li>
+    <li class="active">Квитанция №{{ receipt.number }}</li>
+{% endblock content_url %}
+{% block content %}
+    <section class="content">
+        <div class="row">
+            <div class="col-xs-12 col-md-7 col-lg-6">
+                <div class="page-header-spec">
+                    <div class="form-group">
+                        <div class="input-group date">
+                            <div class="input-group-addon">
+                                <i class="glyphicon glyphicon-calendar"></i>
+                            </div>
+                            <div class="form-control pull-right">{{ master_call.date|date:"d.m.Y" }}</div>
+                        </div>
+                    </div>
+                    <span class="label-mid">от</span>
+                    <div class="form-group">
+                        <div class="input-group date">
+                            <div class="input-group-addon">
+                                <i class="glyphicon glyphicon-time"></i>
+                            </div>
+                            <div class="form-control pull-right">{{ master_call.time|date:"H:i" }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box">
+                    <div class="box-header with-border">
+                        <h3 class="box-title"></h3>
+                        <div class="box-tools">
+                            <a href="{% url 'admin:master-call-edit' master_call.id %}"
+                               class="btn btn-primary btn-sm">
+                                <span class="hidden-xs">Редактировать заявку</span><i class="fa fa-pencil visible-xs" aria-hidden="true"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <table class="table table-bordered table-striped table-view">
+                            <tbody>
+                                <tr>
+                                    <td>Статус</td>
+                                    <td>
+                                        {% if master_call.call_status == "NEW" %}
+                                            <small class="label label-primary">Новое</small>
+                                        {% elif master_call.call_status == "IN WORK" %}
+                                            <small class="label label-primary">В работе</small>
+                                        {% elif master_call.call_status == "COMPLETED" %}
+                                            <small class="label label-success">Выполнено</small>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Владелец</td>
+                                    <td>
+                                        {% if master_call.apartment.owner %}
+                                            <a href="{% url 'admin:detail-owner' master_call.apartment.owner.id %}">{{ master_call.apartment.owner.fullname }}</a>
+                                        {% else %}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Телефон</td>
+                                    <td>
+                                        {% if master_call.apartment.owner %}
+                                            {{ master_call.apartment.owner.phone_number }}
+                                        {% else %}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Квартира</td>
+                                    <td>
+                                        <a href="{% url 'admin:flat-detail' master_call.apartment.id %}">
+                                        {{ master_call.apartment.number }}, {{ master_call.house.title }}</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Тип мастера</td>
+                                    <td>{{ master_call.master_type }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Мастер</td>
+                                    <td>
+                                        <a href="{% url 'settings:user-detail' master_call.master.id %}">
+                                        {{ master_call.master.fullname }} ({{ master_call.master.role.title }})</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Описание</td>
+                                    <td>{{ master_call.description }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Добавлено</td>
+                                    <td>{{ master_call.date|date:"d.m.Y" }} {{ master_call.time|date:"H:i" }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock content %}

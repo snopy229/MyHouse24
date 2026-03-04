@@ -3,7 +3,17 @@
 {% block title %}
     Пользователи
 {% endblock title %}
+{% block content_header %}
+    Пользователи
+{% endblock content_header %}
+{% block content_url %}
+    <li>
+        <a href="{% url 'admin:statistic' %}"><i class="fa fa-home"></i> Главная</a>
+    </li>
+    <li class="active">Пользователи</li>
+{% endblock content_url %}
 {% block content %}
+    {{ form.role }}
     <section class="content">
         <div class="row">
             <div class="col-xs-12">
@@ -64,9 +74,8 @@
         }
 
     </style>
-    <script src="//cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
-    <script type="text/javascript"
-            src="{% static 'ajax_datatable/js/utils.js' %}"></script>
+{% endblock content %}
+{% block extra_js %}
     <script language="javascript">
         $(document).ready(function () {
             AjaxDatatableViewUtils.initialize_table(
@@ -85,11 +94,44 @@
                     dom: '<"box-body"t><"box-footer clearfix"p>',
                     info: false,
                     bFilter: true,
-                    ordering: true,  // УЖЕ ЕСТЬ ✓
-                    order: [[0, 'asc']]  // можете добавить начальную сортировку
-                }, {},
-            );
+                    ordering: false,
+                    order: [[0, 'asc']],
+                    initComplete: function (settings, json) {
+                        var api = this.api();
 
+                        function setupCustomSelect(colName, selectId) {
+                            var column = api.column(colName + ':name');
+                            if (column.index() !== undefined) {
+                                var $cell = $(column.footer());
+
+                                if ($cell.length === 0 || $cell.is(':empty')) {
+                                    $cell = $('#user-table thead tr:eq(1) th').eq(column.index());
+                                }
+
+                                $cell.empty();
+
+                                var $select = $(selectId);
+                                $select.appendTo($cell);
+
+                                $cell.on('click', function (e) {
+                                    e.stopPropagation();
+                                });
+                            }
+                        }
+
+                        setupCustomSelect('role', '#id_role');
+
+                    }
+                },
+                {
+                    role: function () {
+                        return $('#id_role').val();
+                    },
+                }
+            );
+            $('#id_role').on('change', function () {
+                $('#user-table').DataTable().ajax.reload();
+            });
             $('#clear-table-filters').on('click', function () {
                 var datatable = $('#user-table').DataTable();
                 datatable.search('');
@@ -108,4 +150,4 @@
             });
         });
     </script>
-{% endblock content %}
+{% endblock extra_js %}

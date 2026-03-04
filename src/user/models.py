@@ -1,6 +1,6 @@
 from django.contrib.auth.base_user import BaseUserManager
 from django.db import models
-from django.contrib.auth.models import AbstractUser, PermissionsMixin
+from django.contrib.auth.models import AbstractUser
 from phonenumber_field.modelfields import PhoneNumberField
 
 from .choices import Status
@@ -32,12 +32,13 @@ class MyUserManager(BaseUserManager):
 
 class Role(models.Model):
     title = models.CharField(max_length=100)
-    has_statics = models.BooleanField(default=False)
+    has_statistics = models.BooleanField(default=False)
     has_cashbox = models.BooleanField(default=False)
     has_invoices = models.BooleanField(default=False)
     has_personal_accounts = models.BooleanField(default=False)
     has_apartments = models.BooleanField(default=False)
     has_owners = models.BooleanField(default=False)
+    has_houses = models.BooleanField(default=False)
     has_messages = models.BooleanField(default=False)
     has_master_requests = models.BooleanField(default=False)
     has_meters = models.BooleanField(default=False)
@@ -47,12 +48,13 @@ class Role(models.Model):
     has_roles = models.BooleanField(default=False)
     has_users = models.BooleanField(default=False)
     has_payment_details = models.BooleanField(default=False)
+    has_article = models.BooleanField(default=False)
 
     def __str__(self):
         return self.title
 
 
-class User(AbstractUser, PermissionsMixin):
+class User(AbstractUser):
     username = None
     email = models.EmailField(
         verbose_name="email address",
@@ -61,7 +63,7 @@ class User(AbstractUser, PermissionsMixin):
     )
     photo = models.ImageField(blank=True, null=True)
     role = models.ForeignKey(Role, on_delete=models.SET_NULL, blank=True, null=True)
-    id_user = models.IntegerField(blank=True, null=True, unique=True)
+    id_user = models.CharField(blank=True, null=True, unique=True)
     second_name = models.CharField(blank=True, null=True, max_length=50)
     last_name = models.CharField(max_length=50, blank=True, null=True)
     birth_date = models.DateField(auto_now=False, blank=True, null=True)
@@ -69,7 +71,8 @@ class User(AbstractUser, PermissionsMixin):
     phone_number = PhoneNumberField(blank=True, null=True)
     viber = PhoneNumberField(blank=True, null=True)
     telegram = models.CharField(blank=True, null=True, max_length=50)
-    status = models.CharField(choices=Status, default=Status.active)
+    status = models.CharField(choices=Status, default=Status.new)
+    email_verify = models.BooleanField(default=False)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
@@ -77,14 +80,17 @@ class User(AbstractUser, PermissionsMixin):
 
     @property
     def fullname(self):
-        parts = [self.second_name, self.first_name, self.last_name]
-        return " ".join(filter(None, parts))
+        if self.second_name or self.first_name or self.last_name:
+            parts = [self.second_name, self.first_name, self.last_name]
+            return " ".join(filter(None, parts))
+        else:
+            return self.email
 
     def __str__(self):
         return f"{self.first_name} {self.second_name}"
 
     def has_perm(self, perm, obj=None):
-        if self.is_staff and self.is_superuser:
+        if self.is_superuser:
             return True
 
         if perm.startswith("role.") and self.role:
