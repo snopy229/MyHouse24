@@ -13,6 +13,9 @@ class Command(BaseCommand):
             return
         roles = [
             {
+                "title": "Директор",
+            },
+            {
                 "title": "Управляющий",
             },
             {
@@ -41,4 +44,6 @@ class Command(BaseCommand):
 
     def create_is_staff(self, *args, **kwargs):
         if not User.objects.filter(is_staff=True).exists():
-            User.objects.create_superuser(email="admin@gamil.com", password="admin")
+            User.objects.create_superuser(
+                email="admin@gamil.com", password="admin", role__title="Директор"
+            )
