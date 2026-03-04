@@ -44,6 +44,8 @@ SECURE_PROXY_SSL_HEADER = None
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = "Lax"
+
 INSTALLED_APPS = [
     "src.user",
     "django.contrib.auth",
