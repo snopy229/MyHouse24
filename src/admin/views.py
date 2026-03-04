@@ -147,18 +147,35 @@ class Statistic(
     template_name = "statistic.html"
     permission_required = "role.has_statistics"
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, request=None, **kwargs):
         context = super().get_context_data()
-        context["houses"] = House.objects.all().count()
-        context["owners"] = User.objects.filter(status="active", is_staff=False).count()
-        context["master_calls_in_work"] = MasterCall.objects.filter(
-            call_status="IN WORK"
-        ).count()
-        context["apartments"] = Apartment.objects.all().count()
-        context["bankbooks"] = BankBook.objects.all().count()
-        context["new_master_call"] = MasterCall.objects.filter(
-            call_status="NEW"
-        ).count()
+        houses = House.objects.all()
+        excluded_roles = [
+            "Директор",
+        ]
+        if request.user.role.title not in excluded_roles:
+            houses = houses.filter(owner=request.user)
+        context["houses"] = houses.count()
+        owners = User.objects.filter(status="active", is_staff=False)
+        if request.user.role.title not in excluded_roles:
+            owners = owners.filter(apartment_set__house__owner=request.user)
+        context["owners"] = owners.count()
+        master_call_in_work = MasterCall.objects.filter(call_status="IN WORK")
+        if request.user.role.title not in excluded_roles:
+            master_call_in_work = master_call_in_work.filter(master=request.user)
+        context["master_calls_in_work"] = master_call_in_work.count()
+        apartments = Apartment.objects.all()
+        if request.user.role.title not in excluded_roles:
+            apartments = apartments.filter(house__owner=request.user)
+        context["apartments"] = apartments.count()
+        bankbook = BankBook.objects.all()
+        if request.user.role.title not in excluded_roles:
+            bankbook = bankbook.filter(house__owner=request.user)
+        context["bankbooks"] = bankbook.count()
+        new_master_call = MasterCall.objects.filter(call_status="NEW")
+        if request.user.role.title not in excluded_roles:
+            new_master_call = new_master_call.filter(master=request.user)
+        context["new_master_call"] = new_master_call.count()
         monthly_stats = (
             ServiceFullCost.objects.all()
             .annotate(month=TruncMonth("receipt__date"))
@@ -1572,7 +1589,7 @@ class MasterCallAjaxDataTable(AjaxDatatableView):
         qs = super().get_initial_queryset().order_by("id")
         excluded_roles = ["Директор", "Управляющий", "Бухгалтер"]
         if request.user.role.title not in excluded_roles:
-            qs = qs.filter(master_type=request.user.role)
+            qs = qs.filter(master=request.user)
 
         master = self.request.POST.get("master")
         date_from = self.request.POST.get("date_from")
