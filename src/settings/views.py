@@ -323,7 +323,7 @@ class CreateUser(CreateView):
 
     def form_invalid(self, form):
         print(form.errors)
-        return
+        return super().form_invalid(form)
 
 
 class DetailUser(DetailView):
