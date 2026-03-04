@@ -267,12 +267,22 @@ class EditUsersPageView(UpdateView):
     success_url = reverse_lazy("settings:users-list")
 
     def form_valid(self, form):
-        raw_password = form.cleaned_data.get("password1")
-        user_email = form.cleaned_data.get("email")
-        if len(raw_password) != 0:
-            send_password(raw_password, user_email).delay()
+        self.object = form.save(commit=False)
+        self.object.is_staff = True
+        self.object.save()
 
-        return super().form_valid(form)
+        role_name = form.cleaned_data.get("role")
+        if role_name:
+            Role.objects.update_or_create(
+                user=self.object,
+                defaults={"name": role_name},
+            )
+
+        raw_password = form.cleaned_data.get("password1")
+        raw_email = form.cleaned_data.get("email")
+        send_password(raw_password, raw_email).delay()
+
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class SendInvite(RedirectView):
@@ -312,7 +322,8 @@ class CreateUser(CreateView):
             )
 
         raw_password = form.cleaned_data.get("password1")
-        send_password(raw_password, self.object.email).delay()
+        raw_email = form.cleaned_data.get("email")
+        send_password(raw_password, raw_email).delay()
 
         return HttpResponseRedirect(self.get_success_url())
 
