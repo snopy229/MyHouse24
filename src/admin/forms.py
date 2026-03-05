@@ -115,11 +115,7 @@ class ApartmentForm(forms.ModelForm):
         model = Apartment
         fields = ["number", "area", "house", "floor", "section", "owner", "tariff"]
         widgets = {
-            "number": forms.NumberInput(
-                attrs={
-                    "class": "form-control",
-                }
-            ),
+            "number": forms.NumberInput(attrs={"class": "form-control"}),
             "area": forms.NumberInput(attrs={"class": "form-control"}),
             "section": Select2Widget(attrs={"class": "form-control"}),
             "floor": Select2Widget(attrs={"class": "form-control"}),
@@ -130,68 +126,56 @@ class ApartmentForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         if self.instance and self.instance.pk:
             bank_book = BankBook.objects.filter(apartment=self.instance).first()
-
             if bank_book:
                 self.fields["bank_book_input"].initial = bank_book.number
 
     def clean(self):
-        cleaned_data = super(ApartmentForm, self).clean()
+        cleaned_data = super().clean()
+        input_num = cleaned_data.get("bank_book_input")
 
-        input_num = self.cleaned_data.get("bank_book_input")
         if input_num:
-            bank_book = BankBook.objects.filter(number=input_num).first()
-            if (
-                bank_book
-                and bank_book.apartment
-                and bank_book.apartment != self.instance
-            ):
+            exists = (
+                BankBook.objects.filter(number=input_num)
+                .exclude(apartment=self.instance)
+                .exists()
+            )
+            if exists:
                 raise ValidationError(
-                    {
-                        "bank_book_input": "Счет уже занят",
-                    }
+                    {"bank_book_input": "Лицевой счет уже привязан к другой квартире"}
                 )
         return cleaned_data
 
     def save(self, commit=True):
         apartment = super().save(commit=commit)
+
         input_num = self.cleaned_data.get("bank_book_input")
-        selected_obj = self.cleaned_data["bank_book_select"]
-        section = self.cleaned_data["section"]
-        house = self.cleaned_data["house"]
-        new_bank_book = None
-        DEFAULT_STATUS_FOR_NEW = "ACTIVE"
+        selected_obj = self.cleaned_data.get("bank_book_select")
+        section = self.cleaned_data.get("section")
+        house = self.cleaned_data.get("house")
+
+        target_bb = None
 
         if input_num:
-            new_bank_book, created = BankBook.objects.update_or_create(
+            target_bb, _ = BankBook.objects.get_or_create(
                 number=input_num,
-                defaults={
-                    "house": house,
-                    "apartment": apartment,
-                    "section": section,
-                    "status": DEFAULT_STATUS_FOR_NEW,
-                },
+                defaults={"status": "ACTIVE", "house": house, "section": section},
             )
         elif selected_obj:
-            new_bank_book = selected_obj
-            new_bank_book.apartment = apartment
-            new_bank_book.section = section
-            new_bank_book.save()
+            target_bb = selected_obj
 
-        try:
-            if hasattr(apartment, "bankbook"):
-                old_account = apartment.bankbook
+        if target_bb:
+            BankBook.objects.filter(apartment=apartment).exclude(
+                pk=target_bb.pk
+            ).update(apartment=None)
 
-                if not new_bank_book or (old_account.pk != new_bank_book.pk):
-                    old_account.apartment = None
-                    old_account.section = None
-                    old_account.floor = None
-                    old_account.save()
-
-        except Exception:
-            pass
+            target_bb.apartment = apartment
+            target_bb.house = house
+            target_bb.section = section
+            target_bb.save()
+        else:
+            BankBook.objects.filter(apartment=apartment).update(apartment=None)
 
         return apartment
 
