@@ -101,7 +101,13 @@ class ArticleAjaxTable(AjaxDatatableView):
             "searchable": False,
             "orderable": True,
         },
-        {"name": "actions", "visible": True, "searchable": False, "orderable": False},
+        {
+            "name": "actions",
+            "title": "",
+            "visible": True,
+            "searchable": False,
+            "orderable": False,
+        },
     ]
 
     def customize_row(self, row, obj):
@@ -136,7 +142,7 @@ class ArticleCreate(CreateView):
 
 
 class ArticleDelete(DeleteView):
-    def post(self, request, pk):
+    def get(self, request, pk):
         article = get_object_or_404(Article, pk=pk)
         article.delete()
         return redirect("settings:article-list")
