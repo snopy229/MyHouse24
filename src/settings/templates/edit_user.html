@@ -126,3 +126,73 @@
         </div>
     </section>
 {% endblock content %}
+{% block extra_js %}
+    <script>
+        $(function () {
+            $('#quickForm').validate({
+                onfocusout: function (element) {
+                    $(element).valid();
+                },
+                rules: {
+                    email: {
+                        required: true,
+                        email: true,
+                    },
+                    password1: {
+                        required: false,
+                        minlength: 5
+                    },
+                    password2: {
+                        required: false,
+                        minlength: 5
+                    },
+                },
+                messages: {
+                    email: {
+                        required: "Необходимо заполнить «Email (логин)».Значение «Email (логин)» не является правильным email адресом.",
+                        email: "Значение «Email (логин)» не является правильным email адресом."
+                    },
+                    password1: {
+                        required: "Необходимо заполнить «Пароль».",
+                        minlength: "Значение «Пароль» должно содержать минимум 5 символов."
+                    },
+                    password2: {
+                        required: "Необходимо заполнить «Повторить пароль».",
+                        minlength: "Значение «Пароль» должно содержать минимум 5 символов."
+                    },
+                },
+                errorClass: 'is-invalid',
+                validClass: 'is-valid',
+                errorElement: 'span',
+
+                errorPlacement: function (error, element) {
+                    error.addClass('invalid-feedback');
+                    element.closest('.form-group').append(error);
+                },
+
+                highlight: function (element, errorClass, validClass) {
+                    $(element).addClass(errorClass).removeClass(validClass);
+
+                    $(element).closest('.form-group')
+                        .find('label')
+                        .addClass('text-danger')
+                        .removeClass('text-success')
+
+                },
+
+                unhighlight: function (element, errorClass, validClass) {
+                    $(element).removeClass(errorClass).addClass(validClass);
+
+                    $(element).closest('.form-group')
+                        .find('label')
+                        .addClass('text-success')
+                        .removeClass('text-danger')
+                },
+
+                submitHandler: function (form) {
+                    form.submit();
+                }
+            });
+        });
+    </script>
+{% endblock extra_js %}
