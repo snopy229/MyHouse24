@@ -519,10 +519,18 @@ class TariffDelete(DeleteView):
 
 class EditRoles(FormView):
     template_name = "roles.html"
+    success_url = reverse_lazy("admin:statistic")
 
     def get_form(self, form_class=None):
-        return RoleFormSet(self.request.POST or None, queryset=Role.objects.all())
+        return RoleFormSet(
+            data=self.request.POST if self.request.method == "POST" else None,
+            queryset=Role.objects.all(),
+        )
 
     def form_valid(self, form):
-        form.save()
+        with transaction.atomic():
+            form.save()
         return super().form_valid(form)
+
+    def form_invalid(self, form):
+        return self.render_to_response(self.get_context_data(form=form))
