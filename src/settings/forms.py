@@ -224,14 +224,13 @@ class RoleForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        field = self.fields["title"]
-        self.fields["title"].disabled = True
-        field.widget.attrs.update(
-            {
-                "style": "border: none; background: transparent; padding: 0; color: inherit; outline: none; appearance: none;",
-                "readonly": "readonly",
-            }
-        )
+        if "title" in self.fields:
+            self.fields["title"].widget.attrs.update(
+                {
+                    "readonly": "readonly",
+                    "style": "border: none; background: transparent; padding: 0; color: inherit; outline: none; box-shadow: none;",
+                }
+            )
 
 
 RoleFormSet = modelformset_factory(
