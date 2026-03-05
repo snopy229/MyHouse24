@@ -59,6 +59,12 @@ class FloorForm(forms.ModelForm):
         }
 
 
+def get_staff_users_field(db_field, **kwargs):
+    if db_field.name == "user":
+        kwargs["queryset"] = User.objects.filter(is_staff=True)
+    return db_field.formfield(**kwargs)
+
+
 StaffFormSet = inlineformset_factory(
     House,
     House.owner.through,
@@ -68,6 +74,7 @@ StaffFormSet = inlineformset_factory(
     },
     extra=0,
     can_delete=True,
+    formfield_callback=get_staff_users_field,
 )
 
 SectionFormSet = inlineformset_factory(
