@@ -521,17 +521,34 @@ class EditRoles(FormView):
     template_name = "roles.html"
     success_url = reverse_lazy("admin:statistic")
 
-    def get_form(self, form_class=None):
+    def get_formset(self):
         return RoleFormSet(
             data=self.request.POST if self.request.method == "POST" else None,
             queryset=Role.objects.all(),
         )
 
+    def get(self, request, *args, **kwargs):
+        formset = self.get_formset()
+        return self.render_to_response(self.get_context_data(formset=formset))
+
+    def post(self, request, *args, **kwargs):
+        formset = self.get_formset()
+        if formset.is_valid():
+            return self.form_valid(formset)
+        else:
+            return self.form_invalid(formset)
+
     def form_valid(self, form):
         with transaction.atomic():
             form.save()
-        return super().form_valid(form)
+        return redirect(self.success_url)
 
     def form_invalid(self, form):
         print(form.errors)
-        return self.render_to_response(self.get_context_data(form=form))
+        return self.render_to_response(self.get_context_data(formset=form))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if "formset" not in kwargs:
+            context["formset"] = self.get_formset()
+        return context
