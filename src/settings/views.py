@@ -13,7 +13,6 @@ from django.views.generic import (
     DeleteView,
     RedirectView,
     DetailView,
-    FormView,
 )
 
 from src.admin.tasks import send_password, send_invite
@@ -517,7 +516,7 @@ class TariffDelete(DeleteView):
         return redirect("settings:tariff-list")
 
 
-class EditRoles(FormView):
+class EditRoles(TemplateView):
     template_name = "roles.html"
     success_url = reverse_lazy("admin:statistic")
 
@@ -527,28 +526,20 @@ class EditRoles(FormView):
             queryset=Role.objects.all(),
         )
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["formset"] = kwargs.get("formset") or self.get_formset()
+        return context
+
     def get(self, request, *args, **kwargs):
-        formset = self.get_formset()
-        return self.render_to_response(self.get_context_data(formset=formset))
+        return self.render_to_response(self.get_context_data())
 
     def post(self, request, *args, **kwargs):
         formset = self.get_formset()
         if formset.is_valid():
-            return self.form_valid(formset)
+            with transaction.atomic():
+                formset.save()
+            return redirect(self.success_url)
         else:
-            return self.form_invalid(formset)
-
-    def form_valid(self, form):
-        with transaction.atomic():
-            form.save()
-        return redirect(self.success_url)
-
-    def form_invalid(self, form):
-        print(form.errors)
-        return self.render_to_response(self.get_context_data(formset=form))
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        if "formset" not in kwargs:
-            context["formset"] = self.get_formset()
-        return context
+            print(formset.errors)
+            return self.render_to_response(self.get_context_data(formset=formset))
