@@ -24,7 +24,11 @@ class House(models.Model):
     image3 = models.ImageField(upload_to="images/", blank=True, null=True)
     image4 = models.ImageField(upload_to="images/", blank=True, null=True)
     image5 = models.ImageField(upload_to="images/", blank=True, null=True)
-    owner = models.ManyToManyField(User, related_name="owner")
+    owner = models.ManyToManyField(
+        User,
+        related_name="owner",
+        limit_choices_to={"is_staff": True},
+    )
 
     def __str__(self):
         return self.title
