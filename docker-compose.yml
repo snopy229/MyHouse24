@@ -7,7 +7,7 @@ services:
     container_name: myhouse_crm
     restart: always
     ports:
-      - "8080:8080"
+      - "8000:8080"
     env_file:
       - .env
     volumes:
@@ -52,7 +52,7 @@ services:
   nginx:
     image: nginx:latest
     ports:
-      - "8090:80"
+      - "8080:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - static:/app/static
