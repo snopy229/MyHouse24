@@ -135,6 +135,9 @@
                         required: true,
                         email: true,
                     },
+                    role: {
+                        required: true,
+                    },
                     password1: {
                         required: true,
                         minlength: 5
@@ -146,8 +149,11 @@
                 },
                 messages: {
                     email: {
-                        required: "Необходимо заполнить «Email (логин)».Значение «Email (логин)» не является правильным email адресом.",
+                        required: "Необходимо заполнить «Email (логин)».",
                         email: "Значение «Email (логин)» не является правильным email адресом."
+                    },
+                    role: {
+                        required: "Необходимо заполнить «Роль».",
                     },
                     password1: {
                         required: "Необходимо заполнить «Пароль».",
