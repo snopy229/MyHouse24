@@ -4,6 +4,7 @@
         <div class="box">
             <form method="post">
                 {% csrf_token %}
+                {{ formset.management_form }}
                 <div class="box-body table-responsive no-padding">
                     <table class="table table-bordered table-hover table-striped">
                         <thead>
