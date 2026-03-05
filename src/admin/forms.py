@@ -160,10 +160,7 @@ class ApartmentForm(forms.ModelForm):
         input_num = self.cleaned_data.get("bank_book_input")
         selected_obj = self.cleaned_data["bank_book_select"]
         section = self.cleaned_data["section"]
-        floor = self.cleaned_data["floor"]
         house = self.cleaned_data["house"]
-        owner = self.cleaned_data["owner"]
-        tariff = self.cleaned_data["tariff"]
         new_bank_book = None
         DEFAULT_STATUS_FOR_NEW = "ACTIVE"
 
@@ -172,19 +169,15 @@ class ApartmentForm(forms.ModelForm):
                 number=input_num,
                 defaults={
                     "house": house,
-                    "owner": owner,
                     "apartment": apartment,
                     "section": section,
-                    "floor": floor,
                     "status": DEFAULT_STATUS_FOR_NEW,
-                    "tariff": tariff,
                 },
             )
         elif selected_obj:
             new_bank_book = selected_obj
             new_bank_book.apartment = apartment
             new_bank_book.section = section
-            new_bank_book.floor = floor
             new_bank_book.save()
 
         try:
