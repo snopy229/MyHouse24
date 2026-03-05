@@ -284,6 +284,9 @@ class EditUsersPageView(UpdateView):
 
         return HttpResponseRedirect(self.get_success_url())
 
+    def form_invalid(self, form):
+        print(form.errors)
+
 
 class SendInvite(RedirectView):
     pattern_name = "settings:users-list"
