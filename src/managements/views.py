@@ -31,10 +31,12 @@ from .models import (
     Images,
 )
 
-
 # Create your views here.
+from django.shortcuts import redirect
+
+
 class EditMainPage(RedirectMixin, PermissionRequiredMixin, UpdateView):
-    model = "MainPage"
+    model = MainPage
     form_class = MainPageForm
     template_name = "admin/main_page.html"
     context_object_name = "main_page"
@@ -49,32 +51,31 @@ class EditMainPage(RedirectMixin, PermissionRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        seo_instance = self.object.seo_block
+        instance = self.object.seo_block
         if self.request.POST:
-            context["seo_form"] = SeoBlockForm(self.request.POST, instance=seo_instance)
+            context["seo_form"] = SeoBlockForm(self.request.POST, instance=instance)
         else:
-            context["seo_form"] = SeoBlockForm(instance=seo_instance)
+            context["seo_form"] = SeoBlockForm(instance=instance)
         return context
 
+    @transaction.atomic
     def form_valid(self, form):
         context = self.get_context_data()
         seo_form = context["seo_form"]
 
         if seo_form.is_valid():
             self.object = form.save()
-
             seo_form.save()
+            return redirect(self.get_success_url())
 
-            return super().form_valid(form)
-        else:
-            return self.render_to_response(self.get_context_data(form=form))
+        return self.form_invalid(form)
 
     def get_success_url(self):
         return reverse("managements:statistic")
 
 
 class MainPageDetail(DetailView):
-    model = "MainPage"
+    model = MainPage
     template_name = "site/main_page.html"
     context_object_name = "main_page"
 
@@ -87,7 +88,7 @@ class MainPageDetail(DetailView):
 
 
 class EditContactsPage(RedirectMixin, PermissionRequiredMixin, UpdateView):
-    model = "Contacts"
+    model = Contacts
     form_class = ContactsForm
     template_name = "admin/contacts.html"
     context_object_name = "contacts"
@@ -127,7 +128,7 @@ class EditContactsPage(RedirectMixin, PermissionRequiredMixin, UpdateView):
 
 
 class ContactsDetail(DetailView):
-    model = "Contacts"
+    model = Contacts
     template_name = "site/contacts.html"
     context_object_name = "contacts"
 

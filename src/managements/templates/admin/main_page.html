@@ -13,16 +13,27 @@
 {% endblock content_url %}
 {% block content %}
     <style>
-        /* H021: Вынесенные стили */
         .label-block {
             display: block;
             margin-bottom: 10px;
         }
 
-        /* Дополнительный стиль для превью в админке, чтобы не прыгала верстка */
         .admin-preview-img {
             max-width: 100%;
             height: auto;
+            display: block;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            padding: 5px;
+            background-color: #f9f9f9;
+        }
+
+        img[src=""], img:not([src]) {
+            display: none;
+        }
+
+        .ckeditor-wrapper {
+            margin-bottom: 15px;
         }
     </style>
     <section class="content">
@@ -39,111 +50,65 @@
                         </div>
                     </div>
                     <div class="box-body">
-                        <form method="post">
+                        <form method="post" enctype="multipart/form-data">
                             {% csrf_token %}
                             {{ form.media }}
-                            <input type="hidden"
-                                   name="_csrf-backend"
-                                   value="s1Z1Px4yfeOmOzMfngS8eNAK5wDKPWAjdwpnDuUU0Ir2YBp0Z0s-iexfYlXvd_UC4DvTeKNuBmo4ayB2qHeeug==">
                             <h3 class="page-header">Слайдер</h3>
                             <div class="row site-main-slider">
                                 <div class="col-md-4">
                                     <h4>Слайд 1</h4>
-                                    {% if main_page.slide1 %}
-                                        <img class="img-responsive margin-bottom-15 admin-preview-img"
-                                             src="{{ main_page.slide1.url }}"
-                                             width="350"
-                                             height="150"
-                                             alt="Slide 1">
-                                    {% endif %}
-                                    <div class="form-group field-websitehomeslide-0-id">
-                                        <input type="hidden"
-                                               id="websitehomeslide-0-id"
-                                               class="form-control"
-                                               name="WebsiteHomeSlide[0][id]"
-                                               value="1">
-                                        <div class="help-block"></div>
-                                    </div>
-                                    <div class="form-group margin-bottom-30 field-websitehomeslide-0-imagefile">
-                                        <label class="control-label" for="websitehomeslide-0-imagefile">
-                                            Рекомендуемый
-                                            размер: (1920x800)
-                                        </label>
+                                    <img id="prev_id_slide1"
+                                         width="350"
+                                         height="150"
+                                         class="img-responsive admin-preview-img"
+                                         src="{% if main_page.slide1 %}{{ main_page.slide1.url }}{% endif %}"
+                                         alt="">
+                                    <div class="form-group">
+                                        <label class="control-label">Рекомендуемый размер: (1920x800)</label>
                                         {{ form.slide1 }}
-                                        <div class="help-block"></div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <h4>Слайд 2</h4>
-                                    {% if main_page.slide2 %}
-                                        <img class="img-responsive margin-bottom-15 admin-preview-img"
-                                             src="{{ main_page.slide2.url }}"
-                                             width="350"
-                                             height="150"
-                                             alt="Slide 2">
-                                    {% endif %}
-                                    <div class="form-group field-websitehomeslide-1-id">
-                                        <input type="hidden"
-                                               id="websitehomeslide-1-id"
-                                               class="form-control"
-                                               name="WebsiteHomeSlide[1][id]"
-                                               value="2">
-                                        <div class="help-block"></div>
-                                    </div>
-                                    <div class="form-group margin-bottom-30 field-websitehomeslide-1-imagefile">
-                                        <label class="control-label" for="websitehomeslide-1-imagefile">
-                                            Рекомендуемый
-                                            размер: (1920x800)
-                                        </label>
+                                    <img id="prev_id_slide2"
+                                         width="350"
+                                         height="150"
+                                         class="img-responsive admin-preview-img"
+                                         src="{% if main_page.slide2 %}{{ main_page.slide2.url }}{% endif %}"
+                                         alt="">
+                                    <div class="form-group">
+                                        <label class="control-label">Рекомендуемый размер: (1920x800)</label>
                                         {{ form.slide2 }}
-                                        <div class="help-block"></div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <h4>Слайд 3</h4>
-                                    {% if main_page.slide3 %}
-                                        <img class="img-responsive margin-bottom-15 admin-preview-img"
-                                             src="{{ main_page.slide3.url }}"
-                                             width="350"
-                                             height="150"
-                                             alt="Slide 3">
-                                    {% endif %}
-                                    <div class="form-group field-websitehomeslide-2-id">
-                                        <input type="hidden"
-                                               id="websitehomeslide-2-id"
-                                               class="form-control"
-                                               name="WebsiteHomeSlide[2][id]"
-                                               value="3">
-                                        <div class="help-block"></div>
-                                    </div>
-                                    <div class="form-group margin-bottom-30 field-websitehomeslide-2-imagefile">
-                                        <label class="control-label" for="websitehomeslide-2-imagefile">
-                                            Рекомендуемый
-                                            размер: (1920x800)
-                                        </label>
+                                    <img id="prev_id_slide3"
+                                         width="350"
+                                         height="150"
+                                         class="img-responsive admin-preview-img"
+                                         src="{% if main_page.slide3 %}{{ main_page.slide3.url }}{% endif %}"
+                                         alt="">
+                                    <div class="form-group">
+                                        <label class="control-label">Рекомендуемый размер: (1920x800)</label>
                                         {{ form.slide3 }}
-                                        <div class="help-block"></div>
                                     </div>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-12">
                                     <h3 class="page-header">Краткая информация</h3>
-                                    <div class="form-group field-websitehomeform-hometitle">
-                                        <label class="control-label" for="websitehomeform-hometitle">Заголовок</label>
+                                    <div class="form-group">
+                                        <label class="control-label">Заголовок</label>
                                         {{ form.title }}
-                                        <div class="help-block"></div>
                                     </div>
-                                    <div class="form-group field-websitehomeform-homedescription">
-                                        <label class="control-label label-block"
-                                               for="websitehomeform-homedescription">Краткий текст</label>
+                                    <div class="form-group">
+                                        <label class="control-label label-block">Краткий текст</label>
                                         <div class="ckeditor-wrapper">{{ form.short_text }}</div>
-                                        <div class="help-block"></div>
                                     </div>
-                                    <div class="form-group field-websitehomeform-homeisshowapps">
+                                    <div class="form-group">
                                         {{ form.is_link }}
                                         <label>Показать ссылки на приложения</label>
-                                        <div class="help-block"></div>
                                     </div>
                                 </div>
                             </div>
@@ -151,255 +116,130 @@
                                 <div class="col-xs-12">
                                     <h3 class="page-header">Рядом с нами</h3>
                                 </div>
-                                <div class="col-md-4">
-                                    <h4>Блок 1</h4>
-                                    {% if main_page.block_image_1 %}
-                                        <img src="{{ main_page.block_image_1.url }}"
-                                             width="300"
-                                             height="180"
-                                             class="img-responsive admin-preview-img"
-                                             alt="Block 1">
-                                    {% endif %}
-                                    <div class="form-group field-websitehomefeature-0-id">
-                                        <input type="hidden"
-                                               id="websitehomefeature-0-id"
-                                               class="form-control"
-                                               name="WebsiteHomeFeature[0][id]"
-                                               value="1">
-                                        <div class="help-block"></div>
+                                {% for i in "123456" %}
+                                    <div class="col-md-4">
+                                        <h4>Блок {{ i }}</h4>
+                                        {% if i == "1" %}
+                                            <img id="prev_id_block_image_1"
+                                                 width="300"
+                                                 height="180"
+                                                 class="img-responsive admin-preview-img"
+                                                 src=" {% if main_page.block_image_1 %}{{ main_page.block_image_1.url }}{% endif %}"
+                                                 alt="">
+                                            <div class="form-group">{{ form.block_image_1 }}</div>
+                                            <div class="form-group">
+                                                <label>Заголовок</label>
+                                                {{ form.block_title_1 }}
+                                            </div>
+                                            <div class="form-group margin-bottom-30">
+                                                <label>Описание</label>
+                                                {{ form.block_description_1 }}
+                                            </div>
+                                        {% elif i == "2" %}
+                                            <img id="prev_id_block_image_2"
+                                                 width="300"
+                                                 height="180"
+                                                 class="img-responsive admin-preview-img"
+                                                 src=" {% if main_page.block_image_2 %}{{ main_page.block_image_2.url }}{% endif %}"
+                                                 alt="">
+                                            <div class="form-group">{{ form.block_image_2 }}</div>
+                                            <div class="form-group">
+                                                <label>Заголовок</label>
+                                                {{ form.block_title_2 }}
+                                            </div>
+                                            <div class="form-group margin-bottom-30">
+                                                <label>Описание</label>
+                                                {{ form.block_description_2 }}
+                                            </div>
+                                        {% elif i == "3" %}
+                                            <img id="prev_id_block_image_3"
+                                                 width="300"
+                                                 height="180"
+                                                 class="img-responsive admin-preview-img"
+                                                 src=" {% if main_page.block_image_3 %}{{ main_page.block_image_3.url }}{% endif %}"
+                                                 alt="">
+                                            <div class="form-group">{{ form.block_image_3 }}</div>
+                                            <div class="form-group">
+                                                <label>Заголовок</label>
+                                                {{ form.block_title_3 }}
+                                            </div>
+                                            <div class="form-group margin-bottom-30">
+                                                <label>Описание</label>
+                                                {{ form.block_description_3 }}
+                                            </div>
+                                        {% elif i == "4" %}
+                                            <img id="prev_id_block_image_4"
+                                                 width="300"
+                                                 height="180"
+                                                 class="img-responsive admin-preview-img"
+                                                 src=" {% if main_page.block_image_4 %}{{ main_page.block_image_4.url }}{% endif %}"
+                                                 alt="">
+                                            <div class="form-group">{{ form.block_image_4 }}</div>
+                                            <div class="form-group">
+                                                <label>Заголовок</label>
+                                                {{ form.block_title_4 }}
+                                            </div>
+                                            <div class="form-group margin-bottom-30">
+                                                <label>Описание</label>
+                                                {{ form.block_description_4 }}
+                                            </div>
+                                        {% elif i == "5" %}
+                                            <img id="prev_id_block_image_5"
+                                                 width="300"
+                                                 height="180"
+                                                 class="img-responsive admin-preview-img"
+                                                 src=" {% if main_page.block_image_5 %}{{ main_page.block_image_5.url }}{% endif %}"
+                                                 alt="">
+                                            <div class="form-group">{{ form.block_image_5 }}</div>
+                                            <div class="form-group">
+                                                <label>Заголовок</label>
+                                                {{ form.block_title_5 }}
+                                            </div>
+                                            <div class="form-group margin-bottom-30">
+                                                <label>Описание</label>
+                                                {{ form.block_description_5 }}
+                                            </div>
+                                        {% elif i == "6" %}
+                                            <img id="prev_id_block_image_6"
+                                                 width="300"
+                                                 height="180"
+                                                 class="img-responsive admin-preview-img"
+                                                 src=" {% if main_page.block_image_6 %}{{ main_page.block_image_6.url }}{% endif %}"
+                                                 alt="">
+                                            <div class="form-group">{{ form.block_image_6 }}</div>
+                                            <div class="form-group">
+                                                <label>Заголовок</label>
+                                                {{ form.block_title_6 }}
+                                            </div>
+                                            <div class="form-group margin-bottom-30">
+                                                <label>Описание</label>
+                                                {{ form.block_description_6 }}
+                                            </div>
+                                        {% endif %}
                                     </div>
-                                    <div class="form-group field-websitehomefeature-0-imagefile">
-                                        <label class="control-label" for="websitehomefeature-0-imagefile">
-                                            Рекомендуемый
-                                            размер: (1000x600)
-                                        </label>
-                                        {{ form.block_image_1 }}
-                                        <div class="help-block"></div>
-                                    </div>
-                                    <div class="form-group field-websitehomefeature-0-title">
-                                        <label class="control-label" for="websitehomefeature-0-title">
-                                            Заголовок
-                                            блока
-                                        </label>
-                                        {{ form.block_title_1 }}
-                                        <div class="help-block"></div>
-                                    </div>
-                                    <div class="form-group margin-bottom-30 field-websitehomefeature-0-description">
-                                        <label class="control-label" for="websitehomefeature-0-description">Описание</label>
-                                        {{ form.block_description_1 }}
-                                        <div class="help-block"></div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <h4>Блок 2</h4>
-                                    {% if main_page.block_image_2 %}
-                                        <img src="{{ main_page.block_image_2.url }}"
-                                             width="300"
-                                             height="180"
-                                             class="img-responsive admin-preview-img"
-                                             alt="Block 2">
-                                    {% endif %}
-                                    <div class="form-group field-websitehomefeature-1-id">
-                                        <input type="hidden"
-                                               id="websitehomefeature-1-id"
-                                               class="form-control"
-                                               name="WebsiteHomeFeature[1][id]"
-                                               value="2">
-                                        <div class="help-block"></div>
-                                    </div>
-                                    <div class="form-group field-websitehomefeature-1-imagefile">
-                                        <label class="control-label" for="websitehomefeature-1-imagefile">
-                                            Рекомендуемый
-                                            размер: (1000x600)
-                                        </label>
-                                        {{ form.block_image_2 }}
-                                        <div class="help-block"></div>
-                                    </div>
-                                    <div class="form-group field-websitehomefeature-1-title">
-                                        <label class="control-label" for="websitehomefeature-1-title">
-                                            Заголовок
-                                            блока
-                                        </label>
-                                        {{ form.block_title_2 }}
-                                        <div class="help-block"></div>
-                                    </div>
-                                    <div class="form-group margin-bottom-30 field-websitehomefeature-1-description">
-                                        <label class="control-label" for="websitehomefeature-1-description">Описание</label>
-                                        {{ form.block_description_2 }}
-                                        <div class="help-block"></div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <h4>Блок 3</h4>
-                                    {% if main_page.block_image_3 %}
-                                        <img src="{{ main_page.block_image_3.url }}"
-                                             width="300"
-                                             height="180"
-                                             class="img-responsive admin-preview-img"
-                                             alt="Block 3">
-                                    {% endif %}
-                                    <div class="form-group field-websitehomefeature-1-id">
-                                        <input type="hidden"
-                                               id="websitehomefeature-1-id"
-                                               class="form-control"
-                                               name="WebsiteHomeFeature[1][id]"
-                                               value="2">
-                                        <div class="help-block"></div>
-                                    </div>
-                                    <div class="form-group field-websitehomefeature-1-imagefile">
-                                        <label class="control-label" for="websitehomefeature-1-imagefile">
-                                            Рекомендуемый
-                                            размер: (1000x600)
-                                        </label>
-                                        {{ form.block_image_3 }}
-                                        <div class="help-block"></div>
-                                    </div>
-                                    <div class="form-group field-websitehomefeature-1-title">
-                                        <label class="control-label" for="websitehomefeature-1-title">
-                                            Заголовок
-                                            блока
-                                        </label>
-                                        {{ form.block_title_3 }}
-                                        <div class="help-block"></div>
-                                    </div>
-                                    <div class="form-group margin-bottom-30 field-websitehomefeature-1-description">
-                                        <label class="control-label" for="websitehomefeature-1-description">Описание</label>
-                                        {{ form.block_description_3 }}
-                                        <div class="help-block"></div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <h4>Блок 4</h4>
-                                    {% if main_page.block_image_4 %}
-                                        <img src="{{ main_page.block_image_4.url }}"
-                                             width="300"
-                                             height="180"
-                                             class="img-responsive admin-preview-img"
-                                             alt="Block 4">
-                                    {% endif %}
-                                    <div class="form-group field-websitehomefeature-3-id">
-                                        <div class="help-block"></div>
-                                    </div>
-                                    <div class="form-group field-websitehomefeature-3-imagefile">
-                                        <label class="control-label" for="websitehomefeature-3-imagefile">
-                                            Рекомендуемый
-                                            размер: (1000x600)
-                                        </label>
-                                        {{ form.block_image_4 }}
-                                        <div class="help-block"></div>
-                                    </div>
-                                    <div class="form-group field-websitehomefeature-3-title">
-                                        <label class="control-label" for="websitehomefeature-3-title">
-                                            Заголовок
-                                            блока
-                                        </label>
-                                        {{ form.block_title_4 }}
-                                        <div class="help-block"></div>
-                                    </div>
-                                    <div class="form-group margin-bottom-30 field-websitehomefeature-3-description">
-                                        <label class="control-label" for="websitehomefeature-3-description">Описание</label>
-                                        {{ form.block_description_4 }}
-                                        <div class="help-block"></div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <h4>Блок 5</h4>
-                                    {% if main_page.block_image_5 %}
-                                        <img src="{{ main_page.block_image_5.url }}"
-                                             width="300"
-                                             height="180"
-                                             class="img-responsive admin-preview-img"
-                                             alt="Block 5">
-                                    {% endif %}
-                                    <div class="form-group field-websitehomefeature-3-id">
-                                        <input type="hidden"
-                                               id="websitehomefeature-3-id"
-                                               class="form-control"
-                                               name="WebsiteHomeFeature[3][id]"
-                                               value="4">
-                                        <div class="help-block"></div>
-                                    </div>
-                                    <div class="form-group field-websitehomefeature-3-imagefile">
-                                        <label class="control-label" for="websitehomefeature-3-imagefile">
-                                            Рекомендуемый
-                                            размер: (1000x600)
-                                        </label>
-                                        {{ form.block_image_5 }}
-                                        <div class="help-block"></div>
-                                    </div>
-                                    <div class="form-group field-websitehomefeature-3-title">
-                                        <label class="control-label" for="websitehomefeature-3-title">
-                                            Заголовок
-                                            блока
-                                        </label>
-                                        {{ form.block_title_5 }}
-                                        <div class="help-block"></div>
-                                    </div>
-                                    <div class="form-group margin-bottom-30 field-websitehomefeature-3-description">
-                                        <label class="control-label" for="websitehomefeature-3-description">Описание</label>
-                                        {{ form.block_description_5 }}
-                                        <div class="help-block"></div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <h4>Блок 6</h4>
-                                    {% if main_page.block_image_6 %}
-                                        <img src="{{ main_page.block_image_6.url }}"
-                                             width="300"
-                                             height="180"
-                                             class="img-responsive admin-preview-img"
-                                             alt="Block 6">
-                                    {% endif %}
-                                    <div class="form-group field-websitehomefeature-3-id">
-                                        <div class="help-block"></div>
-                                    </div>
-                                    <div class="form-group field-websitehomefeature-3-imagefile">
-                                        <label class="control-label" for="websitehomefeature-3-imagefile">
-                                            Рекомендуемый
-                                            размер: (1000x600)
-                                        </label>
-                                        {{ form.block_image_6 }}
-                                        <div class="help-block"></div>
-                                    </div>
-                                    <div class="form-group field-websitehomefeature-3-title">
-                                        <label class="control-label" for="websitehomefeature-3-title">
-                                            Заголовок
-                                            блока
-                                        </label>
-                                        {{ form.block_title_6 }}
-                                        <div class="help-block"></div>
-                                    </div>
-                                    <div class="form-group margin-bottom-30 field-websitehomefeature-3-description">
-                                        <label class="control-label" for="websitehomefeature-3-description">Описание</label>
-                                        {{ form.block_description_6 }}
-                                        <div class="help-block"></div>
-                                    </div>
-                                </div>
+                                {% endfor %}
                             </div>
                             <div class="row">
                                 <div class="col-md-12">
                                     <h3 class="page-header">Настройки SEO</h3>
-                                    <div class="form-group field-websitehomeform-homemetatitle">
-                                        <label class="control-label" for="websitehomeform-homemetatitle">Title</label>
+                                    <div class="form-group">
+                                        <label>Title</label>
                                         {{ seo_form.title }}
-                                        <div class="help-block"></div>
                                     </div>
-                                    <div class="form-group field-websitehomeform-homemetadescription">
-                                        <label class="control-label" for="websitehomeform-homemetadescription">Description</label>
+                                    <div class="form-group">
+                                        <label>Description</label>
                                         {{ seo_form.description }}
-                                        <div class="help-block"></div>
                                     </div>
-                                    <div class="form-group field-websitehomeform-homemetakeywords">
-                                        <label class="control-label" for="websitehomeform-homemetakeywords">Keywords</label>
+                                    <div class="form-group">
+                                        <label>Keywords</label>
                                         {{ seo_form.keywords }}
-                                        <div class="help-block"></div>
                                     </div>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-xs-12 text-center">
                                     <div class="form-group">
-                                        <button type="reset" class="btn btn-success">Отмена</button>
+                                        <a href="{% url 'managements:statistic' %}" class="btn btn-default">Отмена</a>
                                         <button type="submit" class="btn btn-success">Сохранить</button>
                                     </div>
                                 </div>
@@ -414,33 +254,48 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             var editors = [
-                'id_short_text',
-                'id_block_description_1',
-                'id_block_description_2',
-                'id_block_description_3',
-                'id_block_description_4',
-                'id_block_description_5',
-                'id_block_description_6'
+                'id_short_text', 'id_block_description_1', 'id_block_description_2',
+                'id_block_description_3', 'id_block_description_4', 'id_block_description_5', 'id_block_description_6'
             ];
 
             editors.forEach(function (id) {
                 if (document.getElementById(id)) {
                     CKEDITOR.replace(id, {
-                        toolbar: [
-                            ['Format'],
-                            ['Bold', 'Italic', 'Underline', 'Strike'],
-                            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent']
-                        ],
+                        toolbar: [['Format'], ['Bold', 'Italic', 'Underline', 'Strike'], ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent']],
                         height: 150,
                         width: '100%',
                         resize_enabled: false,
                         removePlugins: 'elementspath',
                         language: 'ru',
                         versionCheck: false
-
                     });
                 }
             });
+
+            function initPreview(inputId) {
+                var input = document.getElementById(inputId);
+                var preview = document.getElementById('prev_' + inputId);
+                if (input && preview) {
+                    input.addEventListener('change', function () {
+                        if (this.files && this.files[0]) {
+                            var reader = new FileReader();
+                            reader.onload = function (e) {
+                                preview.src = e.target.result;
+                                preview.style.display = 'block';
+                            };
+                            reader.readAsDataURL(this.files[0]);
+                        }
+                    });
+                }
+            }
+
+            var fileInputs = [
+                'id_slide1', 'id_slide2', 'id_slide3',
+                'id_block_image_1', 'id_block_image_2', 'id_block_image_3',
+                'id_block_image_4', 'id_block_image_5', 'id_block_image_6'
+            ];
+
+            fileInputs.forEach(initPreview);
         });
     </script>
 {% endblock content %}
