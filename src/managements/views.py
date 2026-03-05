@@ -71,7 +71,7 @@ class EditMainPage(RedirectMixin, PermissionRequiredMixin, UpdateView):
         return self.form_invalid(form)
 
     def get_success_url(self):
-        return reverse("managements:statistic")
+        return reverse("admin:statistic")
 
 
 class MainPageDetail(DetailView):
