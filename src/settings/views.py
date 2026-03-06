@@ -299,7 +299,7 @@ class SendInvite(RedirectView):
     def get_redirect_url(self, **kwargs):
         user_id = self.kwargs.get("pk")
         user = get_object_or_404(User, pk=user_id)
-        send_invite(user.email).delay()
+        send_invite.delay(user.email)
 
         return super().get_redirect_url()
 

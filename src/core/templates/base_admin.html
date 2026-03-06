@@ -176,7 +176,7 @@
                                     </li>
                                     <li class="user-footer">
                                         <div class="pull-left">
-                                            <a class="btn btn-default btn-flat" href="#">Профиль</a>
+                                            <a class="btn btn-default btn-flat" href="{% url "admin:edit-owner" user.pk %}">Профиль</a>
                                         </div>
                                         <div class="pull-right">
                                             <form action="{% url 'user:logout' %}" method="post">
