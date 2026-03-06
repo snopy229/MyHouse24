@@ -8,24 +8,21 @@
     Главная страница
 {% endblock title %}
 {% block content %}
-<div id="mainCarousel" class="carousel slide w-100" data-bs-ride="carousel">
+<div id="mainCarousel" class="carousel slide" data-ride="carousel">
     <div class="carousel-inner">
         {% for slide in slides %}
-            <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                <img src="{{ slide.url }}" class="d-block w-100 img-responsive" alt="" width="800" height="400">
-                <div class="carousel-caption">
-                    <div class="slideTitle">{{ main_page.title }}</div>
-                </div>
+            <div class="item {% if forloop.first %}active{% endif %}">
+                <img src="{{ slide.url }}" class="d-block w-100" alt="">
             </div>
         {% endfor %}
     </div>
 
-    <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">
-        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-    </button>
-    <button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next">
-        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-    </button>
+    <a class="left carousel-control" href="#mainCarousel" data-slide="prev">
+        <span class="glyphicon glyphicon-chevron-left"></span>
+    </a>
+    <a class="right carousel-control" href="#mainCarousel" data-slide="next">
+        <span class="glyphicon glyphicon-chevron-right"></span>
+    </a>
 </div>
     <div class="info">
         <div class="container">
