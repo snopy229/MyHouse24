@@ -159,7 +159,7 @@ class Statistic(
         context["houses"] = houses.count()
         owners = User.objects.filter(status="active", is_staff=False)
         if user.role.title not in excluded_roles:
-            owners = owners.filter(apartment_set__house__owner=user)
+            owners = owners.filter(apartment__house__owner=user)
         context["owners"] = owners.count()
         master_call_in_work = MasterCall.objects.filter(call_status="IN WORK")
         if user.role.title not in excluded_roles:
