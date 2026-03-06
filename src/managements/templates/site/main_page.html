@@ -8,22 +8,15 @@
     Главная страница
 {% endblock title %}
 {% block content %}
-   {% with slides=[main_page.slide1, main_page.slide2, main_page.slide3] %}
 <div id="mainCarousel" class="carousel slide w-100" data-bs-ride="carousel">
     <div class="carousel-inner">
         {% for slide in slides %}
-            {% if slide %}
             <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                <img src="{{ slide.url }}"
-                     class="d-block w-100 img-responsive"
-                     alt=""
-                     width="800"
-                     height="400">
+                <img src="{{ slide.url }}" class="d-block w-100 img-responsive" alt="" width="800" height="400">
                 <div class="carousel-caption">
                     <div class="slideTitle">{{ main_page.title }}</div>
                 </div>
             </div>
-            {% endif %}
         {% endfor %}
     </div>
 
@@ -34,7 +27,6 @@
         <span class="carousel-control-next-icon" aria-hidden="true"></span>
     </button>
 </div>
-{% endwith %}
     <div class="info">
         <div class="container">
             <div class="row">

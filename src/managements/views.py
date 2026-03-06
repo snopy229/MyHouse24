@@ -79,6 +79,13 @@ class MainPageDetail(DetailView):
     template_name = "site/main_page.html"
     context_object_name = "main_page"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        raw_slides = [main_page.slide1, main_page.slide2, main_page.slide3]
+        context['slides'] = [s for s in raw_slides if s]
+
+        return context
+
     def get_object(self, queryset=None):
         obj = MainPage.objects.first()
         if not obj:
