@@ -77,13 +77,13 @@ class LogInOwner(LoginView):
         user = form.get_user()
 
         if not user.email_verify and not user.status == "active":
-            url = reverse("owner:login") + "?error=no_verified&&no_active"
+            url = reverse("owner:authentification-error") + "?error=no_verified&&no_active"
             return redirect(url)
         elif not user.email_verify:
-            url = reverse("owner:login") + "?error=no_verified"
+            url = reverse("owner:authentification-error") + "?error=no_verified"
             return redirect(url)
         elif not user.status == "active":
-            url = reverse("owner:login") + "?error=no_active"
+            url = reverse("owner:authentification-error") + "?error=no_active"
             return redirect(url)
 
         if remember_me:
