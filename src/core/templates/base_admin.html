@@ -194,7 +194,7 @@
             <aside class="main-sidebar">
                 <section class="sidebar">
                     <ul class="sidebar-menu" data-widget="tree">
-                        {% if user.role.title == 'Директор' or user.role.has_statistic %}
+                        {% if user.role.title == 'Директор' or user.role.has_statistics %}
                             <li class="{% if 'statistic' in request.path %}active{% endif %}">
                                 <a href="{% url 'admin:statistic' %}"><i class="fa fa-line-chart"></i><span>Статистика</span></a>
                             {% endif %}
