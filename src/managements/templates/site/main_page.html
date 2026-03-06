@@ -205,3 +205,12 @@
         </div>
     </div>
 {% endblock content %}
+{% block extra_js %}
+    <script>
+$(document).ready(function(){
+  $('.slider').slick({
+    dots: true,
+    infinite: true
+  });
+});</script>
+{% endblock extra_js %}
