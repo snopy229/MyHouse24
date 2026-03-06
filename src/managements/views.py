@@ -81,7 +81,8 @@ class MainPageDetail(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        raw_slides = [main_page.slide1, main_page.slide2, main_page.slide3]
+        obj = self.object
+        raw_slides = [obj.slide1, obj.slide2, obj.slide3]
         context['slides'] = [s for s in raw_slides if s]
 
         return context
