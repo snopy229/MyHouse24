@@ -272,6 +272,7 @@
 </ul>
 </li>
 {% endif %}
+{% if user.role.title == 'Директор' or user.role.has_services or user.role.has_tariffs or  user.role.has_roles or user.role.has_payment_details or user.role.has_article %}
 <li class="treeview {% if 'settings' in request.path %}active{% endif %}">
     <a href="#"><i class="fa fa-cogs"></i> <span>Настройки системы</span>
         <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span></a>
@@ -308,6 +309,7 @@
     <li>
         <a href="{% url 'settings:article-list' %}"><i class="fa fa-list-ol"></i> <span>Статьи платежей</span></a>
     </li>
+{% endif %}
 {% endif %}
 </ul>
 </li>
