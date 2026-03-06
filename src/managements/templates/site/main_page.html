@@ -8,19 +8,63 @@
     Главная страница
 {% endblock title %}
 {% block content %}
-    <style>
+<style>
     .carousel .item img {
         width: 100%;
-        height: 500px;        /* нужная высота */
-        object-fit: cover;    /* обрезает, сохраняя пропорции */
+        height: 600px;
+        object-fit: cover;
         object-position: center;
+    }
+
+    .carousel-caption {
+        top: 50%;
+        bottom: auto;
+        transform: translateY(-50%);
+        background: rgba(0, 0, 0, 0.4);
+        padding: 20px 40px;
+        border-radius: 4px;
+    }
+
+    .slideTitle {
+        font-size: 36px;
+        color: white;
+        font-weight: 400;
+    }
+
+    .carousel-indicators {
+        bottom: 20px;
+    }
+
+    .carousel-indicators li {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: rgba(255,255,255,0.6);
+        border: none;
+        margin: 0 5px;
+    }
+
+    .carousel-indicators .active {
+        background-color: white;
     }
 </style>
 <div id="mainCarousel" class="carousel slide" data-ride="carousel">
+
+    <ol class="carousel-indicators">
+        {% for slide in slides %}
+            <li data-target="#mainCarousel"
+                data-slide-to="{{ forloop.counter0 }}"
+                {% if forloop.first %}class="active"{% endif %}></li>
+        {% endfor %}
+    </ol>
+
     <div class="carousel-inner">
         {% for slide in slides %}
             <div class="item {% if forloop.first %}active{% endif %}">
-                <img src="{{ slide.url }}" class="d-block w-100" alt="">
+                <img src="{{ slide.url }}" alt="">
+                <div class="carousel-caption">
+                    <div class="slideTitle">{{ main_page.title }}</div>
+                </div>
             </div>
         {% endfor %}
     </div>
