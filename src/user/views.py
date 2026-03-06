@@ -70,13 +70,9 @@ class LogInOwner(LoginView):
         return super().form_invalid(form)
 
     def form_valid(self, form):
-        response = super().form_valid(form)
-
-        remember_me = form.cleaned_data.get("remember_me")
-
         user = form.get_user()
 
-        if not user.email_verify and not user.status == "active":
+        if not user.email_verify and user.status != "active":
             url = reverse("user:authentification-error") + "?error=no_verified&&no_active"
             return redirect(url)
         elif not user.email_verify:
@@ -85,6 +81,11 @@ class LogInOwner(LoginView):
         elif not user.status == "active":
             url = reverse("user:authentification-error") + "?error=no_active"
             return redirect(url)
+
+        response = super().form_valid(form)
+
+        remember_me = form.cleaned_data.get("remember_me")
+
 
         if remember_me:
             self.request.session.set_expiry(1209600)

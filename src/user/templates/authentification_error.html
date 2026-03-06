@@ -33,8 +33,13 @@
                         <div class="login-box-body">
                             <div id="preloader"></div>
                             <h3>Ошибка аутентификации</h3>
-                            {% if "no_verified" in request.path %}<p>Не подвержденна електронная почта</p>{% endif %}
-                            {% if "no_active" in request.path %}<p>Ваш статус не 'Активный'</p>{% endif %}
+                            {% if "no_verified" in request.GET.error %}
+                                <p>Не подтверждена электронная почта</p>
+                            {% endif %}
+
+                            {% if "no_active" in request.GET.error %}
+                                <p>Ваш статус не "Активный"</p>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

@@ -160,7 +160,7 @@
                         <div class="col-xs-12 text-right">
                             <button type='reset' class="btn btn-default">Отменить</button>
                             <button type="submit" class="btn btn-success">Сохранить</button>
-                            {% if 'edit' in request.past and not owner.email_verify %}
+                            {% if 'edit' in request.path and not owner.email_verify %}
                                 <button type="button"
                                         id="btn-verify"
                                         class="btn btn-default"
