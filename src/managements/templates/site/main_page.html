@@ -8,38 +8,33 @@
     Главная страница
 {% endblock title %}
 {% block content %}
-    <div class="slider">
-        <div>
-            <div class="slideTitle hidden-xs">{{ main_page.title }}</div>
-            {% if main_page.slide1 %}
-                <img src="{{ main_page.slide1.url }}"
-                     class="img-responsive"
+   {% with slides=[main_page.slide1, main_page.slide2, main_page.slide3] %}
+<div id="mainCarousel" class="carousel slide w-100" data-bs-ride="carousel">
+    <div class="carousel-inner">
+        {% for slide in slides %}
+            {% if slide %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                <img src="{{ slide.url }}"
+                     class="d-block w-100 img-responsive"
                      alt=""
                      width="800"
                      height="400">
+                <div class="carousel-caption">
+                    <div class="slideTitle">{{ main_page.title }}</div>
+                </div>
+            </div>
             {% endif %}
-        </div>
-        <div>
-            <div class="slideTitle hidden-xs">{{ main_page.title }}</div>
-            {% if main_page.slide2 %}
-                <img src="{{ main_page.slide2.url }}"
-                     class="img-responsive"
-                     alt=""
-                     width="800"
-                     height="400">
-            {% endif %}
-        </div>
-        <div>
-            <div class="slideTitle hidden-xs">{{ main_page.title }}</div>
-            {% if main_page.slide3 %}
-                <img src="{{ main_page.slide3.url }}"
-                     class="img-responsive"
-                     alt=""
-                     width="800"
-                     height="400">
-            {% endif %}
-        </div>
+        {% endfor %}
     </div>
+
+    <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    </button>
+</div>
+{% endwith %}
     <div class="info">
         <div class="container">
             <div class="row">
