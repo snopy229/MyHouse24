@@ -45,6 +45,10 @@
                                 <label class="control-label" for="useradminform-role">Роль</label>
                                 {{ form.role }}
                                 <div class="help-block"></div>
+                                {% elif staff.role.title != 'Директор'%}
+                                <label class="control-label" for="useradminform-role">Роль</label>
+                                {{ form.role }}
+                                <div class="help-block"></div>
                                 {% endif %}
                             </div>
                             <div class="form-group field-useradminform-status">
@@ -72,10 +76,26 @@
                                     </span>
                                 </div>
                                 <div class="help-block"></div>
+                                {% elif staff.role.title != 'Директор'%}
+                                <label class="control-label" for="useradminform-password">Пароль</label>
+                                <div class="input-group">
+                                    {{ form.password1 }}
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default" type="button" onclick="generateAndFill()">Сгенерировать</button>
+                                        <button type="button" class="btn btn-primary" onclick="togglePassword()">
+                                            <i class="fa fa-eye" aria-hidden="true"></i>
+                                        </button>
+                                    </span>
+                                </div>
+                                <div class="help-block"></div>
                             {% endif %}
                             </div>
                             <div class="form-group field-useradminform-password2">
-                                {% if staff.role.title == 'Директор' and user.role != 'Директор'%}
+                                {% if staff.role.title == 'Директор' and user.role == 'Директор'%}
+                                <label class="control-label" for="useradminform-password2">Повторить пароль</label>
+                                {{ form.password2 }}
+                                <div class="help-block"></div>
+                                {% elif staff.role.title != 'Директор'%}
                                 <label class="control-label" for="useradminform-password2">Повторить пароль</label>
                                 {{ form.password2 }}
                                 <div class="help-block"></div>
