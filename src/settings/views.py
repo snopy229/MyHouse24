@@ -440,17 +440,17 @@ class TariffUpdateView(UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.request.POST:
-            context["formset"] = ServiceCostFormSet(
+            context["services"] = ServiceCostFormSet(
                 self.request.POST, instance=self.object
             )
         else:
-            context["formset"] = ServiceCostFormSet(instance=self.object)
+            context["services"] = ServiceCostFormSet(instance=self.object)
         context["title"] = "Редактирование тарифа"
         return context
 
     def form_valid(self, form):
         context = self.get_context_data()
-        formset = context["formset"]
+        formset = context["services"]
 
         with transaction.atomic():
             if formset.is_valid():
