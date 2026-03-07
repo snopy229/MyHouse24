@@ -237,16 +237,18 @@ class UserAjaxTable(AjaxDatatableView):
             "</div>",
             send_invite,
             edit_url,
-            delete_url,
+
         )
         else:
             row["actions"] = format_html(
             '<div class="btn-group btn-group-sm">'
             '<a href="{}" class="btn btn-default"><i class="fa fa-repeat"></i></a>'
             '<a href="{}" class="btn btn-default"><i class="fa fa-pencil"></i></a>'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-trash"></i></a>'
             "</div>",
             send_invite,
             edit_url,
+            delete_url,
         )
 
         status_text = obj.get_status_display()
