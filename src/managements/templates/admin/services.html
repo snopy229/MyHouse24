@@ -168,128 +168,150 @@
 </section>
 <script src="https://cdn.ckeditor.com/4.16.0/standard/ckeditor.js"></script>
 <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const ckeditorConfig = {
-                toolbar: [
-                    ['Format'],
-                    ['Bold', 'Italic', 'Underline', 'Strike'],
-                    ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent']
-                ],
-                height: 150,
-                width: '100%',
-                resize_enabled: false,
-                removePlugins: 'elementspath',
-                language: 'ru',
-                versionCheck: false
-            };
+    document.addEventListener('DOMContentLoaded', function () {
+        const ckeditorConfig = {
+            toolbar: [
+                ['Format'],
+                ['Bold', 'Italic', 'Underline', 'Strike'],
+                ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent']
+            ],
+            height: 150,
+            width: '100%',
+            resize_enabled: false,
+            removePlugins: 'elementspath',
+            language: 'ru',
+            versionCheck: false
+        };
 
-            function initCKEditor(elementId) {
-                if (document.getElementById(elementId) && !CKEDITOR.instances[elementId]) {
-                    CKEDITOR.replace(elementId, ckeditorConfig);
-                }
+        function initCKEditor(elementId) {
+            if (document.getElementById(elementId) && !CKEDITOR.instances[elementId]) {
+                CKEDITOR.replace(elementId, ckeditorConfig);
             }
+        }
 
-            function updateServiceNumbers() {
-                const services = container.querySelectorAll('.form-websiteservice');
-                services.forEach((service, index) => {
-                    const header = service.querySelector('h4');
-                    if (header) {
-                        const firstTextNode = Array.from(header.childNodes).find(node => node.nodeType === 3);
-                        if (firstTextNode) {
-                            firstTextNode.textContent = `Услуга ${index + 1} `;
-                        }
-                    }
-                });
-            }
+        function initImagePreview(serviceBlock) {
+            const fileInput = serviceBlock.querySelector('input[type="file"]');
+            const img = serviceBlock.querySelector('img.img-responsive');
+            if (!fileInput || !img) return;
 
-            document.querySelectorAll('textarea[id*="-description"]').forEach(textarea => {
-                initCKEditor(textarea.id);
+            fileInput.addEventListener('change', function () {
+                const file = this.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
             });
+        }
 
-            const addFormBtn = document.getElementById('add-form');
-            const totalForms = document.querySelector('input[name$="-TOTAL_FORMS"]');
-            const container = document.getElementById('form-websiteservice-rows');
-            const emptyFormHtml = document.getElementById('empty-form').innerHTML;
+        function updateServiceNumbers() {
+            const services = container.querySelectorAll('.form-websiteservice');
+            services.forEach((service, index) => {
+                const header = service.querySelector('h4');
+                if (header) {
+                    const firstTextNode = Array.from(header.childNodes).find(node => node.nodeType === 3);
+                    if (firstTextNode) {
+                        firstTextNode.textContent = `Услуга ${index + 1} `;
+                    }
+                }
+            });
+        }
 
-            if (addFormBtn) {
-                addFormBtn.addEventListener('click', function () {
-                    let formNum = parseInt(totalForms.value);
-                    let newFormHtml = emptyFormHtml.replace(/__prefix__/g, formNum);
+        document.querySelectorAll('textarea[id*="-description"]').forEach(textarea => {
+            initCKEditor(textarea.id);
+        });
 
-                    let wrapper = document.createElement('div');
-                    wrapper.innerHTML = newFormHtml.trim();
-                    let newNode = wrapper.firstChild;
+        document.querySelectorAll('.form-websiteservice').forEach(block => {
+            initImagePreview(block);
+        });
 
-                    container.appendChild(newNode);
-                    totalForms.value = formNum + 1;
+        const addFormBtn = document.getElementById('add-form');
+        const totalForms = document.querySelector('input[name$="-TOTAL_FORMS"]');
+        const container = document.getElementById('form-websiteservice-rows');
+        const emptyFormHtml = document.getElementById('empty-form').innerHTML;
+
+        if (addFormBtn) {
+            addFormBtn.addEventListener('click', function () {
+                let formNum = parseInt(totalForms.value);
+                let newFormHtml = emptyFormHtml.replace(/__prefix__/g, formNum);
+
+                let wrapper = document.createElement('div');
+                wrapper.innerHTML = newFormHtml.trim();
+                let newNode = wrapper.firstChild;
+
+                container.appendChild(newNode);
+                totalForms.value = formNum + 1;
+
+                updateServiceNumbers();
+
+                const newTextarea = newNode.querySelector('textarea');
+                if (newTextarea) {
+                    initCKEditor(newTextarea.id);
+                }
+
+                initImagePreview(newNode);
+            });
+        }
+
+        container.addEventListener('click', function (e) {
+            if (e.target.closest('.delete-new-service-btn')) {
+                e.preventDefault();
+                const btn = e.target.closest('.delete-new-service-btn');
+
+                if (confirm('Удалить эту услугу?')) {
+                    const serviceBlock = btn.closest('.form-websiteservice');
+                    const textarea = serviceBlock.querySelector('textarea');
+
+                    if (textarea && CKEDITOR.instances[textarea.id]) {
+                        CKEDITOR.instances[textarea.id].destroy();
+                    }
+
+                    serviceBlock.remove();
+                    totalForms.value = parseInt(totalForms.value) - 1;
 
                     updateServiceNumbers();
-
-                    const newTextarea = newNode.querySelector('textarea');
-                    if (newTextarea) {
-                        initCKEditor(newTextarea.id);
-                    }
-                });
+                }
             }
 
-            container.addEventListener('click', function (e) {
-                if (e.target.closest('.delete-new-service-btn')) {
-                    e.preventDefault();
-                    const btn = e.target.closest('.delete-new-service-btn');
+            if (e.target.closest('.delete-service-btn')) {
+                e.preventDefault();
+                const btn = e.target.closest('.delete-service-btn');
+                const url = btn.dataset.url;
 
-                    if (confirm('Удалить эту услугу?')) {
-                        const serviceBlock = btn.closest('.form-websiteservice');
-                        const textarea = serviceBlock.querySelector('textarea');
-
-                        if (textarea && CKEDITOR.instances[textarea.id]) {
-                            CKEDITOR.instances[textarea.id].destroy();
+                if (confirm('Удалить эту услугу?')) {
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                            'Content-Type': 'application/json'
                         }
+                    })
+                        .then(res => {
+                            if (res.ok) return res.json();
+                            throw new Error('Ошибка удаления');
+                        })
+                        .then(data => {
+                            if (data.success) {
+                                const serviceBlock = btn.closest('.form-websiteservice');
+                                const textarea = serviceBlock.querySelector('textarea');
 
-                        serviceBlock.remove();
-                        totalForms.value = parseInt(totalForms.value) - 1;
+                                if (textarea && CKEDITOR.instances[textarea.id]) {
+                                    CKEDITOR.instances[textarea.id].destroy();
+                                }
 
-                        updateServiceNumbers();
-                    }
-                }
+                                serviceBlock.remove();
+                                totalForms.value = parseInt(totalForms.value) - 1;
 
-                if (e.target.closest('.delete-service-btn')) {
-                    e.preventDefault();
-                    const btn = e.target.closest('.delete-service-btn');
-                    const url = btn.dataset.url;
-
-                    if (confirm('Удалить эту услугу?')) {
-                        fetch(url, {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                                'Content-Type': 'application/json'
+                                updateServiceNumbers();
                             }
                         })
-                            .then(res => {
-                                if (res.ok) return res.json();
-                                throw new Error('Ошибка удаления');
-                            })
-                            .then(data => {
-                                if (data.success) {
-                                    const serviceBlock = btn.closest('.form-websiteservice');
-                                    const textarea = serviceBlock.querySelector('textarea');
-
-                                    if (textarea && CKEDITOR.instances[textarea.id]) {
-                                        CKEDITOR.instances[textarea.id].destroy();
-                                    }
-
-                                    serviceBlock.remove();
-                                    totalForms.value = parseInt(totalForms.value) - 1;
-
-                                    updateServiceNumbers();
-                                }
-                            })
-                            .catch(error => {
-                                alert('Ошибка при удалении: ' + error.message);
-                            });
-                    }
+                        .catch(error => {
+                            alert('Ошибка при удалении: ' + error.message);
+                        });
                 }
-            });
+            }
         });
+    });
 </script>
 {% endblock content %}
