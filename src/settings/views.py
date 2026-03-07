@@ -228,7 +228,7 @@ class UserAjaxTable(AjaxDatatableView):
         edit_url = reverse("settings:edit-user", args=[obj.id])
         delete_url = reverse("settings:delete-user", args=[obj.id])
 
-        if obj.role.title != 'Директор' and request.user.role.title != 'Директор':
+        if obj.role.title != 'Директор' and self.request.user.role.title != 'Директор':
             row["actions"] = format_html(
             '<div class="btn-group btn-group-sm">'
             '<a href="{}" class="btn btn-default"><i class="fa fa-repeat"></i></a>'
