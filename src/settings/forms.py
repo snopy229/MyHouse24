@@ -175,7 +175,6 @@ class ServicesCostForm(forms.ModelForm):
             except Exception:
                 pass
 
-
 ServiceCostFormSet = inlineformset_factory(
     Tariffs,
     ServicesCost,

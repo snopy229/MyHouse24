@@ -135,35 +135,30 @@
                     <div class="header-title edit-admin-panel">Панель администратора</div>
                     <div class="navbar-custom-menu">
                         <ul class="nav navbar-nav">
+                            {% if new_owners %}
                             <li class="dropdown notifications-menu">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                                     <i class="fa fa-child fa-lg"></i>
                                     <span class="label label-warning">{{ new_owners.count|default:0 }}</span>
                                 </a>
                                 <ul class="dropdown-menu">
-                                    {% if new_owners %}
                                         <li class="header">Новых пользователей: {{ new_owners.count|default:0 }}</li>
-                                    {% else %}
-                                        <li class="header">Нет новых пользователей</li>
-                                    {% endif %}
                                     <li>
                                         <ul class="menu">
-                                            {% if new_owners %}
                                                 {% for owner in new_owners %}
                                                     <li>
                                                         <a href="{% url 'admin:detail-owner' owner.id %}">{{ owner.email }}</a>
                                                     </li>
                                                 {% endfor %}
-                                            {% else %}
                                                 <li>
                                                     <a href="{% url 'admin:owner-list' %}">Перейти в раздел
                                                     пользователей</a>
                                                 </li>
-                                            {% endif %}
                                         </ul>
                                     </li>
                                 </ul>
                             </li>
+                            {% endif %}
                             <li class="dropdown user user-menu">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                                     <i class="fa fa-user-circle"></i>

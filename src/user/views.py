@@ -111,6 +111,12 @@ class LogInStaff(LoginView):
         return reverse_lazy("admin:statistic")
 
     def form_valid(self, form):
+        user = form.get_user()
+
+        if not user.status == "active":
+            url = reverse("user:authentification-error") + "?error=no_active"
+            return redirect(url)
+
         response = super().form_valid(form)
 
         remember_me = form.cleaned_data.get("remember_me")

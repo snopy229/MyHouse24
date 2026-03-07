@@ -172,66 +172,82 @@
         </div>
     </template>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const container = document.getElementById('form-tariffservice-rows');
-            const addButton = document.getElementById('add-service-btn');
-            const totalFormsInput = document.querySelector('input[name="services-TOTAL_FORMS"]');
-            const template = document.getElementById('service-form-template');
+    document.addEventListener('DOMContentLoaded', function () {
+        const container = document.getElementById('form-tariffservice-rows');
+        const addButton = document.getElementById('add-service-btn');
+        const totalFormsInput = document.querySelector('input[name="services-TOTAL_FORMS"]');
+        const template = document.getElementById('service-form-template');
 
-            function updateUnitField(selectElement) {
-                const selectedOption = selectElement.options[selectElement.selectedIndex];
-                const unitText = selectedOption.getAttribute('data-unit') || '';
-                const row = selectElement.closest('.service-form-row');
-                const unitField = row.querySelector('.unit-field');
-                if (unitField) {
-                    unitField.value = unitText;
-                }
-            }
-
-            container.addEventListener('change', function (e) {
-                if (e.target.classList.contains('service-select') || e.target.name && e.target.name.includes('-service')) {
-                    updateUnitField(e.target);
-                }
+        function updateServiceOptions() {
+            const allSelects = container.querySelectorAll('select[name*="-service"]');
+            const selectedValues = [];
+            allSelects.forEach(select => {
+                if (select.value) selectedValues.push(select.value);
             });
-
-            const existingSelects = container.querySelectorAll('select[name*="-service"]');
-            existingSelects.forEach(select => {
-                updateUnitField(select);
-            });
-
-            addButton.addEventListener('click', function () {
-                const formCount = parseInt(totalFormsInput.value);
-
-                const newForm = template.content.cloneNode(true);
-                const formDiv = newForm.querySelector('.service-form-row');
-
-                formDiv.innerHTML = formDiv.innerHTML.replace(/__prefix__/g, formCount);
-
-                container.appendChild(newForm);
-                totalFormsInput.value = formCount + 1;
-            });
-
-            container.addEventListener('click', function (e) {
-                if (e.target.classList.contains('remove-service-btn') || e.target.closest('.remove-service-btn')) {
-                    const formRow = e.target.closest('.service-form-row');
-                    if (formRow) {
-                        formRow.remove();
-
-                        const currentCount = parseInt(totalFormsInput.value);
-                        totalFormsInput.value = currentCount - 1;
-
-                        reindexForms();
+            allSelects.forEach(select => {
+                const currentValue = select.value;
+                Array.from(select.options).forEach(option => {
+                    if (option.value && option.value !== currentValue) {
+                        option.disabled = selectedValues.includes(option.value);
                     }
-                }
-            });
-
-            function reindexForms() {
-                const forms = container.querySelectorAll('.service-form-row');
-                forms.forEach((form, index) => {
-                    const formRegex = RegExp(`services-(\\d+)-`, 'g');
-                    form.innerHTML = form.innerHTML.replace(formRegex, `services-${index}-`);
                 });
+            });
+        }
+
+        function updateUnitField(selectElement) {
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            const unitText = selectedOption.getAttribute('data-unit') || '';
+            const row = selectElement.closest('.service-form-row');
+            const unitField = row.querySelector('.unit-field');
+            if (unitField) {
+                unitField.value = unitText;
+            }
+        }
+
+        container.addEventListener('change', function (e) {
+            if (e.target.classList.contains('service-select') || e.target.name && e.target.name.includes('-service')) {
+                updateUnitField(e.target);
+                updateServiceOptions();
             }
         });
-    </script>
+
+        const existingSelects = container.querySelectorAll('select[name*="-service"]');
+        existingSelects.forEach(select => {
+            updateUnitField(select);
+        });
+
+        updateServiceOptions();
+
+        addButton.addEventListener('click', function () {
+            const formCount = parseInt(totalFormsInput.value);
+            const newForm = template.content.cloneNode(true);
+            const formDiv = newForm.querySelector('.service-form-row');
+            formDiv.innerHTML = formDiv.innerHTML.replace(/__prefix__/g, formCount);
+            container.appendChild(newForm);
+            totalFormsInput.value = formCount + 1;
+            updateServiceOptions();
+        });
+
+        container.addEventListener('click', function (e) {
+            if (e.target.classList.contains('remove-service-btn') || e.target.closest('.remove-service-btn')) {
+                const formRow = e.target.closest('.service-form-row');
+                if (formRow) {
+                    formRow.remove();
+                    const currentCount = parseInt(totalFormsInput.value);
+                    totalFormsInput.value = currentCount - 1;
+                    reindexForms();
+                    updateServiceOptions();
+                }
+            }
+        });
+
+        function reindexForms() {
+            const forms = container.querySelectorAll('.service-form-row');
+            forms.forEach((form, index) => {
+                const formRegex = RegExp(`services-(\\d+)-`, 'g');
+                form.innerHTML = form.innerHTML.replace(formRegex, `services-${index}-`);
+            });
+        }
+    });
+</script>
 {% endblock content %}

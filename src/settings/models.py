@@ -15,7 +15,7 @@ class UnitsOfMeasurement(models.Model):
 class Service(models.Model):
     title = models.CharField("Название", max_length=200)
     is_showing = models.BooleanField("Показывать", default=False)
-    units_of_measure = models.ForeignKey(UnitsOfMeasurement, on_delete=models.CASCADE)
+    units_of_measure = models.ForeignKey(UnitsOfMeasurement, on_delete=models.PROTECT)
 
     def __str__(self):
         return self.title
@@ -45,7 +45,9 @@ class Tariffs(models.Model):
 
 class ServicesCost(models.Model):
     tariff = models.ForeignKey(
-        Tariffs, on_delete=models.CASCADE, related_name="services"
+        Tariffs, on_delete=models.PROTECT, related_name="services"
     )
-    service = models.ForeignKey("Service", on_delete=models.CASCADE)
+    service = models.ForeignKey("Service", on_delete=models.PROTECT)
     cost = models.DecimalField(max_digits=10, decimal_places=2)
+    class Meta:
+        unique_together = ("tariff", "service")

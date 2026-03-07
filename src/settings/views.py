@@ -1,7 +1,7 @@
 from ajax_datatable import AjaxDatatableView
 from django.db import transaction
 from django.forms import inlineformset_factory
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, request
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.utils.html import format_html
@@ -152,7 +152,7 @@ class RequisiteEdit(UpdateView):
     model = Requisite
     form_class = RequisiteForm
     template_name = "requisite.html"
-    success_url = reverse_lazy("admin:settings")
+    success_url = reverse_lazy("admin:statistic")
 
     def get_object(self, **kwargs):
         obj = Requisite.objects.first()
@@ -226,7 +226,8 @@ class UserAjaxTable(AjaxDatatableView):
 
         send_invite = reverse("settings:send-invite", args=[obj.id])
         edit_url = reverse("settings:edit-user", args=[obj.id])
-        delete_url = reverse("settings:delete-user", args=[obj.id])
+        if obj.role.tiile != 'Директор':
+            delete_url = reverse("settings:delete-user", args=[obj.id])
 
         row["actions"] = format_html(
             '<div class="btn-group btn-group-sm">'
@@ -422,6 +423,7 @@ class TariffUpdateView(UpdateView):
     model = Tariffs
     form_class = TariffsForm
     template_name = "tariff.html"
+    context_object_name = 'tariff'
     success_url = reverse_lazy("tariff_list")
 
     def get_context_data(self, **kwargs):
