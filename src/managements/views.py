@@ -285,13 +285,13 @@ class AboutUsPage(DetailView):
 
 class DeleteImageView(RedirectMixin, PermissionRequiredMixin, DeleteView):
     model = Images
-    success_url = reverse_lazy("managements:about_us")
+    success_url = reverse_lazy("managements:edit-about-us")
     permission_required = "role.has_site_management"
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
         self.object.delete()
-        return redirect("managements:about_us")
+        return redirect("managements:edit-about-us")
 
 
 class DeleteDocument(RedirectMixin, PermissionRequiredMixin, DeleteView):
