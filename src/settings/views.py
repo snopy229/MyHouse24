@@ -226,10 +226,10 @@ class UserAjaxTable(AjaxDatatableView):
 
         send_invite = reverse("settings:send-invite", args=[obj.id])
         edit_url = reverse("settings:edit-user", args=[obj.id])
-        if obj.role.tiile != 'Директор':
-            delete_url = reverse("settings:delete-user", args=[obj.id])
+        delete_url = reverse("settings:delete-user", args=[obj.id])
 
-        row["actions"] = format_html(
+        if obj.role.tiile != 'Директор' and request.user.role.title != 'Директор':
+            row["actions"] = format_html(
             '<div class="btn-group btn-group-sm">'
             '<a href="{}" class="btn btn-default"><i class="fa fa-repeat"></i></a>'
             '<a href="{}" class="btn btn-default"><i class="fa fa-pencil"></i></a>'
@@ -238,6 +238,15 @@ class UserAjaxTable(AjaxDatatableView):
             send_invite,
             edit_url,
             delete_url,
+        )
+        else:
+            row["actions"] = format_html(
+            '<div class="btn-group btn-group-sm">'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-repeat"></i></a>'
+            '<a href="{}" class="btn btn-default"><i class="fa fa-pencil"></i></a>'
+            "</div>",
+            send_invite,
+            edit_url,
         )
 
         status_text = obj.get_status_display()
