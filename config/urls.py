@@ -26,10 +26,10 @@ urlpatterns = [
     path("user/", include("src.user.urls")),
     path("managements/", include("src.managements.urls")),
     path("admin/settings/", include("src.settings.urls")),
-    path("admin/", include("src.admin.urls")),
+    path("admin/", include("src.admin.urls")),    
+    path("owner/", include("src.owner.urls")),
     path("api/", api.urls),
     path("select2/", include("django_select2.urls")),
-    path("owner/", include("src.owner.urls")),
     path("", MainPageDetail.as_view(), name="home"),
     path("hijack/", include("hijack.urls")),
 ]
